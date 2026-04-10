@@ -1,40 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { CategorySidebar } from './CategorySidebar';
+import { getDocument } from '@imexmercado/firebase';
 
-const slides = [
+// Default fallback slides if Nothing is in Firestore
+const fallbackSlides = [
   {
-    id: 1,
+    id: '1',
     image: 'https://placehold.co/800x500/662288/ffffff?text=Hi-Tech',
     title: 'OFFRE DE LANCEMENT',
     subtitle: 'Jusqu\'à 20% de réduction sur Téléphones & Hi-Tech',
     ctaText: 'VOIR LES PRODUITS',
-  },
-  {
-    id: 2,
-    image: 'https://placehold.co/800x500/0033cc/ffffff?text=Maison',
-    title: 'AMÉNAGEZ VOTRE INTÉRIEUR',
-    subtitle: 'Découvrez notre nouvelle collection de Meubles design',
-    ctaText: 'VOIR LA COLLECTION',
-  },
-  {
-    id: 3,
-    image: 'https://placehold.co/800x500/009933/ffffff?text=Jardin',
-    title: 'PRÉPAREZ L\'ÉTÉ',
-    subtitle: 'Promotions exceptionnelles sur l\'univers BBQ et Piscines',
-    ctaText: 'S\'ÉQUIPER MAINTENANT',
   }
 ];
 
 export function HeroSlider({ isSidebarOpen = true }: { isSidebarOpen?: boolean }) {
   const [current, setCurrent] = useState(0);
+  const [slides, setSlides] = useState<any[]>(fallbackSlides);
 
   useEffect(() => {
+    async function fetchSlides() {
+      try {
+        const data = await getDocument('settings', 'homepage');
+        if (data && data.heroSlides && data.heroSlides.length > 0) {
+          setSlides(data.heroSlides.filter((s: any) => s.isActive !== false));
+        }
+      } catch (error) {
+        console.error("Error fetching hero slides:", error);
+      }
+    }
+    fetchSlides();
+  }, []);
+
+  useEffect(() => {
+    if (slides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrent((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides]);
 
   const nextSlide = () => setCurrent(current === slides.length - 1 ? 0 : current + 1);
   const prevSlide = () => setCurrent(current === 0 ? slides.length - 1 : current - 1);

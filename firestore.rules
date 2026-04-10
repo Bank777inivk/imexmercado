@@ -2,9 +2,27 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Profils utilisateurs : Lecture et écriture autorisées uniquement pour le propriétaire
+    // Helper pour vérifier si l'utilisateur est admin
+    function isAdmin() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Profils utilisateurs : Propriétaire ou Admin
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      
+      // Seul un Admin peut changer un rôle. Un utilisateur peut créer son profil mais sans rôle admin.
+      allow create: if request.auth != null && request.auth.uid == userId 
+        && (!request.resource.data.keys().hasAny(['role']) || request.resource.data.role != 'admin');
+        
+      // Un utilisateur peut modifier son profil mais pas son propre rôle.
+      allow update: if request.auth != null && (
+        isAdmin() || 
+        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
+      );
+      
+      allow delete: if isAdmin();
     }
     
     // Paniers : Lecture et écriture autorisées uniquement pour le propriétaire
@@ -12,10 +30,23 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Produits : Lecture publique, écriture autorisée temporairement pour le seeding
+    // Produits : Lecture publique, écriture Admin uniquement
     match /products/{productId} {
       allow read: if true;
-      allow write: if true; // REMARQUE : À remettre à 'false' une fois les produits chargés
+      allow write: if isAdmin();
+    }
+
+    // Paramètres (CMS) : Lecture publique, écriture Admin uniquement
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Commandes : Propriétaire ou Admin
+    match /orders/{orderId} {
+      allow read: if request.auth != null && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
     }
   }
 }

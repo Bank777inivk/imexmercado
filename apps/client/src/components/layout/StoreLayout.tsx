@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { PromoBar } from './PromoBar';
 import { TopBar } from './TopBar';
 import { Header } from './Header';
 import { NavBar } from './NavBar';
@@ -14,6 +15,7 @@ export function StoreLayout() {
   return (
     <div className="min-h-screen bg-bg flex flex-col font-sans">
       <div className="sticky top-0 z-50 shadow-md">
+        <PromoBar />
         <TopBar />
         <Header onMenuClick={() => setIsMobileDrawerOpen(true)} />
         <NavBar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />

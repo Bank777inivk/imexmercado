@@ -32,4 +32,12 @@ export const getDocument = async <T = any>(collectionName: string, id: string): 
   return null;
 };
 
-// ... add more helpers as needed
+export const deleteDocument = async (collectionName: string, id: string) => {
+  const docRef = doc(db, collectionName, id);
+  return await deleteDoc(docRef);
+};
+
+export const updateDocument = async (collectionName: string, id: string, data: any) => {
+  const docRef = doc(db, collectionName, id);
+  return await updateDoc(docRef, data);
+};
