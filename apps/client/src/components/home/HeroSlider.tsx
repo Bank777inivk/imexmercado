@@ -7,6 +7,7 @@ import { getDocument } from '@imexmercado/firebase';
 const fallbackSlides = [
   {
     id: '1',
+    videoUrl: 'https://archive.org/download/BigBuckBunny_124/Content/big_buck_bunny_720p_surround.mp4',
     image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&q=80&w=1200',
     title: 'OFFRE DE LANCEMENT',
     subtitle: 'Jusqu\'à 20% de réduction sur Téléphones & Hi-Tech',
@@ -80,12 +81,24 @@ export function HeroSlider({ isSidebarOpen = true }: { isSidebarOpen?: boolean }
                 style={{ transform: `translateX(-${current * 100}%)` }}
               >
                 {slides.map((slide) => (
-                  <div key={slide.id} className="min-w-full h-full relative">
-                    <img 
-                      src={slide.image} 
-                      alt={slide.title} 
-                      className="w-full h-full object-cover"
-                    />
+                  <div key={slide.id} className="min-w-full h-full relative bg-black">
+                    {slide.videoUrl ? (
+                      <video
+                        src={slide.videoUrl}
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        preload="auto"
+                      />
+                    ) : (
+                      <img 
+                        src={slide.image} 
+                        alt={slide.title} 
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                     {/* Dark gradient overlay for extreme text legibility on mobile */}
                     <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
                     <div className="absolute inset-0 flex flex-col justify-center items-start p-6 md:p-14 text-white max-w-sm md:max-w-lg">

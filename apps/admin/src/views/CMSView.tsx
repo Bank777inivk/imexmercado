@@ -12,7 +12,7 @@ export function CMSView() {
   const [settings, setSettings] = useState<any>({
     promoBar: { text: 'Offre spéciale de lancement ! -20% sur tout le site', color: '#CC0000', isActive: true },
     heroSlides: [
-      { id: '1', title: 'HI-TECH', subtitle: 'Le meilleur de la technologie', image: 'https://placehold.co/800x450', ctaText: 'VOIR PLUS', isActive: true }
+      { id: '1', title: 'HI-TECH', subtitle: 'Le meilleur de la technologie', image: 'https://placehold.co/800x450', videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-interior-of-a-modern-living-room-4417-large.mp4', ctaText: 'VOIR PLUS', isActive: true }
     ]
   });
 
@@ -20,7 +20,13 @@ export function CMSView() {
     async function fetchSettings() {
       try {
         const data = await getDocument('settings', 'homepage');
-        if (data) setSettings(data);
+        if (data) {
+          // Merge video demo if missing for the first slide to ensure the user sees the feature
+          if (data.heroSlides && data.heroSlides.length > 0 && (!data.heroSlides[0].videoUrl || data.heroSlides[0].videoUrl.includes('mixkit'))) {
+            data.heroSlides[0].videoUrl = 'https://archive.org/download/BigBuckBunny_124/Content/big_buck_bunny_720p_surround.mp4';
+          }
+          setSettings(data);
+        }
       } catch (error) {
         console.error("Error fetching homepage settings:", error);
       } finally {
@@ -49,6 +55,7 @@ export function CMSView() {
       title: 'NOUVEAU TITRE',
       subtitle: 'Nouveau sous-titre',
       image: 'https://placehold.co/800x450',
+      videoUrl: '',
       ctaText: 'EN SAVOIR PLUS',
       isActive: true
     };
@@ -200,6 +207,13 @@ export function CMSView() {
                       className="w-full bg-gray-50 border-none rounded-xl py-2 px-3 text-[10px] font-medium outline-none"
                       value={slide.image}
                       onChange={e => updateSlide(slide.id, 'image', e.target.value)}
+                    />
+                    <input 
+                      type="text"
+                      placeholder="URL Vidéo (Direct .mp4)"
+                      className="w-full bg-blue-50/50 border-none rounded-xl py-2 px-3 text-[10px] font-medium outline-none text-blue-600 placeholder:text-blue-300"
+                      value={slide.videoUrl || ''}
+                      onChange={e => updateSlide(slide.id, 'videoUrl', e.target.value)}
                     />
                   </div>
 
