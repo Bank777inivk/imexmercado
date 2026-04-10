@@ -21,7 +21,7 @@ export function StoreLayout() {
         <NavBar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
       </div>
       
-      <main className="flex-grow pt-[110px] md:pt-[160px] lg:pt-[196px]">
+      <main className="flex-grow pt-[185px] md:pt-[160px] lg:pt-[196px]">
         <Outlet context={{ isSidebarOpen }} />
       </main>
 
