@@ -1,0 +1,20 @@
+{
+  "header": {
+    "search_placeholder": "Pesquisar produtos...",
+    "my_account": "A minha conta",
+    "cart": "Carrinho"
+  },
+  "nav": {
+    "phones": "Telemóveis & Hi-Tech",
+    "home": "Casa",
+    "furniture": "Móveis",
+    "diy": "Bricolage",
+    "bbq": "Churrasco",
+    "swimming": "Piscinas"
+  },
+  "home": {
+    "flash_sales": "Ofertas do dia",
+    "new_arrivals": "Novidades",
+    "see_all": "Ver tudo"
+  }
+}

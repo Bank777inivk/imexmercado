@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Profils utilisateurs : Lecture et écriture autorisées uniquement pour le propriétaire
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Paniers : Lecture et écriture autorisées uniquement pour le propriétaire
+    match /carts/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Produits : Lecture publique, écriture autorisée temporairement pour le seeding
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true; // REMARQUE : À remettre à 'false' une fois les produits chargés
+    }
+  }
+}
