@@ -98,7 +98,7 @@ export function CMSView() {
         <div className="lg:col-span-1 space-y-8">
           
           {/* Promo Bar Settings */}
-          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+          <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm space-y-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-red-50 text-red-500 rounded-xl">
                 <Megaphone size={20} weight="fill" />
@@ -173,7 +173,7 @@ export function CMSView() {
 
           <div className="space-y-4">
             {settings.heroSlides.map((slide: any, index: number) => (
-              <div key={slide.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6 group">
+              <div key={slide.id} className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm space-y-6 group">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Slide #{index + 1}</span>
                   <button 

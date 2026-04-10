@@ -50,7 +50,7 @@ export function ProductsView() {
   );
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8">
       
       {/* Header Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -67,7 +67,7 @@ export function ProductsView() {
           </button>
           <button 
             onClick={() => navigate('/produits/nouveau')}
-            className="flex items-center justify-center gap-2 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-8 py-4 rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-transform"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-8 py-4 rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-transform"
           >
             <Plus size={18} weight="bold" />
             Ajouter un produit
@@ -81,56 +81,56 @@ export function ProductsView() {
           <MagnifyingGlass size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input 
             type="text" 
-            placeholder="Rechercher un produit (nom, catégorie, marque)..." 
+            placeholder="Rechercher un produit..." 
             className="w-full bg-gray-50 border-none rounded-2xl py-4 pl-12 pr-6 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <select className="flex-1 md:w-48 bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold uppercase tracking-widest text-gray-500 outline-none">
+        <div className="grid grid-cols-2 md:flex items-center gap-2 w-full md:w-auto">
+          <select className="bg-gray-50 border-none rounded-2xl py-4 px-3 md:px-6 text-[10px] font-black uppercase tracking-widest text-gray-500 outline-none w-full md:w-48 appearance-none">
             <option>Toutes les Catégories</option>
           </select>
-          <select className="flex-1 md:w-48 bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold uppercase tracking-widest text-gray-500 outline-none">
+          <select className="bg-gray-50 border-none rounded-2xl py-4 px-3 md:px-6 text-[10px] font-black uppercase tracking-widest text-gray-500 outline-none w-full md:w-48 appearance-none">
             <option>Tous les Stocks</option>
             <option>Rupture</option>
           </select>
         </div>
       </div>
 
-      {/* Products Table */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Produit</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">Catégorie</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">Prix</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">Stock</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {loading && products.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-8 py-20 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-                      <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Chargement des produits...</p>
-                    </div>
-                  </td>
+      {/* Unified Handling of Loading & Empty States */}
+      {(loading && products.length === 0) || filteredProducts.length === 0 ? (
+        <div className="bg-white rounded-[2.5rem] p-10 md:p-20 text-center border border-gray-200 shadow-sm animate-in fade-in zoom-in-95 duration-500">
+          {loading && products.length === 0 ? (
+            <div className="flex flex-col items-center">
+              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Chargement du catalogue...</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center">
+              <Package size={48} className="text-gray-200 mb-4" weight="thin" />
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Aucun produit trouvé</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-transparent md:bg-white md:rounded-[2.5rem] md:border md:border-gray-200 md:shadow-sm overflow-hidden">
+          
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Produit</th>
+                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">Catégorie</th>
+                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">Prix</th>
+                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">Stock</th>
+                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
                 </tr>
-              ) : filteredProducts.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-8 py-20 text-center">
-                    <Package size={48} className="mx-auto text-gray-200 mb-4" weight="thin" />
-                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Aucun produit trouvé</p>
-                  </td>
-                </tr>
-              ) : (
-                filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filteredProducts.map((product) => (
+                  <tr key={`table-${product.id}`} className="hover:bg-gray-50/50 transition-colors group">
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
@@ -174,29 +174,70 @@ export function ProductsView() {
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Pagination */}
-        <div className="p-8 bg-gray-50/30 border-t border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Affichage de 1-{filteredProducts.length} sur {products.length} produits</p>
-          <div className="flex items-center gap-2">
-            <button className="p-3 text-gray-400 hover:text-gray-900 transition-colors disabled:opacity-30" disabled>
-              <CaretLeft size={20} weight="bold" />
-            </button>
-            <div className="flex items-center gap-1">
-              <button className="w-10 h-10 rounded-xl text-xs font-black bg-primary text-white shadow-lg shadow-primary/20">1</button>
-            </div>
-            <button className="p-3 text-gray-400 hover:text-gray-900 transition-colors" disabled>
-              <CaretRight size={20} weight="bold" />
-            </button>
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {filteredProducts.map((product) => (
+              <div key={`card-${product.id}`} className="bg-white p-6 rounded-[2rem] border border-gray-200 shadow-sm space-y-4 active:scale-[0.98] transition-all animate-in slide-in-from-right-4 duration-500">
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shrink-0">
+                    <img src={product.image} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="min-w-0 flex-1 text-left">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest truncate">{product.category}</span>
+                      <div className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
+                    </div>
+                    <p className="text-sm font-black text-gray-900 mb-1 leading-tight">{product.name}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex flex-col">
+                        <p className="text-base font-black text-primary">{product.price.toFixed(2)}€</p>
+                        {product.oldPrice && <p className="text-[10px] text-gray-400 line-through font-bold">{product.oldPrice}€</p>}
+                      </div>
+                      <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-3 py-1 rounded-lg">Stock: {product.stock}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-50">
+                  <button 
+                    onClick={() => navigate(`/produits/modifier/${product.id}`)}
+                    className="flex-1 bg-gray-50 text-gray-900 text-[10px] font-black uppercase tracking-widest py-3.5 rounded-xl border border-gray-100 flex items-center justify-center gap-2 active:bg-gray-100"
+                  >
+                    <PencilSimple size={16} weight="bold" />
+                    Modifier
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(product.id, product.name)}
+                    className="aspect-square bg-red-50 text-red-500 p-3.5 rounded-xl border border-red-100 flex items-center justify-center active:bg-red-100"
+                  >
+                    <Trash size={18} weight="bold" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      )}
 
+      {/* Pagination */}
+      <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Affichage de 1-{filteredProducts.length} sur {products.length} produits</p>
+        <div className="flex items-center gap-2">
+          <button className="p-3 text-gray-400 hover:text-gray-900 transition-colors disabled:opacity-30" disabled>
+            <CaretLeft size={20} weight="bold" />
+          </button>
+          <div className="flex items-center gap-1">
+            <button className="w-10 h-10 rounded-xl text-[10px] font-black bg-primary text-white shadow-lg shadow-primary/20">1</button>
+          </div>
+          <button className="p-3 text-gray-400 hover:text-gray-900 transition-colors" disabled>
+            <CaretRight size={20} weight="bold" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -8,19 +8,19 @@ import { TrendUp, TrendDown, Package, ShoppingCart, Users, CurrencyEur, ArrowClo
 import { getCollection } from '@imexmercado/firebase';
 
 const StatCard = ({ label, value, diff, trend, icon: Icon, color }: any) => (
-  <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm transition-all hover:shadow-md">
-    <div className="flex items-start justify-between mb-4">
-      <div className={`p-3 rounded-2xl ${color} bg-opacity-10 text-opacity-100`}>
-        <Icon size={24} weight="bold" />
+  <div className="bg-white p-5 md:p-8 rounded-3xl border border-gray-200 shadow-sm transition-all hover:shadow-md animate-in zoom-in-95 duration-500">
+    <div className="flex items-start justify-between mb-3 md:mb-4">
+      <div className={`p-2.5 md:p-3 rounded-2xl ${color} bg-opacity-10 text-opacity-100`}>
+        <Icon size={22} weight="bold" className="md:size-24" />
       </div>
-      <div className={`flex items-center gap-1 font-bold text-xs ${trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-        {trend === 'up' ? <TrendUp size={14} /> : <TrendDown size={14} />}
+      <div className={`flex items-center gap-1 font-black text-[10px] md:text-xs ${trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+        {trend === 'up' ? <TrendUp size={14} weight="bold" /> : <TrendDown size={14} weight="bold" />}
         {diff}
       </div>
     </div>
-    <div>
-      <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{label}</p>
-      <p className="text-2xl md:text-3xl font-black text-gray-900">{value}</p>
+    <div className="text-left">
+      <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] text-gray-400 mb-0.5 md:mb-1">{label}</p>
+      <p className="text-xl md:text-3xl font-black text-gray-900 tracking-tight">{value}</p>
     </div>
   </div>
 );
@@ -91,7 +91,7 @@ export function DashboardView() {
   }, []);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
+    <div className="space-y-8">
       
       {/* Welcome Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -158,7 +158,7 @@ export function DashboardView() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             {/* Sales Chart */}
-            <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+            <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-gray-200 shadow-sm">
               <div className="flex items-center justify-between mb-10">
                 <div className="text-left">
                   <h3 className="font-black text-gray-900 uppercase tracking-tight">Analyse des Ventes</h3>
@@ -172,9 +172,9 @@ export function DashboardView() {
                 </div>
               </div>
               
-              <div className="h-[350px] w-full">
+              <div className="h-[250px] md:h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={stats.chartData}>
+                  <AreaChart data={stats.chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#ff5a1f" stopOpacity={0.1}/>
@@ -186,13 +186,14 @@ export function DashboardView() {
                       dataKey="date" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{fill: '#9CA3AF', fontSize: 10, fontWeight: 700}} 
+                      tick={{fill: '#9CA3AF', fontSize: 9, fontWeight: 700}} 
                       dy={10}
+                      interval={0}
                     />
                     <YAxis 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{fill: '#9CA3AF', fontSize: 10, fontWeight: 700}} 
+                      tick={{fill: '#9CA3AF', fontSize: 9, fontWeight: 700}} 
                       tickFormatter={(value) => `${value}€`}
                     />
                     <Tooltip 
@@ -200,7 +201,7 @@ export function DashboardView() {
                         borderRadius: '16px',
                         border: 'none',
                         boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                        fontSize: '12px',
+                        fontSize: '11px',
                         fontWeight: 'bold'
                       }}
                       cursor={{ stroke: '#ff5a1f', strokeWidth: 2, strokeDasharray: '5 5' }}
@@ -209,7 +210,7 @@ export function DashboardView() {
                       type="monotone" 
                       dataKey="sales" 
                       stroke="#ff5a1f" 
-                      strokeWidth={4}
+                      strokeWidth={3}
                       fillOpacity={1} 
                       fill="url(#colorSales)" 
                       animationDuration={1500}
@@ -220,26 +221,26 @@ export function DashboardView() {
             </div>
 
             {/* Recent Orders Side Card */}
-            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col">
-              <h3 className="font-black text-gray-900 uppercase tracking-tight mb-8 text-left">Dernières Commandes</h3>
-              <div className="space-y-6 flex-grow ">
+            <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col animate-in slide-in-from-right-4 duration-700">
+              <h3 className="font-black text-xs md:text-sm text-gray-900 uppercase tracking-widest mb-6 md:mb-8 text-left">Dernières Commandes</h3>
+              <div className="space-y-5 md:space-y-6 flex-grow ">
                 {stats.recentOrders.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-300">
-                    <ShoppingCart size={48} weight="thin" />
-                    <p className="text-[10px] font-black uppercase tracking-widest mt-4">Aucune commande</p>
+                  <div className="flex flex-col items-center justify-center h-full text-gray-300 py-10">
+                    <ShoppingCart size={40} weight="thin" />
+                    <p className="text-[9px] font-black uppercase tracking-widest mt-4">Aucune commande</p>
                   </div>
                 ) : (
                   stats.recentOrders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between group cursor-pointer">
+                    <div key={order.id} className="flex items-center justify-between group cursor-pointer border-b border-gray-50 pb-4 last:border-0 last:pb-0">
                       <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${
+                        <div className={`w-1.5 h-1.5 rounded-full ${
                           order.status === 'Processing' ? 'bg-orange-500' : 
                           order.status === 'Shipped' ? 'bg-blue-500' : 'bg-green-500'
                         }`} />
                         <div className="text-left">
-                          <p className="text-xs font-black text-gray-900 truncate max-w-[120px]">{order.userName}</p>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                            {order.id.substring(0,6)} • {new Date(order.createdAt).toLocaleDateString()}
+                          <p className="text-xs font-black text-gray-900 truncate max-w-[100px] md:max-w-[120px]">{order.userName}</p>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
+                            #{order.id.substring(0,6)}
                           </p>
                         </div>
                       </div>
@@ -248,7 +249,7 @@ export function DashboardView() {
                   ))
                 )}
               </div>
-              <button className="mt-8 w-full py-4 border-2 border-gray-50 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:border-primary hover:text-primary transition-all">
+              <button className="mt-8 w-full py-4 border-2 border-gray-50 rounded-2xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:border-primary hover:text-primary transition-all active:scale-95">
                 Voir tout
               </button>
             </div>

@@ -42,6 +42,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Catégories : Lecture publique, écriture Admin uniquement
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Commandes : Propriétaire ou Admin
     match /orders/{orderId} {
       allow read: if request.auth != null && 

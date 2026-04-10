@@ -28,7 +28,9 @@ export function AdminTopBar({ onMenuClick, title }: AdminTopBarProps) {
         >
           <List size={28} weight="bold" />
         </button>
-        <h1 className="text-lg md:text-xl font-black text-gray-900 tracking-tight">{title}</h1>
+        {/* Title removed to avoid repetition with page headers */}
+        <div className="flex-1" /> 
+
       </div>
 
       <div className="flex items-center gap-3 md:gap-6">
