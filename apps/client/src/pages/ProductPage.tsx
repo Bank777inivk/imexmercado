@@ -5,10 +5,10 @@ import {
   Truck, ArrowsCounterClockwise, ShieldCheck,
   Check, WarningCircle, Minus, Plus
 } from '@phosphor-icons/react';
-import { mockProducts, newProducts } from '../components/home/ProductCard';
 import { ProductCard as ProductCardComponent } from '../components/home/ProductCard';
 
-const allProducts = [...mockProducts, ...newProducts];
+// Temporary fallback for the product detail page demo
+const allProducts: any[] = []; 
 
 export function ProductPage() {
   const { productSlug } = useParams();

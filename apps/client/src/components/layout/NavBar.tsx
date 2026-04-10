@@ -15,7 +15,7 @@ const navItems = [
 export function NavBar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   return (
     <nav className="bg-[#222222] text-white hidden md:block border-t border-white/5">
-      <div className="container mx-auto px-4 h-12 flex items-center">
+      <div className="w-full px-2 md:px-4 lg:px-6 h-12 flex items-center">
         
         {/* ALL DEPARTMENTS button — orange, fixed width, same as logo column */}
         <button 

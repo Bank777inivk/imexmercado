@@ -1,6 +1,6 @@
-import React from 'react';
-import { Star } from '@phosphor-icons/react';
-import { newProducts, mockProducts } from './ProductCard';
+import React, { useState, useEffect } from 'react';
+import { Star, Quotes } from '@phosphor-icons/react';
+import { getCollection } from '@imexmercado/firebase';
 
 const adSlides = [
   {
@@ -72,7 +72,9 @@ export function VerticalAdBanner() {
 }
 
 
-export function LatestProductsSidebar() {
+export function LatestProductsSidebar({ products }: { products: any[] }) {
+  if (!products || products.length === 0) return null;
+
   return (
     <div className="bg-white p-5 border border-gray-200">
       <div className="flex items-center justify-between mb-5">
@@ -86,7 +88,7 @@ export function LatestProductsSidebar() {
       </div>
       
       <div className="space-y-6">
-        {newProducts.slice(0, 3).map((product: any) => (
+        {products.slice(0, 3).map((product: any) => (
           <div key={product.id} className="flex gap-3 group cursor-pointer">
             <div className="w-16 h-16 bg-gray-50 flex-shrink-0 flex items-center justify-center border border-gray-100 group-hover:border-primary transition-colors">
               <img src={product.image} alt={product.name} className="w-12 h-12 object-contain" />
@@ -116,7 +118,9 @@ export function LatestProductsSidebar() {
   );
 }
 
-export function PopularProductsSidebar() {
+export function PopularProductsSidebar({ products }: { products: any[] }) {
+  if (!products || products.length === 0) return null;
+
   return (
     <div className="bg-white p-5 border border-gray-200 mt-6">
       <div className="flex items-center justify-between mb-5">
@@ -130,7 +134,7 @@ export function PopularProductsSidebar() {
       </div>
       
       <div className="space-y-6">
-        {mockProducts.slice(4, 7).map((product: any) => (
+        {products.slice(0, 3).map((product: any) => (
           <div key={product.id} className="flex gap-3 group cursor-pointer">
             <div className="w-16 h-16 bg-gray-50 flex-shrink-0 flex items-center justify-center border border-gray-100 group-hover:border-secondary transition-colors">
               <img src={product.image} alt={product.name} className="w-12 h-12 object-contain" />
@@ -188,18 +192,105 @@ export function EngagementSidebar() {
   );
 }
 
+export function TestimonialSidebar() {
+  const [data, setData] = useState<any[]>([]);
+  const [index, setIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-export function HomeSidebar() {
+  useEffect(() => {
+    async function fetchTestimonials() {
+      try {
+        const docs = await getCollection('testimonials');
+        if (docs && docs.length > 0) {
+          setData(docs);
+          setIndex(Math.floor(Math.random() * docs.length));
+        }
+      } catch (err) {
+        console.error("Error fetching testimonials:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTestimonials();
+  }, []);
+
+  useEffect(() => {
+    if (data.length === 0) return;
+    const interval = setInterval(() => {
+      setIndex(Math.floor(Math.random() * data.length));
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [data]);
+
+  if (loading) return (
+    <div className="bg-[#111111] rounded-2xl p-8 flex flex-col items-center gap-4 mt-6">
+      <div className="w-16 h-16 rounded-full bg-white/5 animate-pulse" />
+      <div className="h-2 w-24 bg-white/5 animate-pulse rounded" />
+    </div>
+  );
+
+  if (data.length === 0) return null;
+
+  const testimonial = data[index];
+
   return (
-    <aside className="w-[250px] hidden lg:block flex-shrink-0">
-      <div className="sticky top-32">
-        <VerticalAdBanner />
-        <LatestProductsSidebar />
-        <PopularProductsSidebar />
-        <EngagementSidebar />
+    <div className="bg-[#111111] rounded-2xl overflow-hidden mt-6 mb-10 shadow-xl border border-white/5 group relative">
+      <div className="bg-primary/10 px-5 py-4 flex items-center justify-between border-b border-white/5">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+          <span className="text-[10px] font-black text-white uppercase tracking-widest">Feedback em Tempo Real</span>
+        </div>
+        <Quotes size={24} weight="fill" className="text-primary/40 group-hover:scale-110 transition-transform" />
       </div>
-    </aside>
+
+      <div className="p-6 flex flex-col items-center text-center">
+        <div className="relative mb-4">
+          <div className="w-20 h-20 rounded-full border-2 border-primary overflow-hidden shadow-lg shadow-primary/20">
+            <img 
+              src={testimonial.image} 
+              alt={testimonial.name} 
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full text-[10px] shadow-md">
+            ✅
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1 mb-3">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} size={14} weight="fill" className="text-yellow-400" />
+          ))}
+        </div>
+
+        <blockquote className="mt-2 group-hover:scale-[1.02] transition-transform duration-500">
+          <p className="text-sm font-medium text-gray-200 leading-relaxed italic">
+            "{testimonial.text}"
+          </p>
+        </blockquote>
+
+        <div className="mt-6 pt-4 border-t border-white/10 w-full">
+          <p className="text-xs font-black text-white uppercase">{testimonial.name}</p>
+          <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-tight">
+            {testimonial.location}, PT — <span className="text-primary/70">{testimonial.category}</span>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 
 
+export function HomeSidebar({ latestProducts, popularProducts }: { latestProducts: any[], popularProducts: any[] }) {
+  return (
+    <aside className="w-[250px] hidden lg:block flex-shrink-0">
+      <div className="sticky top-20">
+        <VerticalAdBanner />
+        <LatestProductsSidebar products={latestProducts} />
+        <PopularProductsSidebar products={popularProducts} />
+        <EngagementSidebar />
+        <TestimonialSidebar />
+      </div>
+    </aside>
+  );
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CaretLeft, CaretRight } from '@imexmercado/ui';
-import { ProductCard, mockProducts } from './ProductCard';
+import { ProductCard } from './ProductCard';
 
 function useCountdown(targetHours: number) {
   const [time, setTime] = useState({ h: targetHours, m: 59, s: 59 });
@@ -19,7 +19,12 @@ function useCountdown(targetHours: number) {
   return `${pad(time.h)}:${pad(time.m)}:${pad(time.s)}`;
 }
 
-export function FlashSaleSection() {
+interface FlashSaleSectionProps {
+  products: any[];
+  onViewDetails?: (product: any) => void;
+}
+
+export function FlashSaleSection({ products, onViewDetails }: FlashSaleSectionProps) {
   const countdown = useCountdown(5);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -41,12 +46,14 @@ export function FlashSaleSection() {
   };
 
   useEffect(() => {
-    if (isHovered) return;
+    if (isHovered || products.length === 0) return;
     const timer = setInterval(() => {
       scroll('right');
     }, 6000);
     return () => clearInterval(timer);
-  }, [isHovered]);
+  }, [isHovered, products.length]);
+
+  if (products.length === 0) return null;
 
   return (
     <div 
@@ -76,11 +83,11 @@ export function FlashSaleSection() {
       <div className="relative">
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scroll-smooth scrollbar-hide pb-2"
+          className="flex gap-2 md:gap-4 overflow-x-auto scroll-smooth scrollbar-hide pb-2"
         >
-          {mockProducts.map((product, idx) => (
-            <div key={product.id} className="min-w-[160px] max-w-[160px] md:min-w-[210px] md:max-w-[210px]">
-              <ProductCard product={product} index={idx} />
+          {products.map((product, idx) => (
+            <div key={product.id || idx} className="min-w-[160px] max-w-[160px] md:min-w-[210px] md:max-w-[210px]">
+              <ProductCard product={product} index={idx} onViewDetails={onViewDetails} />
             </div>
           ))}
         </div>

@@ -28,11 +28,13 @@ export function ShopPage() {
   const [searchParams] = useSearchParams();
   const promoFilter = searchParams.get('filter') === 'promo';
 
-  // Resolve actual category name from slug
+  // Resolve actual category name from slug or query param
   const activeCategory = useMemo(() => {
+    const queryCat = searchParams.get('category');
+    if (queryCat) return queryCat;
     if (!categorySlug) return null;
     return CATEGORY_MAP[categorySlug.toLowerCase()] || decodeURIComponent(categorySlug);
-  }, [categorySlug]);
+  }, [categorySlug, searchParams]);
 
   // State
   const [products, setProducts] = useState<any[]>([]);
@@ -49,6 +51,27 @@ export function ShopPage() {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(window.innerWidth < 1024 ? 12 : 20);
+
+  // Responsive page size listener
+  useEffect(() => {
+    const handleResize = () => setItemsPerPage(window.innerWidth < 1024 ? 12 : 20);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
+
+  // Reset to page 1 when any filter or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilters, sortValue, promoFilter, categorySlug, searchParams]);
 
   const handleViewDetails = (product: any) => {
     setSelectedProduct(product);
@@ -64,14 +87,14 @@ export function ShopPage() {
            (activeFilters.priceRange.max ? 1 : 0);
   }, [activeFilters]);
 
-  // Effect to update filters when slug changes
+  // Effect to update filters when slug or query param changes
   useEffect(() => {
     if (activeCategory) {
       setActiveFilters(prev => ({ ...prev, categories: [activeCategory] }));
-    } else if (!categorySlug) {
+    } else if (!categorySlug && !searchParams.get('category')) {
       setActiveFilters(prev => ({ ...prev, categories: [] }));
     }
-  }, [activeCategory, categorySlug]);
+  }, [activeCategory, categorySlug, searchParams]);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -90,7 +113,6 @@ export function ShopPage() {
           }
         }
         
-        // Search query filter (if any)
         const query = searchParams.get('search');
         if (query) {
            data = data.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
@@ -135,7 +157,7 @@ export function ShopPage() {
     let result = [...products];
 
     if (promoFilter) {
-      result = result.filter(p => p.badge);
+      result = result.filter(p => p.oldPrice && p.oldPrice > p.price);
     }
 
     if (activeFilters.categories.length > 0) {
@@ -146,10 +168,6 @@ export function ShopPage() {
       result = result.filter(p => activeFilters.brands.includes(p.brand));
     }
 
-    if (activeFilters.colors.length > 0) {
-      result = result.filter(p => activeFilters.colors.includes(p.color));
-    }
-
     if (activeFilters.priceRange.min) {
       result = result.filter(p => p.price >= Number(activeFilters.priceRange.min));
     }
@@ -158,7 +176,6 @@ export function ShopPage() {
       result = result.filter(p => p.price <= Number(activeFilters.priceRange.max));
     }
 
-    // Sort
     if (sortValue === 'price-asc') result.sort((a, b) => a.price - b.price);
     if (sortValue === 'price-desc') result.sort((a, b) => b.price - a.price);
     if (sortValue === 'rating') result.sort((a, b) => b.rating - a.rating);
@@ -166,6 +183,11 @@ export function ShopPage() {
 
     return result;
   }, [products, activeFilters, sortValue, promoFilter]);
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
 
   if (loading) {
     return (
@@ -182,10 +204,8 @@ export function ShopPage() {
     <div className="bg-bg min-h-screen">
       <div className="container mx-auto px-4 py-4 md:py-8">
         
-        {/* Layout: Sidebar + Main Content */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
-          {/* Left Sidebar (Hidden on Mobile) */}
           <div className="hidden lg:block w-64 flex-shrink-0">
              <FilterSidebar 
                activeFilters={activeFilters} 
@@ -193,7 +213,6 @@ export function ShopPage() {
              />
           </div>
 
-          {/* Main Column */}
           <div className="flex-1 min-w-0 w-full">
             
             <ShopHeader 
@@ -207,20 +226,67 @@ export function ShopPage() {
             />
 
             {filteredProducts.length > 0 ? (
-              <div className={`grid gap-3 md:gap-6 ${
-                viewMode === 'grid' 
-                  ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                  : 'grid-cols-1'
-              }`}>
-                {filteredProducts.map((product, idx) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    index={idx}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))}
-              </div>
+              <>
+                <div className={`grid gap-3 md:gap-6 ${
+                  viewMode === 'grid' 
+                    ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+                    : 'grid-cols-1'
+                }`}>
+                  {paginatedProducts.map((product, idx) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      index={idx}
+                      onViewDetails={handleViewDetails}
+                    />
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                      Affichage de {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredProducts.length)} sur {filteredProducts.length} produits
+                    </p>
+                    
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-xl text-gray-400 hover:text-primary disabled:opacity-30 transition-all border border-transparent hover:border-gray-100"
+                      >
+                        ←
+                      </button>
+                      
+                      <div className="flex items-center gap-1">
+                        {[...Array(totalPages)].map((_, i) => {
+                          const page = i + 1;
+                          if (totalPages > 5 && Math.abs(page - currentPage) > 2 && page !== 1 && page !== totalPages) {
+                             if (Math.abs(page - currentPage) === 3) return <span key={page} className="text-gray-300">...</span>;
+                             return null;
+                          }
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all ${currentPage === page ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-xl text-gray-400 hover:text-primary disabled:opacity-30 transition-all border border-transparent hover:border-gray-100"
+                      >
+                        →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="bg-white p-10 md:p-20 border border-gray-100 rounded-xl flex flex-col items-center justify-center text-center shadow-sm">
                 <div className="text-4xl md:text-6xl mb-6 opacity-20">🔎</div>
@@ -244,7 +310,6 @@ export function ShopPage() {
         </div>
       </div>
 
-      {/* Mobile Exclusives */}
       <MobileFilterDrawer
         isOpen={isMobileFilterOpen}
         onClose={() => setIsMobileFilterOpen(false)}
@@ -254,7 +319,6 @@ export function ShopPage() {
         onSortChange={setSortValue}
       />
 
-      {/* Product Detail Modal */}
       <ProductModal
         product={selectedProduct}
         isOpen={isModalOpen}

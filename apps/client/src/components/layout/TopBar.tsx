@@ -14,8 +14,8 @@ export function TopBar() {
   const [langOpen, setLangOpen] = useState(false);
 
   return (
-    <div className="bg-[#1A1A1A] border-b border-white/10 text-xs text-gray-300">
-      <div className="container mx-auto px-4 h-9 flex items-center justify-between gap-4">
+    <div className="bg-[#1A1A1A] border-b border-white/10 text-xs text-gray-300 overflow-hidden">
+      <div className="w-full px-4 md:px-4 lg:px-6 h-9 flex items-center justify-between gap-2 md:gap-4">
         
         {/* Left — Address */}
         <div className="hidden md:flex items-center gap-1">

@@ -30,7 +30,7 @@ const blocks = [
 export function PromotionalBlocks() {
   return (
     <div className="bg-bg-subtle pb-12">
-      <div className="container mx-auto px-4">
+      <div className="w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {blocks.map((block, idx) => (
             <div 

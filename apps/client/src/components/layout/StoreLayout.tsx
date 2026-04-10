@@ -13,15 +13,15 @@ export function StoreLayout() {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col font-sans">
-      <div className="sticky top-0 z-50 shadow-md">
+    <div className="min-h-screen bg-bg flex flex-col font-sans overflow-x-hidden relative">
+      <div className="fixed top-0 left-0 w-full z-50 shadow-md">
         <PromoBar />
         <TopBar />
         <Header onMenuClick={() => setIsMobileDrawerOpen(true)} />
         <NavBar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
       </div>
       
-      <main className="flex-grow">
+      <main className="flex-grow pt-[110px] md:pt-[160px] lg:pt-[196px]">
         <Outlet context={{ isSidebarOpen }} />
       </main>
 

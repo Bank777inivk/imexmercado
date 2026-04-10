@@ -13,7 +13,7 @@ interface BannerCTAProps {
 export function BannerCTA({ bgColor, title, subtitle, ctaText, imageSrc, imageAlt, reversed = false }: BannerCTAProps) {
   return (
     <section className={`${bgColor} py-0 overflow-hidden`}>
-      <div className={`container mx-auto flex flex-col ${reversed ? 'md:flex-row-reverse' : 'md:flex-row'} items-center`}>
+      <div className={`w-full flex flex-col ${reversed ? 'md:flex-row-reverse' : 'md:flex-row'} items-center`}>
         {/* Text */}
         <div className="flex-1 p-10 md:p-16 text-white">
           <p className="text-xs font-bold uppercase tracking-widest mb-3 opacity-80">{subtitle}</p>

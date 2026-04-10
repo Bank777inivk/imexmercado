@@ -4,8 +4,8 @@ import {
   CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area
 } from 'recharts';
-import { TrendUp, TrendDown, Package, ShoppingCart, Users, CurrencyEur, ArrowClockwise } from '@phosphor-icons/react';
-import { getCollection } from '@imexmercado/firebase';
+import { TrendUp, TrendDown, Package, ShoppingCart, Users, CurrencyEur, ArrowClockwise, Database } from '@phosphor-icons/react';
+import { getCollection, seedProducts } from '@imexmercado/firebase';
 
 const StatCard = ({ label, value, diff, trend, icon: Icon, color }: any) => (
   <div className="bg-white p-5 md:p-8 rounded-3xl border border-gray-200 shadow-sm transition-all hover:shadow-md animate-in zoom-in-95 duration-500">
@@ -35,6 +35,7 @@ export function DashboardView() {
     recentOrders: [] as any[],
     chartData: [] as any[]
   });
+  const [seeding, setSeeding] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -86,6 +87,21 @@ export function DashboardView() {
     }
   };
 
+  const handleSeed = async () => {
+    if (!window.confirm("BOMBARDER LA BASE DE DONNÉES ? (350 produits vont être générés et ajoutés)")) return;
+    setSeeding(true);
+    try {
+      await seedProducts();
+      alert("🔥 BOMBARDEMENT RÉUSSI ! 350 produits ont été injectés.");
+      fetchData();
+    } catch (error) {
+      console.error("Error seeding:", error);
+      alert("Erreur lors du bombardement.");
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -103,9 +119,20 @@ export function DashboardView() {
           <button 
             onClick={fetchData}
             className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-colors shadow-sm"
+            title="Rafraîchir"
           >
             <ArrowClockwise size={20} className={loading ? 'animate-spin' : ''} />
           </button>
+          
+          <button 
+            onClick={handleSeed}
+            disabled={seeding}
+            className="flex items-center gap-2 bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl shadow-xl shadow-orange-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+          >
+            {seeding ? <ArrowClockwise size={16} className="animate-spin" /> : <Database size={16} weight="bold" />}
+            BOMBARDER FIRESTORE
+          </button>
+
           <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm w-fit font-black">
             <button className="px-4 py-2 text-[10px] font-black uppercase tracking-widest bg-gray-900 text-white rounded-xl">7 Jours</button>
           </div>

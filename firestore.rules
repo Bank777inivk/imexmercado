@@ -48,6 +48,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Témoignages : Lecture publique, écriture Admin uniquement
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Commandes : Propriétaire ou Admin
     match /orders/{orderId} {
       allow read: if request.auth != null && 

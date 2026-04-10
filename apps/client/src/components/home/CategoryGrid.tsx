@@ -11,8 +11,8 @@ const categories = [
 
 export function CategoryGrid() {
   return (
-    <div className="bg-bg-subtle py-6 md:py-8">
-      <div className="container mx-auto px-0 md:px-4">
+    <div className="bg-bg-subtle py-6 md:py-8 w-full px-4 md:px-8 lg:px-12">
+      <div className="w-full">
         
         {/* Banner with arrow */}
         <div className="mx-4 md:mx-0 bg-gray-200 rounded-lg py-3 px-6 flex justify-between items-center mb-6 md:mb-8 cursor-pointer hover:bg-gray-300 transition-colors">

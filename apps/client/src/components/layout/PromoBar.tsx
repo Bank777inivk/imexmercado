@@ -22,10 +22,10 @@ export function PromoBar() {
 
   return (
     <div 
-      className="text-white py-2 text-center text-[10px] md:text-sm font-black uppercase tracking-widest relative z-[60]"
+      className="text-white py-2 text-center text-[10px] md:text-sm font-black uppercase tracking-widest relative z-[60] overflow-hidden"
       style={{ backgroundColor: promo.color || '#CC0000' }}
     >
-      <div className="container mx-auto px-4">
+      <div className="w-full px-4 md:px-8 lg:px-12">
         {promo.text}
       </div>
     </div>

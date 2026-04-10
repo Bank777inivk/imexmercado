@@ -7,10 +7,24 @@ import { getDocument } from '@imexmercado/firebase';
 const fallbackSlides = [
   {
     id: '1',
-    image: 'https://placehold.co/800x500/662288/ffffff?text=Hi-Tech',
+    image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&q=80&w=1200',
     title: 'OFFRE DE LANCEMENT',
     subtitle: 'Jusqu\'à 20% de réduction sur Téléphones & Hi-Tech',
     ctaText: 'VOIR LES PRODUITS',
+  },
+  {
+    id: '2',
+    image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=1200',
+    title: 'COSY & DESIGN',
+    subtitle: 'Transformez votre intérieur avec notre sélection Maison',
+    ctaText: 'DÉCOUVRIR LA COLLECTION',
+  },
+  {
+    id: '3',
+    image: 'https://images.unsplash.com/photo-1555505011-1537c5ef4426?auto=format&fit=crop&q=80&w=1200',
+    title: 'SAISON BBQ',
+    subtitle: 'Préparez vos soirées avec GrillMaster & Weber',
+    ctaText: 'VOIR LES OFFRES',
   }
 ];
 
@@ -46,8 +60,8 @@ export function HeroSlider({ isSidebarOpen = true }: { isSidebarOpen?: boolean }
   return (
     <div className="bg-bg-subtle pb-4">
       {/* Mobile-first wrapper, no padding on mobile to let slider stretch full width */}
-      <div className="container mx-auto px-0 md:px-4">
-        {/* Grille Principal : Sidebar (L) | Slider (M) | Banners (R) */}
+      <div className="w-full px-2 md:px-4 lg:px-6">
+        {/* Main Grid: Sidebar (L) | Slider (M) | Banners (R) - Added lg:pt-4 for spacing */}
         <div className="flex flex-col lg:flex-row">
           
           {/* 1. Category Sidebar — fixed 250px on desktop */}
@@ -55,8 +69,8 @@ export function HeroSlider({ isSidebarOpen = true }: { isSidebarOpen?: boolean }
              <CategorySidebar isOpen={isSidebarOpen} />
           </div>
 
-          {/* 2. Right Side Content Segment (Slider + Banners) */}
-          <div className={`flex-1 flex flex-col md:flex-row gap-2 mt-0 md:mt-4 lg:pt-4 lg:mt-0 ${isSidebarOpen ? 'lg:ml-2' : ''}`}>
+          {/* 2. Right Side Content Segment (Slider + Banners) - REMOVED lg:pt-4 to align with sidebar top */}
+          <div className={`flex-1 flex flex-col md:flex-row gap-2 mt-0 md:mt-4 lg:mt-0 ${isSidebarOpen ? 'lg:ml-2' : ''}`}>
             
             {/* Main Slider (Center) */}
             {/* Reduced height significantly on mobile! */}

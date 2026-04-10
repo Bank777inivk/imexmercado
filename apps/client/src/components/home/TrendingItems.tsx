@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ProductCard, mockProducts } from './ProductCard';
+import { ProductCard } from './ProductCard';
 
 const trendingCategories = [
   { id: 'all', label: 'Tous' },
@@ -9,11 +9,18 @@ const trendingCategories = [
   { id: 'meubles', label: 'Meubles' },
 ];
 
-export function TrendingItems() {
+interface TrendingItemsProps {
+  products: any[];
+  onViewDetails?: (product: any) => void;
+}
+
+export function TrendingItems({ products, onViewDetails }: TrendingItemsProps) {
   const [activeTab, setActiveTab] = useState('all');
 
+  if (products.length === 0) return null;
+
   return (
-    <section className="bg-white py-6">
+    <section className="bg-white py-6 w-full">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-gray-100 pb-2">
         <h2 className="text-lg font-extrabold text-gray-900 uppercase tracking-wide border-b-2 border-primary pb-2 pr-4 -mb-[11px] z-10 whitespace-nowrap">
           Produits Tendances
@@ -35,9 +42,9 @@ export function TrendingItems() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-        {mockProducts.slice(0, 4).map((product, idx) => (
-          <ProductCard key={product.id} product={product} index={idx} />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4 min-h-[400px]">
+        {products.map((product, idx) => (
+          <ProductCard key={product.id || idx} product={product} index={idx} onViewDetails={onViewDetails} />
         ))}
       </div>
     </section>

@@ -29,7 +29,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         DESKTOP HEADER : h-[80px]
         ========================================
       */}
-      <div className="container mx-auto px-4 h-[80px] hidden md:flex items-center gap-6">
+      <div className="w-full px-2 md:px-4 lg:px-6 h-[80px] hidden md:flex items-center gap-6">
         {/* Logo */}
         <Link to="/" className="font-extrabold text-2xl tracking-tight whitespace-nowrap flex-shrink-0 w-[250px] hover:text-primary transition-colors">
           <span className="text-primary">i</span>mexmercado
@@ -41,11 +41,11 @@ export function Header({ onMenuClick }: HeaderProps) {
           <select className="h-11 px-3 bg-gray-100 border-r border-gray-300 text-gray-600 text-xs rounded-l-sm focus:outline-none cursor-pointer">
             <option>Toutes catégories</option>
             <option>Téléphones &amp; Hi-Tech</option>
-            <option>Maison</option>
-            <option>Meubles &amp; Déco</option>
+            <option>Maison &amp; Décoration</option>
+            <option>Meubles &amp; Lampes</option>
             <option>Bricolage</option>
-            <option>BBQ &amp; Jardin</option>
-            <option>Piscines &amp; Loisirs</option>
+            <option>Barbecues &amp; Planchas</option>
+            <option>Piscines &amp; Spas</option>
           </select>
           <input 
             type="text" 
@@ -96,26 +96,42 @@ export function Header({ onMenuClick }: HeaderProps) {
         MOBILE HEADER : App-like layout
         ========================================
       */}
-      <div className="md:hidden flex flex-col pt-3 pb-4">
-        {/* Row 1: Hamburger + Logo Center */}
-        <div className="px-4 flex items-center justify-between h-12 relative overflow-hidden">
-           {/* Hamburger */}
-           <button 
-             onClick={onMenuClick}
-             className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all text-white"
-           >
-             <List size={28} weight="bold" />
-           </button>
+      {/* 
+        ========================================
+        MOBILE HEADER : App-like layout
+        ========================================
+      */}
+      <div className="md:hidden flex flex-col pt-3 pb-3 overflow-hidden">
+        {/* Row 1: 3-Column Grid for perfect centering */}
+        <div className="px-4 grid grid-cols-3 items-center h-12">
+           {/* Left: Hamburger */}
+           <div className="flex justify-start">
+             <button 
+               onClick={onMenuClick}
+               className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all text-white"
+             >
+               <List size={28} weight="bold" />
+             </button>
+           </div>
 
-           {/* Mobile Logo Absolute Center */}
-           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+           {/* Center: Logo */}
+           <div className="flex justify-center">
              <Link to="/" className="font-black text-xl tracking-tighter whitespace-nowrap">
                IMEX<span className="text-primary">MERCADO</span>
              </Link>
            </div>
            
-           {/* Empty div for flex space */}
-           <div className="w-10" />
+           {/* Right: Cart/Account (Optional, keeping it symmetrical) */}
+           <div className="flex justify-end">
+             <Link to="/panier" className="relative w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full">
+               <ShoppingCart size={24} />
+               {totalItems > 0 && (
+                 <span className="absolute top-1 right-1 bg-primary text-white text-[9px] font-bold h-4 w-4 flex items-center justify-center rounded-full">
+                   {totalItems}
+                 </span>
+               )}
+             </Link>
+           </div>
         </div>
 
         {/* Row 2: Mobile Search Bar */}
@@ -126,10 +142,10 @@ export function Header({ onMenuClick }: HeaderProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Rechercher un produit..." 
-              className="w-full h-11 pl-4 pr-12 text-sm text-gray-900 bg-white rounded-xl focus:outline-none shadow-sm focus:ring-2 focus:ring-primary/50"
+              className="w-full h-10 pl-4 pr-12 text-sm text-gray-900 bg-white rounded-xl focus:outline-none shadow-sm"
             />
-            <button type="submit" className="absolute right-1 w-9 h-9 bg-primary flex items-center justify-center rounded-lg active:scale-95 transition-all">
-              <MagnifyingGlass size={18} weight="bold" className="text-white" />
+            <button type="submit" className="absolute right-1 w-8 h-8 bg-primary flex items-center justify-center rounded-lg active:scale-95 transition-all">
+              <MagnifyingGlass size={16} weight="bold" className="text-white" />
             </button>
           </form>
         </div>

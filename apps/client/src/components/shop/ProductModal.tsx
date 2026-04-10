@@ -73,14 +73,14 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
     <>
       {/* ── Backdrop ── */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* ── Modal Panel ── */}
       <div
-        className="fixed inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center z-50 p-0 md:p-6"
+        className="fixed inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center z-[110] p-0 md:p-6"
         role="dialog"
         aria-modal="true"
       >

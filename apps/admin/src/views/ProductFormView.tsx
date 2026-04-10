@@ -43,6 +43,9 @@ export function ProductFormView() {
     specs: [] as Spec[],
     isNew: false,
     featured: false,
+    isFlashSale: false,
+    isTrending: false,
+    isSelection: false,
     published: true,
   });
 
@@ -66,6 +69,9 @@ export function ProductFormView() {
               specs: data.specs || [],
               isNew: data.isNew || false,
               featured: data.featured || false,
+              isFlashSale: data.isFlashSale || false,
+              isTrending: data.isTrending || false,
+              isSelection: data.isSelection || false,
               published: data.published !== false,
             });
           }
@@ -246,7 +252,43 @@ export function ProductFormView() {
           {/* Prix & Stock */}
           <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm space-y-5 text-left">
             <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Prix & Stock</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
+              <div>
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Ancien prix (€)</label>
+                <input
+                  type="number" step="0.01"
+                  className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
+                  placeholder="0.00"
+                  value={formData.oldPrice}
+                  onChange={e => {
+                    const oldPrice = parseFloat(e.target.value);
+                    set('oldPrice', e.target.value);
+                    // Retain current discount % if both prices exist
+                    if (oldPrice > 0 && formData.price) {
+                      // Just re-calculate the percentage for display
+                    }
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1 text-primary">Remise (%)</label>
+                <input
+                  type="number"
+                  className="w-full bg-primary/5 border-none rounded-2xl py-4 px-5 text-sm font-black text-primary focus:ring-4 focus:ring-primary/10 outline-none"
+                  placeholder="0"
+                  value={discountPct || ''}
+                  onChange={e => {
+                    const pct = parseFloat(e.target.value);
+                    if (pct >= 0 && pct <= 100 && formData.oldPrice) {
+                      const oldP = parseFloat(formData.oldPrice);
+                      const newP = (oldP * (1 - pct / 100)).toFixed(2);
+                      set('price', newP);
+                    }
+                  }}
+                />
+              </div>
+
               <div>
                 <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Prix de vente (€) *</label>
                 <input
@@ -257,21 +299,7 @@ export function ProductFormView() {
                   onChange={e => set('price', e.target.value)}
                 />
               </div>
-              <div>
-                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">
-                  Ancien prix (€)
-                  {discountPct !== null && discountPct > 0 && (
-                    <span className="ml-2 bg-red-100 text-red-600 px-2 py-0.5 rounded-md text-[9px] font-black">-{discountPct}%</span>
-                  )}
-                </label>
-                <input
-                  type="number" step="0.01"
-                  className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
-                  placeholder="0.00"
-                  value={formData.oldPrice}
-                  onChange={e => set('oldPrice', e.target.value)}
-                />
-              </div>
+
               <div>
                 <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Stock actuel *</label>
                 <input
@@ -442,6 +470,9 @@ export function ProductFormView() {
               { key: 'published', label: 'En Ligne', color: 'green' },
               { key: 'featured', label: 'Mis en avant', color: 'primary' },
               { key: 'isNew', label: 'Badge Nouveau', color: 'blue' },
+              { key: 'isFlashSale', label: 'Offre du Jour', color: 'orange' },
+              { key: 'isTrending', label: 'Produit Tendance', color: 'purple' },
+              { key: 'isSelection', label: 'Sélection Boutique', color: 'teal' },
             ] as { key: keyof typeof formData; label: string; color: string }[]).map(({ key, label, color }) => {
               const isOn = !!formData[key];
               return (
@@ -452,6 +483,9 @@ export function ProductFormView() {
                   className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${
                     isOn
                       ? color === 'green' ? 'bg-green-50 text-green-700'
+                        : color === 'orange' ? 'bg-orange-50 text-orange-700'
+                        : color === 'purple' ? 'bg-purple-50 text-purple-700'
+                        : color === 'teal' ? 'bg-teal-50 text-teal-700'
                         : color === 'primary' ? 'bg-primary/5 text-primary'
                         : 'bg-blue-50 text-blue-600'
                       : 'bg-gray-50 text-gray-400'
@@ -460,6 +494,9 @@ export function ProductFormView() {
                   <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
                   <div className={`w-11 h-6 rounded-full relative transition-all ${isOn
                     ? color === 'green' ? 'bg-green-500'
+                      : color === 'orange' ? 'bg-orange-500'
+                      : color === 'purple' ? 'bg-purple-500'
+                      : color === 'teal' ? 'bg-teal-500'
                       : color === 'primary' ? 'bg-primary'
                       : 'bg-blue-500'
                     : 'bg-gray-200'}`}>
