@@ -3,6 +3,7 @@ import { FilterSidebar } from '../components/shop/FilterSidebar';
 import { MobileFilterDrawer } from '../components/shop/MobileFilterDrawer';
 import { ShopHeader } from '../components/shop/ShopHeader';
 import { ProductCard } from '../components/home/ProductCard';
+import { ProductModal } from '../components/shop/ProductModal';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { getCollection, seedProducts } from '@imexmercado/firebase';
 
@@ -46,6 +47,13 @@ export function ShopPage() {
   const [sortValue, setSortValue] = useState('relevance');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewDetails = (product: any) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
 
   // Derive active filters count
   const activeFiltersCount = useMemo(() => {
@@ -205,7 +213,12 @@ export function ShopPage() {
                   : 'grid-cols-1'
               }`}>
                 {filteredProducts.map((product, idx) => (
-                  <ProductCard key={product.id} product={product} index={idx} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    index={idx}
+                    onViewDetails={handleViewDetails}
+                  />
                 ))}
               </div>
             ) : (
@@ -239,6 +252,13 @@ export function ShopPage() {
         onFilterChange={handleFilterChange}
         sortValue={sortValue}
         onSortChange={setSortValue}
+      />
+
+      {/* Product Detail Modal */}
+      <ProductModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
       />
     </div>
   );

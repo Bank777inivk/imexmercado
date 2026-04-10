@@ -8,7 +8,15 @@ export const mockProducts = products.filter(p => !p.isNew);
 export const newProducts = products.filter(p => p.isNew);
 
 // Shared ProductCard
-export function ProductCard({ product, index = 0 }: { product: any; index?: number }) {
+export function ProductCard({
+  product,
+  index = 0,
+  onViewDetails,
+}: {
+  product: any;
+  index?: number;
+  onViewDetails?: (product: any) => void;
+}) {
   const { addItem } = useCart();
   const [isAdding, setIsAdding] = useState(false);
 
@@ -16,14 +24,22 @@ export function ProductCard({ product, index = 0 }: { product: any; index?: numb
     ? 'bg-primary hover:bg-primary-dark'
     : 'bg-secondary hover:bg-secondary-dark';
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsAdding(true);
     addItem(product);
     setTimeout(() => setIsAdding(false), 1000);
   };
 
+  const handleCardClick = () => {
+    if (onViewDetails) onViewDetails(product);
+  };
+
   return (
-    <div className="bg-white border border-gray-200 hover:border-primary hover:shadow-md transition-all duration-200 flex flex-col group relative">
+    <div
+      className={`bg-white border border-gray-200 hover:border-primary hover:shadow-md transition-all duration-200 flex flex-col group relative ${onViewDetails ? 'cursor-pointer' : ''}`}
+      onClick={handleCardClick}
+    >
       {/* Discount badge — round, top-left */}
       {product.badge && (
         <span className="absolute top-3 left-3 z-10 bg-primary text-white text-[11px] font-bold w-10 h-10 flex items-center justify-center rounded-full shadow">
@@ -46,7 +62,10 @@ export function ProductCard({ product, index = 0 }: { product: any; index?: numb
       </div>
 
       {/* Wishlist on hover */}
-      <button className={`absolute ${product.isNew ? 'top-10' : 'top-3'} right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-gray-200 rounded-full p-2 shadow-sm hover:border-primary hover:text-primary hover:scale-110 transition-transform duration-200`}>
+      <button
+        onClick={(e) => e.stopPropagation()}
+        className={`absolute ${product.isNew ? 'top-10' : 'top-3'} right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-gray-200 rounded-full p-2 shadow-sm hover:border-primary hover:text-primary hover:scale-110 transition-transform duration-200`}
+      >
         <Heart size={18} />
       </button>
 
@@ -63,7 +82,7 @@ export function ProductCard({ product, index = 0 }: { product: any; index?: numb
           <span className="text-primary font-bold text-base">€{product.price}</span>
         </div>
 
-        <button 
+        <button
           onClick={handleAddToCart}
           disabled={isAdding}
           className={`w-full flex items-center justify-center gap-2 ${btnClass} text-white text-xs font-bold py-2 transition-all disabled:opacity-50`}
@@ -84,3 +103,5 @@ export function ProductCard({ product, index = 0 }: { product: any; index?: numb
     </div>
   );
 }
+
+

@@ -7,9 +7,10 @@ interface ProductGridSectionProps {
   products: any[];
   viewAllLink?: string;
   bgClass?: string;
+  onViewDetails?: (product: any) => void;
 }
 
-export function ProductGridSection({ title, emoji = '', products, viewAllLink = '#', bgClass = 'bg-bg-subtle' }: ProductGridSectionProps) {
+export function ProductGridSection({ title, emoji = '', products, viewAllLink = '#', bgClass = 'bg-bg-subtle', onViewDetails }: ProductGridSectionProps) {
   return (
     <section className={`${bgClass} py-8 border-b border-gray-100`}>
       <div className="container mx-auto px-4">
@@ -26,7 +27,12 @@ export function ProductGridSection({ title, emoji = '', products, viewAllLink = 
         {/* Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {products.slice(0, 8).map((product, idx) => (
-            <ProductCard key={product.id} product={product} index={idx} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              index={idx}
+              onViewDetails={onViewDetails}
+            />
           ))}
         </div>
       </div>

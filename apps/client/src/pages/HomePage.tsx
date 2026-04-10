@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { HeroSlider } from '../components/home/HeroSlider';
 import { TrustBar } from '../components/home/TrustBar';
 import { CategoryGrid } from '../components/home/CategoryGrid';
@@ -13,12 +13,21 @@ import { TestimonialsSection } from '../components/home/TestimonialsSection';
 import { TabbedProductSection } from '../components/home/TabbedProductSection';
 import { Newsletter } from '../components/home/Newsletter';
 import { mockProducts, newProducts } from '../components/home/ProductCard';
+import { ProductModal } from '../components/shop/ProductModal';
 
 interface HomePageProps {
   isSidebarOpen: boolean;
 }
 
 export function HomePage({ isSidebarOpen }: HomePageProps) {
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewDetails = (product: any) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
   return (
     <>
       {/* ① HERO — Slider + Bannières latérales */}
@@ -64,6 +73,7 @@ export function HomePage({ isSidebarOpen }: HomePageProps) {
             emoji="✨"
             products={newProducts}
             bgClass="bg-white"
+            onViewDetails={handleViewDetails}
           />
 
           {/* ⑨ BLOCS PROMOS — 4 cartes colorées catégories */}
@@ -75,6 +85,7 @@ export function HomePage({ isSidebarOpen }: HomePageProps) {
             emoji="⭐"
             products={mockProducts}
             bgClass="bg-white"
+            onViewDetails={handleViewDetails}
           />
 
           {/* ⑫ BANNIÈRE HI-TECH — Full width inversée */}
@@ -99,6 +110,16 @@ export function HomePage({ isSidebarOpen }: HomePageProps) {
 
       {/* ⑮ NEWSLETTER — -10% première commande (Full Width) */}
       <Newsletter />
+
+      {/* Product Detail Modal */}
+      <ProductModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </>
   );
 }
+
+
+
