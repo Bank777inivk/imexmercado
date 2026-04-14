@@ -43,8 +43,8 @@ const DEFAULT_CATEGORIES = [
 export function CategoryGrid() {
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [blogBanner, setBlogBanner] = useState({ 
-    title: 'Actualités, conseils et inspiration', 
-    link: '/actualites', 
+    title: 'NOS CONSEILS ET INSPIRATIONS', 
+    link: '/', 
     isActive: true 
   });
 
@@ -52,7 +52,7 @@ export function CategoryGrid() {
     const unsubscribe = subscribeToDocument('settings', 'homepage', (data) => {
       if (data) {
         if (data.homeCategories) setCategories(data.homeCategories);
-        if (data.blogBanner) setBlogBanner(data.blogBanner);
+        // Blog banner is now static (redirecting to Home) per user request
       }
     });
     return () => unsubscribe();
@@ -81,20 +81,34 @@ export function CategoryGrid() {
         )}
 
         {/* Category Icons Grid */}
-        <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-y-6 md:gap-y-8 gap-x-2 md:gap-x-4 justify-items-center px-4 lg:px-0">
+        <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-y-12 md:gap-y-16 gap-x-2 md:gap-x-4 justify-items-center px-4 lg:px-0 mt-8 mb-8">
           {categories.map((cat, idx) => (
-            <a href={cat.link} key={idx} className="flex flex-col items-center gap-2 md:gap-3 w-full max-w-[85px] md:max-w-[112px] group">
-              <div className="w-[70px] h-[70px] md:w-24 md:h-24 bg-white rounded-full overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.08)] group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 md:group-hover:-translate-y-1.5 ring-2 ring-transparent group-hover:ring-primary/20">
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  onError={(e) => { e.currentTarget.src = `https://placehold.co/200x200/eeeeee/999999?text=${cat.short}`; }}
-                />
+            <a 
+              href={cat.link} 
+              key={idx} 
+              className="flex flex-col items-center gap-6 md:gap-8 w-full max-w-[85px] md:max-w-[120px] group relative"
+            >
+              <div className="reflection-container transition-all duration-700 group-hover:-translate-y-6">
+                <div 
+                  className="w-[85px] h-[85px] md:w-32 md:h-32 flex items-center justify-center transition-all duration-700 group-hover:scale-110 animate-float-slow"
+                >
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-full h-full object-contain filter drop-shadow-[0_15px_25px_rgba(0,0,0,0.15)] group-hover:drop-shadow-[0_25px_45px_rgba(0,0,0,0.25)] transition-all duration-700"
+                    onError={(e) => { e.currentTarget.src = `https://placehold.co/200x200/eeeeee/999999?text=${cat.short}`; }}
+                  />
+                </div>
+                {/* Reflection */}
+                <div className="reflection-overlay group-hover:opacity-40 group-hover:scale-110 transition-all duration-700" />
               </div>
-              <span className="text-[10px] md:text-xs font-bold text-center text-gray-700 leading-tight group-hover:text-primary transition-colors">
-                {cat.short || cat.name}
-              </span>
+
+              <div className="text-center relative z-10">
+                <span className="text-[10px] md:text-[11px] font-black tracking-[0.15em] text-center text-gray-900 uppercase leading-tight group-hover:text-primary transition-colors duration-300">
+                  {cat.short || cat.name}
+                </span>
+                <div className="w-0 h-0.5 bg-primary mx-auto group-hover:w-full transition-all duration-500 mt-1.5" />
+              </div>
             </a>
           ))}
         </div>

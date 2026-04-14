@@ -15,7 +15,7 @@ const TABS = [
   { id: 'minibanner', label: 'Mini Banners', icon: Storefront, color: 'text-purple-500', bg: 'bg-purple-50' },
   { id: 'trustbar', label: 'Confiance', icon: Truck, color: 'text-green-500', bg: 'bg-green-50' },
   { id: 'categories', label: 'Catégories', icon: SquaresFour, color: 'text-orange-500', bg: 'bg-orange-50' },
-  { id: 'blog', label: 'Actualités', icon: Newspaper, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+  { id: 'blog', label: 'Inspirations', icon: Newspaper, color: 'text-indigo-500', bg: 'bg-indigo-50' },
   { id: 'flashsale', label: 'Offres Flash', icon: Fire, color: 'text-orange-600', bg: 'bg-orange-100' },
   { id: 'promo', label: 'Blocs Promo', icon: Star, color: 'text-teal-500', bg: 'bg-teal-50' },
   { id: 'newsletter', label: 'Newsletter', icon: Newspaper, color: 'text-gray-500', bg: 'bg-gray-100' },
@@ -75,8 +75,8 @@ const DEFAULT_SETTINGS = {
     { id: '4', icon: 'ChatCircle', title: 'Retour 30 Jours', subtitle: 'Remboursement garanti' },
   ],
   blogBanner: {
-    title: 'Actualités, conseils et inspiration',
-    link: '/actualites',
+    title: 'Conseils et inspirations',
+    link: '/boutique',
     isActive: true,
   },
   homeCategories: [
@@ -480,7 +480,7 @@ function BlogBannerSection({ settings, setSettings }: any) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <SectionTitle title="Bandeau News" subtitle="Barre d'inspiration au dessus des catégories." />
+        <SectionTitle title="Bandeau Inspirations" subtitle="Barre d'inspiration au dessus des catégories." />
         <Toggle value={bb.isActive} onChange={v => set('isActive', v)} />
       </div>
       

@@ -32,4 +32,40 @@
   .card-worten {
     @apply bg-white rounded-md shadow-card transition-all hover:shadow-card-hover hover:-translate-y-0.5;
   }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes float-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+  .animate-float-slow {
+    animation: float-slow 6s ease-in-out infinite;
+  }
+
+  .reflection-container {
+    perspective: 1000px;
+    position: relative;
+  }
+
+  .reflection-overlay {
+    position: absolute;
+    bottom: -45%;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.4), rgba(255,255,255,0));
+    mask-image: linear-gradient(to bottom, black, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+    transform: scaleY(-1) skewX(2deg);
+    opacity: 0.25;
+    filter: blur(2px);
+    pointer-events: none;
+    transition: all 0.5s ease;
+  }
 }
