@@ -14,7 +14,7 @@ export function TopBar() {
   const [langOpen, setLangOpen] = useState(false);
 
   return (
-    <div className="bg-[#1A1A1A] border-b border-white/10 text-xs text-gray-300 overflow-hidden">
+    <div className="bg-[#1A1A1A] border-b border-white/10 text-xs text-gray-300 relative z-[100]">
       <div className="w-full px-4 md:px-4 lg:px-6 h-9 flex items-center justify-between gap-2 md:gap-4">
         
         {/* Left — Address */}
@@ -51,19 +51,22 @@ export function TopBar() {
             </button>
 
             {langOpen && (
-              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded shadow-lg z-[200] min-w-[140px]">
-                {languages.map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => { setCurrentLang(lang); setLangOpen(false); }}
-                    className={`w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors
-                      ${currentLang.code === lang.code ? 'text-primary font-bold' : 'text-gray-700'}
-                    `}
-                  >
-                    <span>{lang.flag}</span>
-                    <span>{lang.label}</span>
-                  </button>
-                ))}
+              <div className="absolute right-0 top-full mt-2 bg-white border border-gray-100 rounded-lg shadow-2xl z-[200] min-w-[150px] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="py-1">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => { setCurrentLang(lang); setLangOpen(false); }}
+                      className={`w-full text-left flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-all
+                        ${currentLang.code === lang.code ? 'text-primary bg-primary/5 font-bold' : 'text-gray-700'}
+                      `}
+                    >
+                      <span className="text-base">{lang.flag}</span>
+                      <span className="font-medium">{lang.label}</span>
+                      {currentLang.code === lang.code && <span className="ml-auto text-[10px]">●</span>}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>

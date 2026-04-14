@@ -123,7 +123,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         MOBILE HEADER : App-like layout
         ========================================
       */}
-      <div className="md:hidden flex flex-col pt-3 pb-3 overflow-hidden">
+      <div className="md:hidden flex flex-col pt-3 pb-3">
         {/* Row 1: 3-Column Grid for perfect centering */}
         <div className="px-4 grid grid-cols-3 items-center h-12">
            {/* Left: Hamburger */}
