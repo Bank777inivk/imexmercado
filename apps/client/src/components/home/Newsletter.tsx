@@ -27,7 +27,7 @@ export function Newsletter() {
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
       
       <div className="container mx-auto px-4 text-center relative z-10">
-        <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3">
+        <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3 text-white">
           {settings?.title || 'Restez informé de nos offres !'}
         </h2>
         <p className="text-sm md:text-base text-gray-400 mb-8 max-w-xl mx-auto">
