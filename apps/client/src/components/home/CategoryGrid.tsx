@@ -90,7 +90,7 @@ export function CategoryGrid() {
             >
               <div className="reflection-container transition-all duration-700 group-hover:-translate-y-6">
                 <div 
-                  className="w-[85px] h-[85px] md:w-32 md:h-32 flex items-center justify-center transition-all duration-700 group-hover:scale-110 animate-float-slow"
+                  className="w-[85px] h-[85px] md:w-32 md:h-32 flex items-center justify-center transition-all duration-700 group-hover:scale-110 group-hover:animate-float-slow"
                 >
                   <img
                     src={cat.image}
