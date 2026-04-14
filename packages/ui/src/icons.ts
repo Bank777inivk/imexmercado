@@ -28,5 +28,9 @@ export {
   X,
   InstagramLogo,
   FacebookLogo,
-  LinkedinLogo
+  LinkedinLogo,
+  Star,
+  SquaresFour,
+  Newspaper,
+  Package
 } from '@phosphor-icons/react';

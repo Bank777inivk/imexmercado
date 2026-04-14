@@ -1,20 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { subscribeToDocument } from '@imexmercado/firebase';
 import { CaretLeft, CaretRight } from '@imexmercado/ui';
 import { ProductCard } from './ProductCard';
 
-function useCountdown(targetHours: number) {
-  const [time, setTime] = useState({ h: targetHours, m: 59, s: 59 });
+function useCountdown(settings: any) {
+  const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
+
   useEffect(() => {
-    const t = setInterval(() => {
-      setTime((prev) => {
-        if (prev.s > 0) return { ...prev, s: prev.s - 1 };
-        if (prev.m > 0) return { ...prev, m: prev.m - 1, s: 59 };
-        if (prev.h > 0) return { h: prev.h - 1, m: 59, s: 59 };
-        return { h: 0, m: 0, s: 0 };
-      });
-    }, 1000);
+    if (!settings) return;
+
+    const calculate = () => {
+      const now = new Date();
+      const target = new Date();
+      target.setHours(settings.endHour ?? 23, settings.endMinute ?? 59, 0, 0);
+      
+      let diff = target.getTime() - now.getTime();
+      if (diff < 0) diff = 0;
+
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setTime({ h, m, s });
+    };
+
+    calculate();
+    const t = setInterval(calculate, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [settings]);
+
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${pad(time.h)}:${pad(time.m)}:${pad(time.s)}`;
 }
@@ -25,9 +39,19 @@ interface FlashSaleSectionProps {
 }
 
 export function FlashSaleSection({ products, onViewDetails }: FlashSaleSectionProps) {
-  const countdown = useCountdown(5);
+  const [settings, setSettings] = useState<any>(null);
+  const countdown = useCountdown(settings);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToDocument('settings', 'homepage', (data) => {
+      if (data && data.flashSale) {
+        setSettings(data.flashSale);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const scroll = (dir: 'left' | 'right') => {
     if (!scrollRef.current) return;
@@ -70,7 +94,7 @@ export function FlashSaleSection({ products, onViewDetails }: FlashSaleSectionPr
       <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-100">
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-extrabold text-gray-900 uppercase tracking-wide border-b-2 border-primary pb-2 pr-4 -mb-[9px] z-10 whitespace-nowrap">
-            Offres du Jour
+            {settings?.title || 'Offres du Jour'}
           </h2>
           <div className="flex items-center gap-1 bg-primary text-white text-[10px] font-bold px-2 py-1">
             <span>FLASHSALE</span>

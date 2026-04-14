@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getCollection } from '@imexmercado/firebase';
+import { subscribeToCollection } from '@imexmercado/firebase';
 import { 
   Users, MagnifyingGlass, 
   Funnel, DotsThreeVertical,
@@ -13,20 +13,13 @@ export function CustomersView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'customer'>('all');
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const data = await getCollection('users');
-      setUsers(data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchUsers();
+    setLoading(true);
+    const unsubscribe = subscribeToCollection('users', (data) => {
+      setUsers(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const filteredUsers = users.filter(user => {
@@ -51,8 +44,8 @@ export function CustomersView() {
         </div>
         <div className="flex items-center gap-2 md:gap-3">
           <button 
-            onClick={fetchUsers}
-            className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all shadow-sm active:scale-90"
+            disabled={loading}
+            className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all shadow-sm active:scale-90 disabled:opacity-50"
           >
             <ArrowClockwise size={20} className={loading ? 'animate-spin' : ''} />
           </button>

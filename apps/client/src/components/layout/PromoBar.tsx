@@ -1,21 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { getDocument } from '@imexmercado/firebase';
+import { subscribeToDocument } from '@imexmercado/firebase';
 
 export function PromoBar() {
   const [promo, setPromo] = useState<any>(null);
 
   useEffect(() => {
-    async function fetchPromo() {
-      try {
-        const data = await getDocument('settings', 'homepage');
-        if (data && data.promoBar) {
-          setPromo(data.promoBar);
-        }
-      } catch (error) {
-        console.error("Error fetching promo:", error);
+    const unsubscribe = subscribeToDocument('settings', 'homepage', (data) => {
+      if (data && data.promoBar) {
+        setPromo(data.promoBar);
       }
-    }
-    fetchPromo();
+    });
+    return () => unsubscribe();
   }, []);
 
   if (!promo || !promo.isActive) return null;

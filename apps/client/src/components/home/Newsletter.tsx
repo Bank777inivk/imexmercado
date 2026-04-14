@@ -1,8 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { subscribeToDocument } from '@imexmercado/firebase';
 
 export function Newsletter() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToDocument('settings', 'homepage', (data) => {
+      if (data && data.newsletter) {
+        setSettings(data.newsletter);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -10,18 +21,22 @@ export function Newsletter() {
   };
 
   return (
-    <section className="bg-primary py-12">
-      <div className="container mx-auto px-4 text-center text-white">
-        <h2 className="text-2xl md:text-3xl font-extrabold mb-2">
-          Restez informé de nos meilleures offres !
+    <section className="bg-[#1A1A1A] text-white py-16 relative overflow-hidden">
+      {/* Decorative element to add depth */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+      
+      <div className="container mx-auto px-4 text-center relative z-10">
+        <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3">
+          {settings?.title || 'Restez informé de nos offres !'}
         </h2>
-        <p className="text-sm md:text-base opacity-90 mb-6">
-          Inscrivez-vous à notre newsletter et obtenez <strong>-10%</strong> sur votre première commande.
+        <p className="text-sm md:text-base text-gray-400 mb-8 max-w-xl mx-auto">
+          {settings?.subtitle || 'Inscrivez-vous à notre newsletter et obtenez 10% de réduction sur votre première commande.'}
         </p>
 
         {sent ? (
-          <div className="inline-block bg-white text-primary font-bold px-8 py-3 rounded-full">
-            ✓ Merci ! Votre code de bienvenue vous a été envoyé.
+          <div className="inline-flex items-center gap-2 bg-success/20 text-success border border-success/30 font-black uppercase tracking-widest px-8 py-3.5 rounded-full">
+            <span>✓ Code envoyé avec succès</span>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto">
@@ -29,19 +44,21 @@ export function Newsletter() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Votre adresse email..."
+              placeholder="Votre adresse e-mail"
               required
-              className="flex-1 px-5 py-3 rounded-full text-black outline-none focus:ring-2 focus:ring-white text-sm"
+              className="flex-1 px-6 py-3.5 rounded-full bg-white/5 border border-white/10 text-white placeholder-gray-500 outline-none focus:border-primary focus:bg-white/10 transition-all font-medium text-sm"
             />
             <button
               type="submit"
-              className="bg-white text-primary font-bold px-8 py-3 rounded-full hover:bg-gray-100 transition-colors text-sm shadow-md whitespace-nowrap"
+              className="bg-primary text-white font-black uppercase tracking-widest px-8 py-3.5 rounded-full hover:bg-primary-dark transition-colors text-[11px] shadow-lg shadow-primary/20 whitespace-nowrap active:scale-95"
             >
-              Je m'inscris — 10% OFF
+              {settings?.buttonText || 'Obtenir mes -10%'}
             </button>
           </form>
         )}
-        <p className="text-xs mt-4 opacity-60">Pas de spam. Désinscription possible à tout moment.</p>
+        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-6">
+          Zéro spam. Désinscription possible à tout moment.
+        </p>
       </div>
     </section>
   );

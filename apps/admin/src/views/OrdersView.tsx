@@ -5,31 +5,23 @@ import {
   Funnel, Export, MagnifyingGlass,
   ArrowClockwise
 } from '@phosphor-icons/react';
-import { getCollection } from '@imexmercado/firebase';
+import { subscribeToCollection } from '@imexmercado/firebase';
 
 export function OrdersView() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchOrders = async () => {
+  useEffect(() => {
     setLoading(true);
-    try {
-      const data = await getCollection('orders');
-      // Sort by date descending
+    const unsubscribe = subscribeToCollection('orders', (data) => {
       const sorted = [...data].sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       setOrders(sorted);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-    } finally {
       setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrders();
+    });
+    return () => unsubscribe();
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -59,8 +51,8 @@ export function OrdersView() {
         </div>
         <div className="flex items-center gap-2 md:gap-3">
           <button 
-            onClick={fetchOrders}
-            className="p-3.5 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all shadow-sm active:scale-90"
+            disabled={loading}
+            className="p-3.5 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all shadow-sm active:scale-90 disabled:opacity-50"
           >
             <ArrowClockwise size={20} className={loading ? 'animate-spin' : ''} />
           </button>

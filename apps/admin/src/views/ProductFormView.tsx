@@ -36,6 +36,7 @@ export function ProductFormView() {
     price: '',
     oldPrice: '',
     stock: '10',
+    badge: '',
     description: '',
     image: '',
     images: [] as string[],
@@ -62,6 +63,7 @@ export function ProductFormView() {
               price: data.price?.toString() || '',
               oldPrice: data.oldPrice?.toString() || '',
               stock: data.stock?.toString() || '0',
+              badge: data.badge || '',
               description: data.description || '',
               image: data.image || '',
               images: data.images || [],
@@ -311,6 +313,50 @@ export function ProductFormView() {
                 />
               </div>
             </div>
+
+            {/* Badge personnalisé */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                  Badge personnalisé
+                  <span className="ml-2 text-gray-300 normal-case font-medium">(optionnel — remplace le calcul automatique -XX%)</span>
+                </label>
+                {formData.badge && (
+                  <button type="button" onClick={() => set('badge', '')} className="text-[9px] text-gray-300 hover:text-red-400 font-black uppercase tracking-widest transition-colors">✕ Effacer</button>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {['TOP', 'PROMO', 'EXCLU', 'SOLDES', 'NOUVEAU', '⭐ COUP DE CŒUR'].map(preset => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => set('badge', formData.badge === preset ? '' : preset)}
+                    className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl border transition-all ${
+                      formData.badge === preset
+                        ? 'bg-primary text-white border-primary shadow-md'
+                        : 'bg-gray-50 text-gray-400 border-gray-100 hover:border-primary/30 hover:text-primary'
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  maxLength={15}
+                  className="flex-1 bg-gray-50 border-none rounded-2xl py-3 px-5 text-sm font-black focus:ring-4 focus:ring-primary/5 outline-none uppercase tracking-widest"
+                  placeholder="Ou écrivez un texte libre..."
+                  value={formData.badge}
+                  onChange={e => set('badge', e.target.value.toUpperCase())}
+                />
+                {formData.badge && (
+                  <div className="flex-shrink-0 bg-primary text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-md">
+                    {formData.badge}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Caractéristiques Techniques */}
@@ -414,9 +460,70 @@ export function ProductFormView() {
         </div>
 
         {/* ══════════════════════════════════════════════
-            RIGHT COLUMN — Image, Visibilité
+            RIGHT COLUMN — Visibilité, Image
         ══════════════════════════════════════════════ */}
         <div className="space-y-6">
+
+          {/* Options — en premier pour visibilité immédiate */}
+          <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm text-left">
+            <div className="mb-5">
+              <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Options de visibilité</h3>
+              <p className="text-[10px] text-gray-400 font-medium mt-1">Contrôlez comment ce produit apparaît sur le site.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+              {([
+                { key: 'published', label: 'En Ligne', desc: 'Visible sur la boutique client', color: 'green' },
+                { key: 'featured', label: 'Mis en avant', desc: 'Affiché dans la section vedette de l\'accueil', color: 'primary' },
+                { key: 'isNew', label: 'Badge Nouveau', desc: 'Affiche le badge vert "NOUVEAU" sur la carte', color: 'blue' },
+                { key: 'isFlashSale', label: 'Offre du Jour', desc: 'Apparaît dans le carrousel "Offres Flash"', color: 'orange' },
+                { key: 'isTrending', label: 'Produit Tendance', desc: 'Inclus dans la section "Tendances"', color: 'purple' },
+                { key: 'isSelection', label: 'Sélection Boutique', desc: 'Mis en avant dans la sélection éditoriale', color: 'teal' },
+              ] as { key: keyof typeof formData; label: string; desc: string; color: string }[]).map(({ key, label, desc, color }) => {
+                const isOn = !!formData[key];
+                const activeClass = 
+                  color === 'green' ? 'bg-green-50 border-green-100' :
+                  color === 'orange' ? 'bg-orange-50 border-orange-100' :
+                  color === 'purple' ? 'bg-purple-50 border-purple-100' :
+                  color === 'teal' ? 'bg-teal-50 border-teal-100' :
+                  color === 'primary' ? 'bg-primary/5 border-primary/10' :
+                  'bg-blue-50 border-blue-100';
+                const activeText = 
+                  color === 'green' ? 'text-green-700' :
+                  color === 'orange' ? 'text-orange-700' :
+                  color === 'purple' ? 'text-purple-700' :
+                  color === 'teal' ? 'text-teal-700' :
+                  color === 'primary' ? 'text-primary' :
+                  'text-blue-600';
+                const toggleColor = 
+                  color === 'green' ? 'bg-green-500' :
+                  color === 'orange' ? 'bg-orange-500' :
+                  color === 'purple' ? 'bg-purple-500' :
+                  color === 'teal' ? 'bg-teal-500' :
+                  color === 'primary' ? 'bg-primary' :
+                  'bg-blue-500';
+
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => set(key, !formData[key])}
+                    className={`w-full flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all text-left ${
+                      isOn ? `${activeClass} ${activeText}` : 'bg-gray-50 border-gray-100 text-gray-400'
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">{label}</p>
+                      <p className={`text-[9px] font-medium leading-tight truncate ${isOn ? 'opacity-70' : 'text-gray-300'}`}>{desc}</p>
+                    </div>
+                    <div className={`flex-shrink-0 w-11 h-6 rounded-full relative transition-all ${isOn ? toggleColor : 'bg-gray-200'}`}>
+                      <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-all duration-200 ${isOn ? 'right-1' : 'left-1'}`} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           {/* Upload Image Principale */}
           <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm text-left">
@@ -431,7 +538,10 @@ export function ProductFormView() {
           {/* Images secondaires */}
           <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm text-left space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Galerie</h3>
+              <div>
+                <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Galerie</h3>
+                <p className="text-[9px] text-gray-300 font-medium mt-0.5">Jusqu'à 4 vues supplémentaires</p>
+              </div>
               {formData.images.length < 4 && (
                 <button
                   type="button"
@@ -443,7 +553,7 @@ export function ProductFormView() {
               )}
             </div>
             {formData.images.length === 0 ? (
-              <p className="text-[10px] text-gray-300 font-bold text-center py-4">Jusqu'à 4 images supplémentaires</p>
+              <p className="text-[10px] text-gray-300 font-bold text-center py-4">Aucune image de galerie</p>
             ) : (
               <div className="space-y-3">
                 {formData.images.map((img, i) => (
@@ -460,51 +570,6 @@ export function ProductFormView() {
                 ))}
               </div>
             )}
-          </div>
-
-          {/* Visibilité */}
-          <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm text-left space-y-3">
-            <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em] mb-2">Options</h3>
-
-            {([
-              { key: 'published', label: 'En Ligne', color: 'green' },
-              { key: 'featured', label: 'Mis en avant', color: 'primary' },
-              { key: 'isNew', label: 'Badge Nouveau', color: 'blue' },
-              { key: 'isFlashSale', label: 'Offre du Jour', color: 'orange' },
-              { key: 'isTrending', label: 'Produit Tendance', color: 'purple' },
-              { key: 'isSelection', label: 'Sélection Boutique', color: 'teal' },
-            ] as { key: keyof typeof formData; label: string; color: string }[]).map(({ key, label, color }) => {
-              const isOn = !!formData[key];
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => set(key, !formData[key])}
-                  className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${
-                    isOn
-                      ? color === 'green' ? 'bg-green-50 text-green-700'
-                        : color === 'orange' ? 'bg-orange-50 text-orange-700'
-                        : color === 'purple' ? 'bg-purple-50 text-purple-700'
-                        : color === 'teal' ? 'bg-teal-50 text-teal-700'
-                        : color === 'primary' ? 'bg-primary/5 text-primary'
-                        : 'bg-blue-50 text-blue-600'
-                      : 'bg-gray-50 text-gray-400'
-                  }`}
-                >
-                  <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
-                  <div className={`w-11 h-6 rounded-full relative transition-all ${isOn
-                    ? color === 'green' ? 'bg-green-500'
-                      : color === 'orange' ? 'bg-orange-500'
-                      : color === 'purple' ? 'bg-purple-500'
-                      : color === 'teal' ? 'bg-teal-500'
-                      : color === 'primary' ? 'bg-primary'
-                      : 'bg-blue-500'
-                    : 'bg-gray-200'}`}>
-                    <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-all ${isOn ? 'right-1' : 'left-1'}`} />
-                  </div>
-                </button>
-              );
-            })}
           </div>
         </div>
       </form>

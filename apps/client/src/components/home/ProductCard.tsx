@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Heart } from '@imexmercado/ui';
+import { ShoppingCart, Heart, getOptimizedImageUrl } from '@imexmercado/ui';
 import { useCart } from '../../context/CartContext';
 
 // Shared ProductCard
@@ -15,9 +15,7 @@ export function ProductCard({
   const { addItem } = useCart();
   const [isAdding, setIsAdding] = useState(false);
 
-  const btnClass = index % 2 === 0
-    ? 'bg-primary hover:bg-primary-dark'
-    : 'bg-secondary hover:bg-secondary-dark';
+  const btnClass = 'bg-secondary hover:bg-secondary-dark';
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -54,11 +52,12 @@ export function ProductCard({
       )}
 
       {/* Image */}
-      <div className="flex items-center justify-center h-48 bg-gray-50 p-4 overflow-hidden">
+      <div className="w-full aspect-[4/3] sm:h-56 bg-gray-50 overflow-hidden relative">
         <img
-          src={product.image}
+          src={getOptimizedImageUrl(product.image, 600)}
           alt={product.name}
-          className="h-40 object-contain group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          onError={(e) => { e.currentTarget.src = 'https://placehold.co/600x600/f8f9fa/adb5bd?text=Image+Non+Disponible'; e.currentTarget.className="w-full h-full object-contain p-4 opacity-50" }}
         />
       </div>
 

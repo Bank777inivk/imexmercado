@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { CategorySidebar } from './CategorySidebar';
-import { getDocument } from '@imexmercado/firebase';
+import { subscribeToDocument } from '@imexmercado/firebase';
 
 // Default fallback slides if Nothing is in Firestore
 const fallbackSlides = [
@@ -32,19 +32,23 @@ const fallbackSlides = [
 export function HeroSlider({ isSidebarOpen = true }: { isSidebarOpen?: boolean }) {
   const [current, setCurrent] = useState(0);
   const [slides, setSlides] = useState<any[]>(fallbackSlides);
+  const [miniBanners, setMiniBanners] = useState<any[]>([
+    { id: 'mb1', label: "PROMOTION JUSQU'AU 21 AVRIL", title: "Jusqu'à -15% sur l'outillage de Bricolage", subtitle: 'Promo Bricolage', image: '', color: '#5d3b8e', link: '/boutique?filter=promo', isActive: true },
+    { id: 'mb2', label: 'SÉLECTION MAISON', title: "Jusqu'à 55% de réduction directe", subtitle: 'Promo Maison', image: '', color: '#111111', link: '/boutique?category=Maison', isActive: true },
+  ]);
 
   useEffect(() => {
-    async function fetchSlides() {
-      try {
-        const data = await getDocument('settings', 'homepage');
-        if (data && data.heroSlides && data.heroSlides.length > 0) {
+    const unsubscribe = subscribeToDocument('settings', 'homepage', (data) => {
+      if (data) {
+        if (data.heroSlides && data.heroSlides.length > 0) {
           setSlides(data.heroSlides.filter((s: any) => s.isActive !== false));
         }
-      } catch (error) {
-        console.error("Error fetching hero slides:", error);
+        if (data.miniBanners && data.miniBanners.length > 0) {
+          setMiniBanners(data.miniBanners.filter((b: any) => b.isActive !== false));
+        }
       }
-    }
-    fetchSlides();
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -59,7 +63,7 @@ export function HeroSlider({ isSidebarOpen = true }: { isSidebarOpen?: boolean }
   const prevSlide = () => setCurrent(current === 0 ? slides.length - 1 : current - 1);
 
   return (
-    <div className="bg-bg-subtle pb-4">
+    <div className="bg-bg-subtle pt-4 md:pt-6 pb-4">
       {/* Mobile-first wrapper, no padding on mobile to let slider stretch full width */}
       <div className="w-full px-2 md:px-4 lg:px-6">
         {/* Main Grid: Sidebar (L) | Slider (M) | Banners (R) - Added lg:pt-4 for spacing */}
@@ -105,7 +109,7 @@ export function HeroSlider({ isSidebarOpen = true }: { isSidebarOpen?: boolean }
                       <p className="text-[9px] md:text-sm font-black uppercase tracking-widest text-primary mb-2">
                         {slide.title}
                       </p>
-                      <h2 className="text-xl md:text-3xl lg:text-5xl font-extrabold leading-tight mb-4 md:mb-8 drop-shadow-md">
+                      <h2 className="text-white text-xl md:text-3xl lg:text-5xl font-extrabold leading-tight mb-4 md:mb-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         {slide.subtitle}
                       </h2>
                       <button className="bg-white text-black font-black uppercase py-2 md:py-2.5 px-4 md:px-6 rounded-full md:hover:bg-gray-100 transition-colors shadow-lg text-[10px] md:text-sm active:scale-95">
@@ -142,45 +146,32 @@ export function HeroSlider({ isSidebarOpen = true }: { isSidebarOpen?: boolean }
               </div>
             </div>
 
-            {/* Static Banners (Right) - HIDDEN ON MOBILE completely to prevent clutter */}
+            {/* Dynamic Mini Banners (Right) */}
             <div className="hidden md:flex flex-1 flex-col gap-2 h-auto md:h-[300px] lg:h-[450px]">
-               
-               {/* Banner 1 */}
-               <div className="relative w-full h-1/2 bg-[#5d3b8e] overflow-hidden group cursor-pointer block rounded-tr-md">
-                  <img 
-                    src="https://placehold.co/400x225/5d3b8e/ffffff?text=Promo+Bricolage" 
-                    alt="Promo 1" 
-                    className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-50 group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 p-6 flex flex-col justify-center text-white">
-                    <p className="text-[9px] font-bold uppercase tracking-wider mb-2">PROMOTION JUSQU'AU 21 AVRIL</p>
-                    <h3 className="text-lg md:text-xl font-black leading-tight">
-                      Jusqu'à -15% sur l'outillage de Bricolage
-                    </h3>
-                    <div className="mt-auto self-end">
-                      <span className="text-xl font-bold">&rarr;</span>
+              {miniBanners.slice(0, 2).map((b: any, i: number) => (
+                <a
+                  key={b.id}
+                  href={b.link || '#'}
+                  className={`relative w-full flex-1 overflow-hidden group cursor-pointer block ${i === 0 ? 'rounded-tr-md' : 'rounded-br-md'}`}
+                  style={{ backgroundColor: b.color || '#333' }}
+                >
+                  {b.image && (
+                    <img
+                      src={b.image}
+                      alt={b.label}
+                      className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+                    />
+                  )}
+                  <div className="absolute inset-0 p-5 flex flex-col justify-center text-white">
+                    <p className="text-[9px] font-bold uppercase tracking-wider mb-2 opacity-80">{b.label}</p>
+                    <h3 className="text-lg md:text-xl font-black leading-tight mb-2">{b.title}</h3>
+                    <p className="text-2xl font-black opacity-20 mt-auto">{b.subtitle}</p>
+                    <div className="absolute bottom-5 right-5">
+                      <span className="text-xl font-bold group-hover:translate-x-1 inline-block transition-transform">→</span>
                     </div>
                   </div>
-               </div>
-
-               {/* Banner 2 */}
-               <div className="relative w-full h-1/2 bg-black overflow-hidden group cursor-pointer block rounded-br-md">
-                  <img 
-                    src="https://placehold.co/400x225/111111/ffffff?text=Promo+Maison" 
-                    alt="Promo 2" 
-                    className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 p-6 flex flex-col justify-center text-white">
-                    <p className="text-[9px] font-bold uppercase tracking-wider mb-2 text-gray-300">SÉLECTION MAISON</p>
-                    <h3 className="text-lg md:text-xl font-black leading-tight text-white mb-2">
-                      Jusqu'à 55% de réduction directe
-                    </h3>
-                    <div className="mt-auto self-end">
-                      <span className="text-xl font-bold">&rarr;</span>
-                    </div>
-                  </div>
-               </div>
-
+                </a>
+              ))}
             </div>
           </div>
         </div>

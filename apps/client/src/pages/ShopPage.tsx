@@ -5,7 +5,7 @@ import { ShopHeader } from '../components/shop/ShopHeader';
 import { ProductCard } from '../components/home/ProductCard';
 import { ProductModal } from '../components/shop/ProductModal';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { getCollection, seedProducts } from '@imexmercado/firebase';
+import { subscribeToCollection, seedProducts } from '@imexmercado/firebase';
 
 interface Filters {
   categories: string[];
@@ -97,36 +97,23 @@ export function ShopPage() {
   }, [activeCategory, categorySlug, searchParams]);
 
   useEffect(() => {
-    async function fetchProducts() {
-      try {
-        let data = await getCollection('products');
-        
-        if (data.length === 0) {
-          console.log("🛠️ Aucun produit trouvé en base. Lancement du seeding...");
-          try {
-            await seedProducts();
-            console.log("✅ Seeding terminé avec succès !");
-            data = await getCollection('products');
-          } catch (seedError) {
-            console.error("❌ Échec du seeding :", seedError);
-            throw seedError;
-          }
+    setLoading(true);
+    const unsubscribe = subscribeToCollection('products', async (data) => {
+      if (data.length === 0) {
+        console.log("🛠️ Aucun produit trouvé en base. Lancement du seeding...");
+        try {
+          await seedProducts();
+          console.log("✅ Seeding terminé avec succès !");
+          // The next snapshot will contain the seeded products
+        } catch (seedError) {
+          console.error("❌ Échec du seeding :", seedError);
         }
-        
-        const query = searchParams.get('search');
-        if (query) {
-           data = data.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
-        }
-
-        setProducts(data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false);
       }
-    }
-    fetchProducts();
-  }, [searchParams]);
+      setProducts(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleFilterChange = (type: string, value: any) => {
     setActiveFilters((prev: any) => {
@@ -158,6 +145,11 @@ export function ShopPage() {
 
     if (promoFilter) {
       result = result.filter(p => p.oldPrice && p.oldPrice > p.price);
+    }
+
+    const searchQuery = searchParams.get('search');
+    if (searchQuery) {
+      result = result.filter(p => p.name?.toLowerCase().includes(searchQuery.toLowerCase()));
     }
 
     if (activeFilters.categories.length > 0) {

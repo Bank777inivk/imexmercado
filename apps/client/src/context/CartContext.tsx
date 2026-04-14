@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useAuth, getDocument, setDocument } from '@imexmercado/firebase';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { useAuth, subscribeToDocument, setDocument } from '@imexmercado/firebase';
 
-interface CartItem {
+export interface CartItem {
   id: string;
   name: string;
   price: number;
@@ -18,56 +18,112 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  isDrawerOpen: boolean;
+  setDrawerOpen: (open: boolean) => void;
+  isSyncing: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [items, setItems] = useState<CartItem[]>(() => {
     const saved = localStorage.getItem('imex_cart');
     return saved ? JSON.parse(saved) : [];
   });
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  
+  // Track if we just logged in to prevent infinite loops during merge
+  const isInitialSyncDone = useRef(false);
 
-  // Persist to localStorage
+  // Persist to localStorage for guests and backup
   useEffect(() => {
     localStorage.setItem('imex_cart', JSON.stringify(items));
   }, [items]);
 
-  // Sync with Firestore if logged in
+  // --- REAL-TIME SYNC & MERGE ---
   useEffect(() => {
-    async function syncWithFirestore() {
-      if (user) {
-        // 1. Fetch remote cart
-        const remoteCart = await getDocument<{ items: CartItem[] }>('carts', user.uid);
+    if (authLoading) return;
+    if (!user) {
+      isInitialSyncDone.current = false;
+      if (localStorage.getItem('imex_last_uid')) {
+        localStorage.removeItem('imex_last_uid');
+        setItems([]);
+      }
+      return;
+    }
+
+    setIsSyncing(true);
+    const unsubscribe = subscribeToDocument<{ items: CartItem[] }>('carts', user.uid, async (remoteCart) => {
+      const savedUid = localStorage.getItem('imex_last_uid');
+      
+      if (!isInitialSyncDone.current && savedUid !== user.uid) {
+        // FIRST TIME LOGIN / SWITCH: Merge
+        const remoteItems = remoteCart?.items || [];
+        const localItems = items;
+        const mergedMap = new Map<string, CartItem>();
+
+        remoteItems.forEach(item => mergedMap.set(item.id, { ...item }));
+        localItems.forEach(localItem => {
+          const existing = mergedMap.get(localItem.id);
+          if (existing) {
+            mergedMap.set(localItem.id, { ...existing, quantity: existing.quantity + localItem.quantity });
+          } else {
+            mergedMap.set(localItem.id, { ...localItem });
+          }
+        });
+
+        const finalItems = Array.from(mergedMap.values());
+        setItems(finalItems);
+        localStorage.setItem('imex_last_uid', user.uid);
+        isInitialSyncDone.current = true;
+
+        // Push merged state back to Firestore
+        await setDocument('carts', user.uid, { 
+          items: finalItems, 
+          updatedAt: new Date(),
+          mergedAt: new Date()
+        });
+      } else {
+        // ALREADY SYNCED: Just follow remote
         if (remoteCart && remoteCart.items) {
-          // Merge logic: Simple override for now, or sophisticated merging
+          // Compare to avoid state update loops if possible, though React handles simple identity well
           setItems(remoteCart.items);
-        } else if (items.length > 0) {
-          // 2. If no remote cart but local items exist, save local to remote
-          await setDocument('carts', user.uid, { items, updatedAt: new Date() });
         }
+        isInitialSyncDone.current = true;
+        localStorage.setItem('imex_last_uid', user.uid);
+      }
+      setIsSyncing(false);
+    });
+
+    return () => unsubscribe();
+  }, [user, authLoading]);
+
+  // Helper to persist changes
+  const persistItems = async (newItems: CartItem[]) => {
+    setItems(newItems);
+    if (user && isInitialSyncDone.current) {
+      try {
+        await setDocument('carts', user.uid, { 
+          items: newItems, 
+          updatedAt: new Date() 
+        });
+      } catch (err) {
+        console.error("Cart persistence error:", err);
       }
     }
-    syncWithFirestore();
-  }, [user]);
-
-  // Save to Firestore on change
-  useEffect(() => {
-    if (user && items.length >= 0) {
-      setDocument('carts', user.uid, { items, updatedAt: new Date() });
-    }
-  }, [items, user]);
+  };
 
   const addItem = (product: any) => {
-    setItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item => 
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prev, { 
+    const existing = items.find(item => item.id === product.id);
+    let newItems;
+    if (existing) {
+      newItems = items.map(item => 
+        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+      );
+    } else {
+      newItems = [...items, { 
         id: product.id, 
         name: product.name, 
         price: product.price, 
@@ -75,24 +131,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         category: product.category,
         quantity: 1 
       }];
-    });
+    }
+    persistItems(newItems);
   };
 
   const removeItem = (productId: string) => {
-    setItems(prev => prev.filter(item => item.id !== productId));
+    const newItems = items.filter(item => item.id !== productId);
+    persistItems(newItems);
   };
 
   const updateQuantity = (productId: string, delta: number) => {
-    setItems(prev => prev.map(item => {
+    const newItems = items.map(item => {
       if (item.id === productId) {
         const newQty = Math.max(1, item.quantity + delta);
         return { ...item, quantity: newQty };
       }
       return item;
-    }));
+    });
+    persistItems(newItems);
   };
 
-  const clearCart = () => setItems([]);
+  const clearCart = () => persistItems([]);
 
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -100,7 +159,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   return (
     <CartContext.Provider value={{ 
       items, addItem, removeItem, updateQuantity, clearCart, 
-      totalItems, totalPrice 
+      totalItems, totalPrice,
+      isDrawerOpen, setDrawerOpen, isSyncing
     }}>
       {children}
     </CartContext.Provider>

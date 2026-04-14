@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCollection, deleteDocument, seedProducts } from '@imexmercado/firebase';
+import { subscribeToCollection, deleteDocument, seedProducts } from '@imexmercado/firebase';
 import { 
   Package, Plus, MagnifyingGlass, 
   Trash, PencilSimple, DotsThreeVertical,
@@ -31,20 +31,13 @@ export function ProductsView() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const data = await getCollection('products');
-      setProducts(data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchProducts();
+    setLoading(true);
+    const unsubscribe = subscribeToCollection('products', (data) => {
+      setProducts(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -116,7 +109,6 @@ export function ProductsView() {
                 try {
                   await seedProducts();
                   alert("✅ BOMBARDEMENT RÉUSSI ! Les produits et témoignages sont en ligne.");
-                  fetchProducts();
                 } catch (err) {
                   console.error("Erreur Bombardement :", err);
                   alert("❌ Erreur lors du bombardement. Vérifiez la console pour plus de détails.");
@@ -133,8 +125,8 @@ export function ProductsView() {
           </button>
           
           <button 
-            onClick={fetchProducts}
-            className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all shadow-sm"
+            disabled={loading}
+            className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all shadow-sm disabled:opacity-50"
           >
             <ArrowClockwise size={20} className={loading ? 'animate-spin' : ''} />
           </button>

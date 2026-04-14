@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCollection } from '@imexmercado/firebase';
+import { subscribeToCollection } from '@imexmercado/firebase';
 import { 
   Layout, Plus, MagnifyingGlass, 
   Trash, PencilSimple, CaretLeft, CaretRight,
@@ -12,20 +12,13 @@ export function CategoriesView() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchCategories = async () => {
-    setLoading(true);
-    try {
-      const data = await getCollection('categories');
-      setCategories(data.sort((a, b) => (a.order || 0) - (b.order || 0)));
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchCategories();
+    setLoading(true);
+    const unsubscribe = subscribeToCollection('categories', (data) => {
+      setCategories(data.sort((a, b) => (a.order || 0) - (b.order || 0)));
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -39,8 +32,8 @@ export function CategoriesView() {
         </div>
         <div className="flex items-center gap-3">
           <button 
-            onClick={fetchCategories}
-            className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all shadow-sm active:scale-90"
+            disabled={loading}
+            className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all shadow-sm active:scale-90 disabled:opacity-50"
           >
             <ArrowClockwise size={20} className={loading ? 'animate-spin' : ''} />
           </button>

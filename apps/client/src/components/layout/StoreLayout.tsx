@@ -7,6 +7,7 @@ import { NavBar } from './NavBar';
 import { Footer } from './Footer';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileDrawer } from './MobileDrawer';
+import { CartDrawer } from './CartDrawer';
 
 export function StoreLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -27,6 +28,9 @@ export function StoreLayout() {
 
       <Footer />
 
+      {/* Global Overlays */}
+      <CartDrawer />
+      
       {/* Mobile Exclusives */}
       <MobileBottomNav />
       <MobileDrawer 

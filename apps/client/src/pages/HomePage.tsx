@@ -13,7 +13,7 @@ import { TestimonialsSection } from '../components/home/TestimonialsSection';
 import { TabbedProductSection } from '../components/home/TabbedProductSection';
 import { Newsletter } from '../components/home/Newsletter';
 import { ProductModal } from '../components/shop/ProductModal';
-import { getCollection } from '@imexmercado/firebase';
+import { subscribeToCollection } from '@imexmercado/firebase';
 
 interface HomePageProps {
   isSidebarOpen: boolean;
@@ -26,16 +26,12 @@ export function HomePage({ isSidebarOpen }: HomePageProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await getCollection('products');
-        setAllProducts(data || []);
-      } catch (err) {
-        console.error('Error fetching home products:', err);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    setLoading(true);
+    const unsubscribe = subscribeToCollection('products', (data) => {
+      setAllProducts(data || []);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   // Filtered lists for sections

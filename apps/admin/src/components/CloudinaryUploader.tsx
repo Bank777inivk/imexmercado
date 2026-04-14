@@ -1,23 +1,27 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { CloudArrowUp, Image, X, CheckCircle, WarningCircle, Spinner } from '@phosphor-icons/react';
 
-// ─── CONFIGURATION CLOUDINARY ────────────────────────────────────────────────
-// 1. Rendez-vous sur https://cloudinary.com/console
-// 2. Copiez votre "Cloud Name"
-// 3. Allez dans Settings > Upload > Upload Presets, créez un preset "Unsigned"
-const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME';   // ← Remplacez ici
-const CLOUDINARY_UPLOAD_PRESET = 'YOUR_UPLOAD_PRESET'; // ← Remplacez ici
+// ─── CONFIGURATION CLOUDINARY (via .env.local) ───────────────────────────────
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 // ─────────────────────────────────────────────────────────────────────────────
+
 
 interface CloudinaryUploaderProps {
   value: string;
   onChange: (url: string) => void;
   label?: string;
+  resourceType?: 'image' | 'video' | 'auto';
 }
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
-export function CloudinaryUploader({ value, onChange, label = 'Image principale' }: CloudinaryUploaderProps) {
+export function CloudinaryUploader({ 
+  value, 
+  onChange, 
+  label = 'Média', 
+  resourceType = 'auto' 
+}: CloudinaryUploaderProps) {
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [progress, setProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -25,13 +29,18 @@ export function CloudinaryUploader({ value, onChange, label = 'Image principale'
   const inputRef = useRef<HTMLInputElement>(null);
 
   const uploadFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setErrorMsg('Seuls les fichiers image sont acceptés (JPG, PNG, WEBP...).');
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if (!isImage && !isVideo) {
+      setErrorMsg('Seuls les fichiers image ou vidéo sont acceptés.');
       setStatus('error');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      setErrorMsg('Le fichier dépasse la limite de 10 Mo.');
+
+    const limit = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > limit) {
+      setErrorMsg(`Le fichier dépasse la limite de ${isVideo ? '50' : '10'} Mo.`);
       setStatus('error');
       return;
     }
@@ -40,14 +49,18 @@ export function CloudinaryUploader({ value, onChange, label = 'Image principale'
     setProgress(0);
     setErrorMsg('');
 
+    const typeToUpload = resourceType === 'auto' 
+      ? (isVideo ? 'video' : 'image') 
+      : resourceType;
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    formData.append('folder', 'imexmercado/products');
+    formData.append('folder', 'imexmercado/cms');
 
     try {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`);
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${typeToUpload}/upload`);
 
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
@@ -106,7 +119,18 @@ export function CloudinaryUploader({ value, onChange, label = 'Image principale'
       {/* Preview Zone */}
       {value ? (
         <div className="relative group rounded-[2rem] overflow-hidden border-2 border-gray-200 bg-gray-50 aspect-square">
-          <img src={value} alt="Aperçu" className="w-full h-full object-contain p-4 transition-opacity group-hover:opacity-60" />
+          {value.includes('/video/upload/') || value.endsWith('.mp4') ? (
+            <video 
+              src={value} 
+              autoPlay 
+              muted 
+              loop 
+              playsInline 
+              className="w-full h-full object-cover p-2"
+            />
+          ) : (
+            <img src={value} alt="Aperçu" className="w-full h-full object-contain p-4 transition-opacity group-hover:opacity-60" />
+          )}
           {/* Overlay on hover */}
           <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-3 bg-white/80 backdrop-blur-sm">
             <button
@@ -165,9 +189,11 @@ export function CloudinaryUploader({ value, onChange, label = 'Image principale'
                   <p className="text-xs font-black text-red-500">{errorMsg}</p>
                 ) : (
                   <>
-                    <p className="text-xs font-black text-gray-700 mb-1">Glissez une image ici</p>
+                    <p className="text-xs font-black text-gray-700 mb-1">Glissez un média ici</p>
                     <p className="text-[10px] text-gray-400 font-medium">ou cliquez pour parcourir</p>
-                    <p className="text-[9px] text-gray-300 font-bold uppercase tracking-widest mt-2">JPG, PNG, WEBP — Max 10 Mo</p>
+                    <p className="text-[9px] text-gray-300 font-bold uppercase tracking-widest mt-2 px-4">
+                      {resourceType === 'video' ? 'MP4 — Max 50 Mo' : 'JPG, PNG, WEBP, MP4'}
+                    </p>
                   </>
                 )}
               </div>
@@ -189,7 +215,7 @@ export function CloudinaryUploader({ value, onChange, label = 'Image principale'
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept={resourceType === 'video' ? 'video/mp4' : 'image/*,video/mp4'}
         className="hidden"
         onChange={handleFileChange}
       />

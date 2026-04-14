@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
   Star, ShoppingCart, Heart, ShareNetwork, 
@@ -6,19 +6,53 @@ import {
   Check, WarningCircle, Minus, Plus
 } from '@phosphor-icons/react';
 import { ProductCard as ProductCardComponent } from '../components/home/ProductCard';
-
-// Temporary fallback for the product detail page demo
-const allProducts: any[] = []; 
+import { subscribeToDocument } from '@imexmercado/firebase';
+import { getOptimizedImageUrl } from '@imexmercado/ui';
+import { useCart } from '../context/CartContext';
 
 export function ProductPage() {
   const { productSlug } = useParams();
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
-  
-  // For demo, we just find any product since we don't have real slugs yet
-  const product = allProducts[0]; 
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState('');
+  const { addItem, setDrawerOpen } = useCart();
+  const [isAdding, setIsAdding] = useState(false);
 
-  const [selectedImage, setSelectedImage] = useState(product.image);
+  const handleAddToCart = () => {
+    if (!product) return;
+    setIsAdding(true);
+    for (let i = 0; i < qty; i++) {
+      addItem(product);
+    }
+    setTimeout(() => setIsAdding(false), 1000);
+  };
+
+  useEffect(() => {
+    if (!productSlug) return;
+    setLoading(true);
+    const unsubscribe = subscribeToDocument('products', productSlug, (data) => {
+      if (data) {
+        setProduct(data);
+        // Only set initial image if not already set or if product changed
+        if (!selectedImage) {
+          setSelectedImage(data.image || '');
+        }
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [productSlug]);
+
+  if (loading) {
+    return <div className="min-h-screen bg-bg flex items-center justify-center font-black uppercase text-gray-400 tracking-widest text-xs">Chargement...</div>;
+  }
+
+  if (!product) {
+    return <div className="min-h-screen bg-bg flex items-center justify-center font-black uppercase text-gray-400 tracking-widest text-xs">Produit introuvable.</div>;
+  }
+
 
   return (
     <div className="bg-bg min-h-screen">
@@ -43,7 +77,7 @@ export function ProductPage() {
             <div className="space-y-6">
               <div className="aspect-square bg-white border border-gray-100 rounded-2xl overflow-hidden relative group">
                 <img 
-                  src={selectedImage} 
+                  src={getOptimizedImageUrl(selectedImage, 900)} 
                   alt={product.name} 
                   className="w-full h-full object-contain p-8 transition-transform duration-500 group-hover:scale-110"
                 />
@@ -56,13 +90,13 @@ export function ProductPage() {
               
               {/* Thumbnails */}
               <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-                {[product.image, 'https://placehold.co/200x200/f5f5f5/999?text=View+2', 'https://placehold.co/200x200/f5f5f5/999?text=View+3'].map((img, i) => (
+                {[product.image, ...(product.images || [])].filter(Boolean).map((img: string, i: number) => (
                   <button 
                     key={i}
                     onClick={() => setSelectedImage(img)}
                     className={`w-20 h-20 flex-shrink-0 border-2 rounded-xl overflow-hidden transition-all ${selectedImage === img ? 'border-primary shadow-md' : 'border-gray-100 hover:border-gray-200'}`}
                   >
-                    <img src={img} alt="thumb" className="w-full h-full object-cover" />
+                    <img src={getOptimizedImageUrl(img, 200)} alt="thumb" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -137,9 +171,22 @@ export function ProductPage() {
                     </button>
                   </div>
 
-                  <button className="flex-1 bg-primary text-white font-black uppercase tracking-widest h-14 rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 active:scale-95">
-                    <ShoppingCart size={22} weight="bold" />
-                    <span>Ajouter au Panier</span>
+                  <button 
+                    onClick={handleAddToCart}
+                    disabled={isAdding}
+                    className="flex-1 bg-primary text-white font-black uppercase tracking-widest h-14 rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-70"
+                  >
+                    {isAdding ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Ajouté !</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart size={22} weight="bold" />
+                        <span>Ajouter au Panier</span>
+                      </>
+                    )}
                   </button>
                 </div>
 
@@ -238,17 +285,17 @@ export function ProductPage() {
           </div>
         </div>
 
-        {/* Related Products */}
+        {/* Related Products (Pending dynamic fetch) */}
+        {/* 
         <section className="mt-12 md:mt-20">
           <div className="flex items-center justify-between mb-8 md:mb-10">
             <h2 className="text-xl md:text-3xl font-black text-gray-900 uppercase tracking-tight leading-tight">Vous pourriez <br className="md:hidden" /><span className="text-primary">aussi aimer</span></h2>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-            {allProducts.slice(1, 5).map((p, idx) => (
-              <ProductCardComponent key={p.id} product={p} index={idx} />
-            ))}
+            
           </div>
         </section>
+        */}
       </div>
     </div>
   );

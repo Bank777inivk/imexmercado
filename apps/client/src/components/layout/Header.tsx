@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShoppingCart, User, MagnifyingGlass, List } from '@phosphor-icons/react';
+import { subscribeToCollection } from '@imexmercado/firebase';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@imexmercado/firebase';
 import { useCart } from '../../context/CartContext';
@@ -10,15 +11,28 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuth();
-  const { totalItems, totalPrice } = useCart();
+  const { totalItems, totalPrice, setDrawerOpen } = useCart();
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [categories, setCategories] = React.useState<any[]>([]);
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const unsubscribe = subscribeToCollection('categories', (data) => {
+      setCategories(data.sort((a, b) => (a.order || 0) - (b.order || 0)));
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
        navigate(`/boutique?search=${encodeURIComponent(searchQuery)}`);
     }
+  };
+
+  const handleCartClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setDrawerOpen(true);
   };
 
   return (
@@ -38,14 +52,18 @@ export function Header({ onMenuClick }: HeaderProps) {
         
         {/* Search Bar Desktop */}
         <form onSubmit={handleSearch} className="flex-1 flex items-center max-w-2xl">
-          <select className="h-11 px-3 bg-gray-100 border-r border-gray-300 text-gray-600 text-xs rounded-l-sm focus:outline-none cursor-pointer">
-            <option>Toutes catégories</option>
-            <option>Téléphones &amp; Hi-Tech</option>
-            <option>Maison &amp; Décoration</option>
-            <option>Meubles &amp; Lampes</option>
-            <option>Bricolage</option>
-            <option>Barbecues &amp; Planchas</option>
-            <option>Piscines &amp; Spas</option>
+          <select 
+            className="h-11 px-3 bg-gray-100 border-r border-gray-300 text-gray-600 text-xs rounded-l-sm focus:outline-none cursor-pointer"
+            onChange={(e) => {
+              if (e.target.value !== 'all') {
+                navigate(`/boutique?category=${encodeURIComponent(e.target.value)}`);
+              }
+            }}
+          >
+            <option value="all">Toutes catégories</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
+            ))}
           </select>
           <input 
             type="text" 
@@ -73,7 +91,11 @@ export function Header({ onMenuClick }: HeaderProps) {
           </Link>
 
           {/* Cart */}
-          <Link to="/panier" className="flex items-center gap-2 cursor-pointer group hover:opacity-80 transition-opacity">
+          <Link 
+            to="/panier" 
+            onClick={handleCartClick}
+            className="flex items-center gap-2 cursor-pointer group hover:opacity-80 transition-opacity"
+          >
             <div className="relative">
               <ShoppingCart size={26} />
               {totalItems > 0 && (
@@ -123,7 +145,11 @@ export function Header({ onMenuClick }: HeaderProps) {
            
            {/* Right: Cart/Account (Optional, keeping it symmetrical) */}
            <div className="flex justify-end">
-             <Link to="/panier" className="relative w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full">
+             <Link 
+               to="/panier" 
+               onClick={handleCartClick}
+               className="relative w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full"
+             >
                <ShoppingCart size={24} />
                {totalItems > 0 && (
                  <span className="absolute top-1 right-1 bg-primary text-white text-[9px] font-bold h-4 w-4 flex items-center justify-center rounded-full">

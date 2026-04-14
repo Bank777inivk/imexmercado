@@ -108,11 +108,6 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                     alt={product.name}
                     className="w-full h-full object-contain p-6 transition-all duration-300"
                   />
-                  {product.badge && (
-                    <span className="absolute top-4 left-4 bg-primary text-white text-[11px] font-black px-3 py-1.5 rounded-full shadow-lg">
-                      {product.badge}
-                    </span>
-                  )}
                   {discountPct && discountPct > 0 && (
                     <span className="absolute top-4 right-4 bg-red-500 text-white text-[11px] font-black px-3 py-1.5 rounded-full shadow-lg">
                       -{discountPct}%
@@ -237,73 +232,6 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                 </Link>
               </div>
             </div>
-
-            {/* ── Tabs Section ── */}
-            {(product.description || specs.length > 0) && (
-              <div className="border-t border-gray-100">
-                <div className="flex overflow-x-auto scrollbar-hide border-b border-gray-100">
-                  {(['description', 'specs', 'reviews'] as const).map(tab => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border-b-2 shrink-0 ${
-                        activeTab === tab ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-gray-400 hover:text-gray-700'
-                      }`}
-                    >
-                      {tab === 'description' ? 'Description' : tab === 'specs' ? 'Caractéristiques' : 'Avis'}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="p-6 md:p-8 text-left">
-                  {activeTab === 'description' && (
-                    <div className="text-sm text-gray-600 leading-relaxed space-y-3">
-                      {product.description || <p className="text-gray-400 italic">Aucune description disponible.</p>}
-                      {tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-50">
-                          {tags.map(tag => (
-                            <span key={tag} className="text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg">
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {activeTab === 'specs' && (
-                    specs.length > 0 ? (
-                      <table className="w-full border-collapse text-sm">
-                        <tbody>
-                          {specs.map((s, i) => (
-                            <tr key={i} className="border-b border-gray-50">
-                              <td className="py-3 pr-6 text-[10px] font-black uppercase tracking-widest text-gray-400 w-1/3">{s.key}</td>
-                              <td className="py-3 font-bold text-gray-900">{s.value}</td>
-                            </tr>
-                          ))}
-                          {product.brand && (
-                            <tr className="border-b border-gray-50">
-                              <td className="py-3 pr-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Marque</td>
-                              <td className="py-3 font-bold text-gray-900">{product.brand}</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <div className="text-center py-8 text-gray-300">
-                        <Package size={32} className="mx-auto mb-2" weight="thin" />
-                        <p className="text-[10px] font-black uppercase tracking-widest">Aucune caractéristique renseignée</p>
-                      </div>
-                    )
-                  )}
-                  {activeTab === 'reviews' && (
-                    <div className="text-center py-8 text-gray-300">
-                      <Star size={32} className="mx-auto mb-2" weight="thin" />
-                      <p className="text-[10px] font-black uppercase tracking-widest">Aucun avis pour le moment</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

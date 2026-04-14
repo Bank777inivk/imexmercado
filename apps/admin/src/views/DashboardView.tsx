@@ -5,7 +5,8 @@ import {
   AreaChart, Area
 } from 'recharts';
 import { TrendUp, TrendDown, Package, ShoppingCart, Users, CurrencyEur, ArrowClockwise, Database } from '@phosphor-icons/react';
-import { getCollection, seedProducts } from '@imexmercado/firebase';
+import { subscribeToCollection, seedProducts, seedCategories } from '@imexmercado/firebase';
+import { useMemo } from 'react';
 
 const StatCard = ({ label, value, diff, trend, icon: Icon, color }: any) => (
   <div className="bg-white p-5 md:p-8 rounded-3xl border border-gray-200 shadow-sm transition-all hover:shadow-md animate-in zoom-in-95 duration-500">
@@ -26,74 +27,76 @@ const StatCard = ({ label, value, diff, trend, icon: Icon, color }: any) => (
 );
 
 export function DashboardView() {
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    revenue: 0,
-    orders: 0,
-    customers: 0,
-    products: 0,
-    recentOrders: [] as any[],
-    chartData: [] as any[]
-  });
+  const [orders, setOrders] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [seeding, setSeeding] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const fetchData = async () => {
+  useEffect(() => {
     setLoading(true);
-    try {
-      const orders = await getCollection('orders');
-      const products = await getCollection('products');
-      const users = await getCollection('users');
-
-      // Aggregate Stats
-      const totalRevenue = orders.reduce((acc, curr) => acc + (curr.total || 0), 0);
-      
-      // Sort and Slice Recent Orders
-      const sortedOrders = [...orders].sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-      const recent = sortedOrders.slice(0, 4);
-
-      // Chart Data: Group by Date (last 7 days)
-      const last7Days = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - (6 - i));
-        return {
-          date: d.toLocaleDateString('fr-FR', { weekday: 'short' }),
-          fullDate: d.toISOString().split('T')[0],
-          sales: 0
-        };
-      });
-
-      orders.forEach(order => {
-        const orderDate = order.createdAt.split('T')[0];
-        const dayMatch = last7Days.find(d => d.fullDate === orderDate);
-        if (dayMatch) {
-          dayMatch.sales += order.total;
-        }
-      });
-
-      setStats({
-        revenue: totalRevenue,
-        orders: orders.length,
-        customers: users.length,
-        products: products.length,
-        recentOrders: recent,
-        chartData: last7Days
-      });
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
+    const unsubOrders = subscribeToCollection('orders', (data) => setOrders(data));
+    const unsubProducts = subscribeToCollection('products', (data) => setProducts(data));
+    const unsubUsers = subscribeToCollection('users', (data) => {
+      setUsers(data);
       setLoading(false);
+    });
+    return () => {
+      unsubOrders();
+      unsubProducts();
+      unsubUsers();
+    };
+  }, []);
+
+  const statsData = useMemo(() => {
+    if (orders.length === 0 && products.length === 0 && users.length === 0) {
+      return { revenue: 0, orders: 0, customers: 0, products: 0, recentOrders: [], chartData: [] };
     }
-  };
+
+    const totalRevenue = orders.reduce((acc, curr) => acc + (curr.total || 0), 0);
+    const sortedOrders = [...orders].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    const recent = sortedOrders.slice(0, 4);
+
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return {
+        date: d.toLocaleDateString('fr-FR', { weekday: 'short' }),
+        fullDate: d.toISOString().split('T')[0],
+        sales: 0
+      };
+    });
+
+    orders.forEach(order => {
+      if (!order.createdAt) return;
+      const orderDate = order.createdAt.split('T')[0];
+      const dayMatch = last7Days.find(d => d.fullDate === orderDate);
+      if (dayMatch) {
+        dayMatch.sales += (order.total || 0);
+      }
+    });
+
+    return {
+      revenue: totalRevenue,
+      orders: orders.length,
+      customers: users.length,
+      products: products.length,
+      recentOrders: recent,
+      chartData: last7Days
+    };
+  }, [orders, products, users]);
 
   const handleSeed = async () => {
     if (!window.confirm("BOMBARDER LA BASE DE DONNÉES ? (350 produits vont être générés et ajoutés)")) return;
     setSeeding(true);
     try {
-      await seedProducts();
-      alert("🔥 BOMBARDEMENT RÉUSSI ! 350 produits ont été injectés.");
-      fetchData();
+      await Promise.all([
+        seedProducts(),
+        seedCategories()
+      ]);
+      alert("🔥 BOMBARDEMENT RÉUSSI ! Produits et catégories ont été injectés.");
     } catch (error) {
       console.error("Error seeding:", error);
       alert("Erreur lors du bombardement.");
@@ -102,9 +105,6 @@ export function DashboardView() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   return (
     <div className="space-y-8">
@@ -117,8 +117,8 @@ export function DashboardView() {
         </div>
         <div className="flex items-center gap-2">
           <button 
-            onClick={fetchData}
-            className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-colors shadow-sm"
+            disabled={loading}
+            className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-colors shadow-sm disabled:opacity-50"
             title="Rafraîchir"
           >
             <ArrowClockwise size={20} className={loading ? 'animate-spin' : ''} />
@@ -139,7 +139,7 @@ export function DashboardView() {
         </div>
       </div>
 
-      {loading && stats.revenue === 0 ? (
+      {loading && statsData.revenue === 0 ? (
         <div className="py-20 text-center animate-pulse">
            <p className="text-sm font-black text-gray-400 uppercase tracking-widest">Initialisation des statistiques...</p>
         </div>
@@ -149,7 +149,7 @@ export function DashboardView() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard 
               label="Chiffre d'Affaires" 
-              value={`${stats.revenue.toLocaleString('fr-FR')} €`} 
+              value={`${statsData.revenue.toLocaleString('fr-FR')} €`} 
               diff="+12.5%" 
               trend="up" 
               icon={CurrencyEur} 
@@ -157,7 +157,7 @@ export function DashboardView() {
             />
             <StatCard 
               label="Commandes" 
-              value={stats.orders} 
+              value={statsData.orders} 
               diff="+8.2%" 
               trend="up" 
               icon={ShoppingCart} 
@@ -165,7 +165,7 @@ export function DashboardView() {
             />
             <StatCard 
               label="Nouveaux Clients" 
-              value={stats.customers} 
+              value={statsData.customers} 
               diff="-3.1%" 
               trend="down" 
               icon={Users} 
@@ -173,7 +173,7 @@ export function DashboardView() {
             />
             <StatCard 
               label="Produits Actifs" 
-              value={stats.products} 
+              value={statsData.products} 
               diff="+4.5%" 
               trend="up" 
               icon={Package} 
@@ -201,7 +201,7 @@ export function DashboardView() {
               
               <div className="h-[250px] md:h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={stats.chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                  <AreaChart data={statsData.chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#ff5a1f" stopOpacity={0.1}/>
@@ -251,13 +251,13 @@ export function DashboardView() {
             <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col animate-in slide-in-from-right-4 duration-700">
               <h3 className="font-black text-xs md:text-sm text-gray-900 uppercase tracking-widest mb-6 md:mb-8 text-left">Dernières Commandes</h3>
               <div className="space-y-5 md:space-y-6 flex-grow ">
-                {stats.recentOrders.length === 0 ? (
+                {statsData.recentOrders.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-gray-300 py-10">
                     <ShoppingCart size={40} weight="thin" />
                     <p className="text-[9px] font-black uppercase tracking-widest mt-4">Aucune commande</p>
                   </div>
                 ) : (
-                  stats.recentOrders.map((order) => (
+                  statsData.recentOrders.map((order) => (
                     <div key={order.id} className="flex items-center justify-between group cursor-pointer border-b border-gray-50 pb-4 last:border-0 last:pb-0">
                       <div className="flex items-center gap-3">
                         <div className={`w-1.5 h-1.5 rounded-full ${
