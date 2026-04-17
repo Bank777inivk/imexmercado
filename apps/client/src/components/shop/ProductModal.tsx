@@ -95,7 +95,6 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
     ? Math.round((1 - p.price / p.oldPrice) * 100)
     : null;
 
-  const specs: { key: string; value: string }[] = p.specs || [];
   const tags: string[] = p.tags || [];
 
   // Compute similar products
@@ -110,6 +109,34 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
       .replace(/\n\n/g, '<div class="h-4"></div>')
       .replace(/\n/g, '<br/>');
   };
+
+  const extractSpecsFromText = (text: string) => {
+    if (!text) return [];
+    const extracted: { key: string; value: string }[] = [];
+    // Regex pour capturer "Clé : Valeur" ou "**Clé** : Valeur"
+    const regex = /(?:\n|^)(?:\*\*)?([^*:\n\r]{2,35})(?:\*\*)?\s*[:]\s*([^\n\r]+)/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      const key = match[1].trim();
+      const value = match[2].trim();
+      // On ignore les titres trop longs ou les mots génériques
+      if (key.length > 2 && value.length > 0 && key.length < 40 && !['Description', 'Técnica', 'Garantie'].includes(key)) {
+        extracted.push({ key, value });
+      }
+    }
+    return extracted;
+  };
+
+  // Merge native specs with auto-extracted ones
+  const nativeSpecs = p.specs || [];
+  const extractedSpecs = extractSpecsFromText(p.description);
+  const specs: { key: string; value: string }[] = [...nativeSpecs];
+  
+  extractedSpecs.forEach(ext => {
+    if (!specs.find(s => s.key.toLowerCase() === ext.key.toLowerCase())) {
+      specs.push(ext);
+    }
+  });
 
   return (
     <>
