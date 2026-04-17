@@ -6,6 +6,8 @@ import {
   Star, Minus, Plus, Package
 } from '@phosphor-icons/react';
 import { useCart } from '../../context/CartContext';
+import { subscribeToCollection } from '@imexmercado/firebase';
+import { getOptimizedImageUrl } from '@imexmercado/ui';
 
 interface ProductModalProps {
   product: any | null;
@@ -16,20 +18,33 @@ interface ProductModalProps {
 export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
   const { addItem } = useCart();
   const [qty, setQty] = useState(1);
-  const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews' | 'shipping'>('description');
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [isAdding, setIsAdding] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [isZooming, setIsZooming] = useState(false);
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [currentProduct, setCurrentProduct] = useState<any>(null);
+  const [isFullViewOpen, setIsFullViewOpen] = useState(false);
 
-  // Reset state when product changes
+  // Sync internal state with prop
   useEffect(() => {
     if (product) {
+      setCurrentProduct(product);
       setSelectedImage(product.image || '');
       setQty(1);
-      setActiveTab('description');
     }
   }, [product]);
+
+  // Fetch all products for recommendations
+  useEffect(() => {
+    if (!isOpen) return;
+    const unsubscribe = subscribeToCollection('products', (data) => {
+      setAllProducts(data);
+    });
+    return () => unsubscribe();
+  }, [isOpen]);
+
+  const p = currentProduct || product;
 
   // Lock body scroll when open
   useEffect(() => {
@@ -43,8 +58,11 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
 
   // Escape key to close
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  }, [onClose]);
+    if (e.key === 'Escape') {
+      if (isFullViewOpen) setIsFullViewOpen(false);
+      else onClose();
+    }
+  }, [onClose, isFullViewOpen]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -52,31 +70,36 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
   }, [handleKeyDown]);
 
   const handleAddToCart = () => {
-    if (!product) return;
+    if (!p) return;
     setIsAdding(true);
-    for (let i = 0; i < qty; i++) addItem(product);
+    for (let i = 0; i < qty; i++) addItem(p);
     setTimeout(() => setIsAdding(false), 1200);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const x = ((e.pageX - left) / width) * 100;
-    const y = ((e.pageY - top) / height) * 100;
+    const x = Math.max(0, Math.min(100, ((e.clientX - left) / width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - top) / height) * 100));
     setZoomPos({ x, y });
   };
 
-  if (!isOpen || !product) return null;
+  if (!isOpen || !p) return null;
 
   // All images (main + gallery)
-  const allImages = [product.image, ...(product.images || [])].filter(Boolean);
-  const inStock = (product.stock ?? 1) > 0;
-  const productSlug = product.id || product.name?.toLowerCase().replace(/\s+/g, '-');
-  const discountPct = product.price && product.oldPrice
-    ? Math.round((1 - product.price / product.oldPrice) * 100)
+  const allImages = [p.image, ...(p.images || [])].filter(Boolean);
+  const inStock = (p.stock ?? 1) > 0;
+  const productSlug = p.id || p.name?.toLowerCase().replace(/\s+/g, '-');
+  const discountPct = p.price && p.oldPrice
+    ? Math.round((1 - p.price / p.oldPrice) * 100)
     : null;
 
-  const specs: { key: string; value: string }[] = product.specs || [];
-  const tags: string[] = product.tags || [];
+  const specs: { key: string; value: string }[] = p.specs || [];
+  const tags: string[] = p.tags || [];
+
+  // Compute similar products
+  const similarProducts = allProducts
+    .filter(item => item.id !== p.id && item.category === p.category)
+    .slice(0, 4);
 
   return (
     <>
@@ -112,14 +135,20 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
               <div className="bg-gray-50 p-6 md:p-8 flex flex-col gap-4">
                 {/* Main image */}
                 <div 
-                  className="aspect-square rounded-2xl overflow-hidden bg-white flex items-center justify-center relative cursor-zoom-in"
+                  className="aspect-square rounded-2xl overflow-hidden bg-white flex items-center justify-center relative cursor-zoom-in group/main"
                   onMouseEnter={() => setIsZooming(true)}
                   onMouseLeave={() => setIsZooming(false)}
                   onMouseMove={handleMouseMove}
+                  onClick={() => setIsFullViewOpen(true)}
                 >
+                  <div className="absolute inset-0 bg-black/0 group-hover/main:bg-black/5 transition-colors z-10 flex items-center justify-center opacity-0 group-hover/main:opacity-100">
+                    <div className="bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-xl transform translate-y-4 group-hover/main:translate-y-0 transition-all duration-300">
+                      <ArrowRight size={20} className="text-gray-900 -rotate-45" />
+                    </div>
+                  </div>
                   <img
-                    src={selectedImage || product.image}
-                    alt={product.name}
+                    src={selectedImage || p.image}
+                    alt={p.name}
                     className="w-full h-full object-contain p-6 transition-transform duration-300 ease-out"
                     style={{
                       transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
@@ -154,23 +183,23 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
               <div className="p-6 md:p-8 flex flex-col gap-5 text-left">
                 {/* Brand + name */}
                 <div>
-                  {product.brand && (
+                  {p.brand && (
                     <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg mb-2 inline-block">
-                      {product.brand}
+                      {p.brand}
                     </span>
                   )}
                   <h2 className="text-lg md:text-xl font-black text-gray-900 leading-tight mt-2">
-                    {product.name}
+                    {p.name}
                   </h2>
-                  {product.rating && (
+                  {p.rating && (
                     <div className="flex items-center gap-2 mt-2">
                       <div className="flex text-primary">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} size={13} weight={i < Math.floor(product.rating) ? 'fill' : 'regular'} />
+                          <Star key={i} size={13} weight={i < Math.floor(p.rating) ? 'fill' : 'regular'} />
                         ))}
                       </div>
                       <span className="text-[10px] text-gray-400 font-bold">
-                        {product.rating} ({product.reviewCount || 0} avis)
+                        {p.rating} ({p.reviewCount || 0} avis)
                       </span>
                     </div>
                   )}
@@ -178,10 +207,10 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
 
                 {/* Price */}
                 <div className="bg-gray-50 rounded-2xl p-4">
-                  {product.oldPrice && (
-                    <p className="text-sm text-gray-400 line-through font-bold">{product.oldPrice}€</p>
+                  {p.oldPrice && (
+                    <p className="text-sm text-gray-400 line-through font-bold">{p.oldPrice}€</p>
                   )}
-                  <p className="text-3xl font-black text-primary">{product.price?.toFixed(2) ?? '—'}€</p>
+                  <p className="text-3xl font-black text-primary">{p.price?.toFixed(2) ?? '—'}€</p>
                   <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-widest">Prix TTC inclus</p>
                 </div>
 
@@ -189,7 +218,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${inStock ? 'bg-green-500 animate-pulse' : 'bg-red-400'}`} />
                   <span className={`text-[10px] font-black uppercase tracking-widest ${inStock ? 'text-green-600' : 'text-red-500'}`}>
-                    {inStock ? `En stock — ${product.stock} disponibles` : 'Rupture de stock'}
+                    {inStock ? `En stock — ${p.stock} disponibles` : 'Rupture de stock'}
                   </span>
                 </div>
 
@@ -201,7 +230,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                         <Minus size={16} weight="bold" />
                       </button>
                       <span className="w-8 text-center font-black text-gray-900 text-sm">{qty}</span>
-                      <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="p-2.5 text-gray-400 hover:text-primary">
+                      <button onClick={() => setQty(Math.min(p.stock, qty + 1))} className="p-2.5 text-gray-400 hover:text-primary">
                         <Plus size={16} weight="bold" />
                       </button>
                     </div>
@@ -226,77 +255,117 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                   </div>
                 )}
 
-                {/* Tabs Navigation */}
-                <div className="flex border-b border-gray-100 mt-2">
-                  {[
-                    { id: 'description', label: 'Description' },
-                    { id: 'specs', label: 'Caractéristiques' },
-                    { id: 'shipping', label: 'Livraison' }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id as any)}
-                      className={`pb-3 px-4 text-[10px] font-black uppercase tracking-widest transition-all relative ${
-                        activeTab === tab.id ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
-                      }`}
-                    >
-                      {tab.label}
-                      {activeTab === tab.id && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary animate-in fade-in zoom-in duration-300" />
-                      )}
-                    </button>
-                  ))}
-                </div>
+                {/* ── Content Sections (Vertical Flow) ── */}
+                <div className="flex flex-col gap-8 mt-4">
+                  
+                  {/* Section: Description */}
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-3 flex items-center gap-2">
+                       Description
+                    </h4>
+                    <p className="text-xs leading-relaxed text-gray-500 font-medium">
+                      {p.description || "Aucune description détaillée n'est disponible pour ce produit."}
+                    </p>
+                  </div>
 
-                {/* Tab Content */}
-                <div className="min-h-[150px] py-2">
-                  {activeTab === 'description' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      <p className="text-xs leading-relaxed text-gray-500 font-medium">
-                        {product.description || "Aucune description disponible pour ce produit."}
-                      </p>
+                  {/* Section: Specifications */}
+                  {specs.length > 0 && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pt-6 border-t border-gray-100">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-3 flex items-center gap-2">
+                        Caractéristiques
+                      </h4>
+                      <div className="grid gap-2">
+                        {specs.map((spec, i) => (
+                          <div key={i} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{spec.key}</span>
+                            <span className="text-[10px] font-black text-gray-900">{spec.value}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  {activeTab === 'specs' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      {specs.length > 0 ? (
-                        <div className="grid gap-2">
-                          {specs.map((spec, i) => (
-                            <div key={i} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
-                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{spec.key}</span>
-                              <span className="text-[10px] font-black text-gray-900">{spec.value}</span>
-                            </div>
+                  {/* Section: Shipping & Security */}
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pt-6 border-t border-gray-100">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-3 flex items-center gap-2">
+                      Livraison & Garantie
+                    </h4>
+                    <div className="grid gap-3">
+                      <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <Truck size={18} className="text-primary mt-0.5" />
+                        <div>
+                          <p className="text-[10px] font-black text-gray-900 uppercase">Livraison Standard Gratuit</p>
+                          <p className="text-[10px] text-gray-500 font-bold">Expédition sous 24/48h.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <ShieldCheck size={18} className="text-primary mt-0.5" />
+                        <div>
+                          <p className="text-[10px] font-black text-gray-900 uppercase">Paiement Sécurisé</p>
+                          <p className="text-[10px] text-gray-500 font-bold">Protection totale de vos achats.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Reviews Summary */}
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pt-6 border-t border-gray-100 mb-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-3 flex items-center gap-2">
+                      Avis Clients
+                    </h4>
+                    <div className="bg-gray-50 rounded-2xl p-4 flex items-center justify-between border border-gray-100">
+                      <div>
+                        <div className="flex text-primary mb-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={14} weight={i < Math.floor(p.rating || 4) ? 'fill' : 'regular'} />
                           ))}
                         </div>
-                      ) : (
-                        <p className="text-xs text-gray-400 italic">Aucune spécification technique.</p>
-                      )}
+                        <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Note globale : {p.rating || '4.5'}/5</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-black text-primary">{p.reviewCount || '12'} avis</p>
+                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest underline cursor-pointer">Lire les avis</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Similar Products */}
+                  {similarProducts.length > 0 && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pt-8 border-t border-gray-100 pb-4">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-5 flex items-center justify-between">
+                        <span>Vous aimerez aussi</span>
+                        <span className="text-primary font-bold text-[8px] border border-primary/20 px-2 py-0.5 rounded-full bg-primary/5 uppercase">Sélectionné pour vous</span>
+                      </h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        {similarProducts.map((item) => (
+                          <button
+                            key={item.id || item.name}
+                            onClick={() => {
+                              setCurrentProduct(item);
+                              setSelectedImage(item.image || '');
+                              setQty(1);
+                              document.querySelector('.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className="flex items-center gap-3 p-2 rounded-2xl bg-gray-50/50 border border-gray-100 hover:border-primary/30 hover:bg-white transition-all group text-left"
+                          >
+                            <div className="w-16 h-16 rounded-xl overflow-hidden bg-white flex-shrink-0 border border-gray-50 group-hover:scale-105 transition-transform duration-300">
+                              <img src={getOptimizedImageUrl(item.image, 200)} alt="" className="w-full h-full object-contain p-2" />
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <p className="text-[10px] font-black text-gray-900 truncate leading-tight uppercase group-hover:text-primary transition-colors">{item.name}</p>
+                              <p className="text-[11px] font-black text-primary mt-1">{item.price?.toFixed(2)}€</p>
+                              <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Voir l'article</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  {activeTab === 'shipping' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-4">
-                      <div className="flex items-start gap-3 bg-blue-50/50 p-3 rounded-xl">
-                        <Truck size={18} className="text-blue-500 mt-0.5" />
-                        <div>
-                          <p className="text-[10px] font-black text-blue-900 uppercase">Livraison Standard</p>
-                          <p className="text-[10px] text-blue-700/70 font-bold">Entre 3 et 5 jours ouvrés.</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 bg-green-50/50 p-3 rounded-xl">
-                        <ShieldCheck size={18} className="text-green-500 mt-0.5" />
-                        <div>
-                          <p className="text-[10px] font-black text-green-900 uppercase">Paiement 100% Sécurisé</p>
-                          <p className="text-[10px] text-green-700/70 font-bold">SSL & Protection des données.</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                {/* Trust Footer */}
-                <div className="grid grid-cols-3 gap-2 border-t border-gray-100 pt-6 mt-auto">
+                {/* Trust Footer (Icones simples) */}
+                <div className="grid grid-cols-3 gap-2 border-t border-gray-100 pt-6 mt-4">
                   {[
                     { icon: Truck, label: 'Livraison Rapide' },
                     { icon: ArrowsCounterClockwise, label: 'Retours Faciles' },
@@ -315,6 +384,40 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
           </div>
         </div>
       </div>
+
+      {/* ── Image Full View (Lightbox) ── */}
+      {isFullViewOpen && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-300 p-4 md:p-12"
+          onClick={() => setIsFullViewOpen(false)}
+        >
+          {/* Close button */}
+          <button
+            onClick={() => setIsFullViewOpen(false)}
+            className="absolute top-6 right-6 z-10 w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10 backdrop-blur-md"
+            aria-label="Fermer la vue plein écran"
+          >
+            <X size={24} weight="bold" />
+          </button>
+
+          <div 
+            className="relative w-full h-full flex items-center justify-center animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={selectedImage || p.image} 
+              alt={p.name} 
+              className="max-w-full max-h-full object-contain drop-shadow-2xl" 
+            />
+            {p.brand && (
+              <div className="absolute bottom-0 left-0 right-0 p-8 text-center bg-gradient-to-t from-black/50 to-transparent pointer-events-none">
+                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">{p.brand}</p>
+                <h3 className="text-white font-black text-xl uppercase tracking-tight">{p.name}</h3>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
