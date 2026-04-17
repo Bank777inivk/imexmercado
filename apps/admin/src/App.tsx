@@ -11,6 +11,7 @@ import { CMSView } from './views/CMSView';
 import { OrdersView } from './views/OrdersView';
 import { LoginView } from './views/LoginView';
 import { CustomersView } from './views/CustomersView';
+import { SettingsView } from './views/SettingsView';
 
 const Products = () => (
   <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
@@ -67,7 +68,7 @@ function App() {
           <Route path="/cms" element={<CMSView />} />
           <Route path="/commandes" element={<OrdersView />} />
           <Route path="/clients" element={<CustomersView />} />
-          <Route path="/parametres" element={<div className="p-8 font-bold text-gray-400">Paramètres système...</div>} />
+          <Route path="/parametres" element={<SettingsView />} />
         </Route>
       </Route>
 

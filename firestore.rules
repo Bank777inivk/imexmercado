@@ -36,9 +36,10 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Paramètres (CMS) : Lecture publique, écriture Admin uniquement
+    // Paramètres (CMS & Paiement)
     match /settings/{settingId} {
-      allow read: if true;
+      // La page d'accueil est publique, mais le paiement est strictement Admin
+      allow read: if settingId == 'homepage' || isAdmin();
       allow write: if isAdmin();
     }
 

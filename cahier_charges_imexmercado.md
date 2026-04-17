@@ -240,7 +240,7 @@ Breadcrumb : Accueil > Téléphones & Hi-Tech
 | Database | Cloud Firestore | 10.x |
 | Storage | Firebase Storage | 10.x |
 | Functions | Firebase Cloud Functions (Node 20) | 10.x |
-| Paiement | Stripe Elements | latest |
+| Paiement | Stripe, Mollie, PayPlug, Square | latest |
 | Email | Resend (ou SendGrid) | latest |
 | Déploiement | Vercel | — |
 
@@ -712,8 +712,10 @@ Composant : TrustBar
     > Retrait magasin (si applicable) — Gratuit
 
 Étape 3 — Paiement
-  - Stripe Elements (carte bancaire) — PCI-DSS compliant
-  - MBWay (marché portugais)
+  - Stripe (Carte Bancaire, MBWay, Multibanco)
+  - Mollie (iDEAL, Bancontact, Cartes)
+  - PayPlug (Cartes bancaires Europe)
+  - Square (Squareup)
   - PayPal
   - Code promo : champ + bouton "Appliquer"
   - Récapitulatif commande (sticky sur desktop)
@@ -974,7 +976,7 @@ firestore/
 └── settings/                       # {settingId}
     ├── homepage: HeroSlide[], PromoBar, sections config
     ├── shipping: ShippingZone[], carriers[]
-    ├── payment: Stripe config, MBWay config, PayPal config
+    ├── payment: Stripe config, Mollie config, PayPlug config, Square config, PayPal config
     └── email: templates, from address, SMTP config
 ```
 
@@ -1366,6 +1368,9 @@ Semaine 16 : 🚀 Mise en production imexmercado.pt
 
 | Moyen de paiement | Commission |
 |---|---|
+| Mollie | Selon méthode (0.25€ + variable) |
+| PayPlug | Dès 0.8% + 0.15€ / transaction |
+| Square | 1.4% + 0.25€ / transaction |
 | Stripe (carte EU) | 1,4% + 0,25€ / transaction |
 | Stripe (carte non-EU) | 2,9% + 0,25€ / transaction |
 | PayPal | 3,49% + 0,35€ / transaction |
