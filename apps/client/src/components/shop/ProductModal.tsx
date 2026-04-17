@@ -84,7 +84,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
         role="dialog"
         aria-modal="true"
       >
-        <div className="relative bg-white w-full md:max-w-4xl md:rounded-[2.5rem] rounded-t-[2rem] overflow-hidden shadow-2xl max-h-[92dvh] md:max-h-[88vh] flex flex-col animate-in slide-in-from-bottom-4 md:zoom-in-95 duration-300">
+        <div className="relative bg-white w-full md:max-w-5xl md:rounded-[2.5rem] rounded-t-[2rem] overflow-hidden shadow-2xl max-h-[95dvh] md:max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-4 md:zoom-in-95 duration-300">
           
           {/* Close button */}
           <button
@@ -208,28 +208,90 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                   </div>
                 )}
 
-                {/* Trust */}
-                <div className="grid grid-cols-3 gap-2 border-t border-gray-100 pt-4">
+                {/* Tabs Navigation */}
+                <div className="flex border-b border-gray-100 mt-2">
                   {[
-                    { icon: Truck, label: 'Livraison Gratuite' },
-                    { icon: ArrowsCounterClockwise, label: 'Retours 14j' },
-                    { icon: ShieldCheck, label: 'Paiement Sécurisé' },
-                  ].map(({ icon: Icon, label }) => (
-                    <div key={label} className="text-center">
-                      <Icon size={18} className="mx-auto mb-1 text-primary" />
-                      <p className="text-[8px] font-black uppercase text-gray-400 leading-tight">{label}</p>
-                    </div>
+                    { id: 'description', label: 'Description' },
+                    { id: 'specs', label: 'Caractéristiques' },
+                    { id: 'shipping', label: 'Livraison' }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as any)}
+                      className={`pb-3 px-4 text-[10px] font-black uppercase tracking-widest transition-all relative ${
+                        activeTab === tab.id ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
+                      }`}
+                    >
+                      {tab.label}
+                      {activeTab === tab.id && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary animate-in fade-in zoom-in duration-300" />
+                      )}
+                    </button>
                   ))}
                 </div>
 
-                {/* Link to full page */}
-                <Link
-                  to={`/p/${productSlug}`}
-                  onClick={onClose}
-                  className="flex items-center justify-center gap-2 border-2 border-gray-100 rounded-xl py-3 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:border-primary hover:text-primary transition-all"
-                >
-                  Voir la fiche complète <ArrowRight size={14} weight="bold" />
-                </Link>
+                {/* Tab Content */}
+                <div className="min-h-[150px] py-2">
+                  {activeTab === 'description' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <p className="text-xs leading-relaxed text-gray-500 font-medium">
+                        {product.description || "Aucune description disponible pour ce produit."}
+                      </p>
+                    </div>
+                  )}
+
+                  {activeTab === 'specs' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      {specs.length > 0 ? (
+                        <div className="grid gap-2">
+                          {specs.map((spec, i) => (
+                            <div key={i} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{spec.key}</span>
+                              <span className="text-[10px] font-black text-gray-900">{spec.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-400 italic">Aucune spécification technique.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === 'shipping' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-4">
+                      <div className="flex items-start gap-3 bg-blue-50/50 p-3 rounded-xl">
+                        <Truck size={18} className="text-blue-500 mt-0.5" />
+                        <div>
+                          <p className="text-[10px] font-black text-blue-900 uppercase">Livraison Standard</p>
+                          <p className="text-[10px] text-blue-700/70 font-bold">Entre 3 et 5 jours ouvrés.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 bg-green-50/50 p-3 rounded-xl">
+                        <ShieldCheck size={18} className="text-green-500 mt-0.5" />
+                        <div>
+                          <p className="text-[10px] font-black text-green-900 uppercase">Paiement 100% Sécurisé</p>
+                          <p className="text-[10px] text-green-700/70 font-bold">SSL & Protection des données.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Trust Footer */}
+                <div className="grid grid-cols-3 gap-2 border-t border-gray-100 pt-6 mt-auto">
+                  {[
+                    { icon: Truck, label: 'Livraison Rapide' },
+                    { icon: ArrowsCounterClockwise, label: 'Retours Faciles' },
+                    { icon: ShieldCheck, label: 'Sécurisé' },
+                  ].map(({ icon: Icon, label }) => (
+                    <div key={label} className="flex flex-col items-center">
+                      <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center mb-2">
+                        <Icon size={16} className="text-primary" />
+                      </div>
+                      <p className="text-[7px] font-black uppercase text-gray-400 tracking-tighter">{label}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
