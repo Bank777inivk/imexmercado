@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
-  ArrowLeft, Check, Plus, Trash, Tag, ListBullets, X
+  ArrowLeft, Check, Plus, Trash, Tag, ListBullets, X, Sparkle
 } from '@phosphor-icons/react';
 import { setDocument, getDocument, updateDocument } from '@imexmercado/firebase';
 import { CloudinaryUploader } from '../components/CloudinaryUploader';
@@ -107,6 +107,41 @@ export function ProductFormView() {
   };
 
   const removeSpec = (i: number) => set('specs', formData.specs.filter((_, idx) => idx !== i));
+
+  const extractSpecsFromText = (text: string) => {
+    if (!text) return [];
+    const extracted: Spec[] = [];
+    const regex = /(?:\n|^)(?:\*\*)?([^*:\n\r]{2,35})(?:\*\*)?\s*[:]\s*([^\n\r]+)/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      const key = match[1].trim();
+      let value = match[2].trim();
+      const isKeyword = ['Palavras-chave', 'Keywords', 'Mots-clés', 'Description', 'Garantie', 'Identificação', 'Imagens', 'Preço'].some(k => key.toLowerCase().includes(k.toLowerCase()));
+      if (key.length > 2 && value.length > 0 && key.length < 40 && !isKeyword) {
+        extracted.push({ key, value });
+      }
+    }
+    return extracted;
+  };
+
+  const handleAutoExtract = () => {
+    const extracted = extractSpecsFromText(formData.description);
+    if (extracted.length === 0) {
+      alert("⚠️ Aucune caractéristique n'a été détectée dans la description.");
+      return;
+    }
+
+    const newSpecs = extracted.filter(ext => 
+      !formData.specs.find(s => s.key.toLowerCase() === ext.key.toLowerCase())
+    );
+
+    if (newSpecs.length === 0) {
+      alert("✨ Toutes les caractéristiques détectées sont déjà présentes.");
+      return;
+    }
+
+    set('specs', [...formData.specs, ...newSpecs]);
+  };
 
   // ─── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
@@ -368,13 +403,22 @@ export function ProductFormView() {
                 </div>
                 <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Caractéristiques Techniques</h3>
               </div>
-              <button
-                type="button"
-                onClick={addSpec}
-                className="text-[9px] font-black text-primary uppercase tracking-widest flex items-center gap-1 hover:text-primary-dark transition-colors"
-              >
-                <Plus size={14} weight="bold" /> Ajouter
-              </button>
+               <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleAutoExtract}
+                  className="text-[9px] font-black text-primary uppercase tracking-widest flex items-center gap-1.5 hover:bg-primary/5 px-2.5 py-1.5 rounded-lg border border-primary/20 transition-all"
+                >
+                  <Sparkle size={14} weight="fill" /> Extraire du texte
+                </button>
+                <button
+                  type="button"
+                  onClick={addSpec}
+                  className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1 hover:text-primary transition-colors"
+                >
+                  <Plus size={14} weight="bold" /> Ajouter manuel
+                </button>
+              </div>
             </div>
 
             {formData.specs.length === 0 ? (
