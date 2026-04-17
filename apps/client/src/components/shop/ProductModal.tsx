@@ -118,9 +118,13 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
     let match;
     while ((match = regex.exec(text)) !== null) {
       const key = match[1].trim();
-      const value = match[2].trim();
-      // On ignore les titres trop longs ou les mots génériques
-      if (key.length > 2 && value.length > 0 && key.length < 40 && !['Description', 'Técnica', 'Garantie'].includes(key)) {
+      let value = match[2].trim();
+      // On ignore les titres trop longs, les mots génériques ou les tags
+      const isKeyword = ['Palavras-chave', 'Keywords', 'Mots-clés', 'Description', 'Garantie', 'Identificação'].some(k => key.toLowerCase().includes(k.toLowerCase()));
+      
+      if (key.length > 2 && value.length > 0 && key.length < 40 && !isKeyword) {
+        // Nettoyage des pipes pour un meilleur rendu
+        value = value.replace(/\|\s*/g, '\n');
         extracted.push({ key, value });
       }
     }
@@ -357,14 +361,14 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                   {/* Section: Specifications */}
                   {specs.length > 0 && (
                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pt-6 border-t border-gray-100">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-3 flex items-center gap-2">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-4 flex items-center gap-2">
                         Caractéristiques
                       </h4>
-                      <div className="grid gap-2">
+                      <div className="grid gap-0 border-t border-gray-100">
                         {specs.map((spec, i) => (
-                          <div key={i} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{spec.key}</span>
-                            <span className="text-[10px] font-black text-gray-900">{spec.value}</span>
+                          <div key={i} className="grid grid-cols-[100px,1fr] md:grid-cols-[140px,1fr] gap-4 py-3 border-b border-gray-50 last:border-0 items-start group">
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest pt-1 group-hover:text-primary transition-colors">{spec.key}</span>
+                            <span className="text-[11px] font-bold text-gray-900 leading-relaxed whitespace-pre-line">{spec.value}</span>
                           </div>
                         ))}
                       </div>
