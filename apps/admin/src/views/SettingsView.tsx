@@ -151,6 +151,66 @@ export function SettingsView() {
     }
   };
 
+  const handleSeed = async () => {
+    if (!confirm('Voulez-vous initialiser les paramètres de test par défaut ?')) return;
+    
+    setSaving(true);
+    try {
+      const TEST_CONFIG = {
+        ...DEFAULT_PAYMENT_CONFIG,
+        stripe: { 
+          enabled: true, 
+          mode: 'test', 
+          test: { publishableKey: 'pk_test_sample_key', secretKey: 'sk_test_sample_key', webhookSecret: 'whsec_sample' }, 
+          live: { publishableKey: '', secretKey: '', webhookSecret: '' } 
+        },
+        paypal: { 
+          enabled: true, 
+          mode: 'test', 
+          test: { clientId: 'sb', secret: 'sample_secret' }, 
+          live: { clientId: '', secret: '' } 
+        },
+        mollie: {
+          enabled: true,
+          mode: 'test',
+          test: { apiKey: 'test_sample_key', profileId: 'pfl_sample' },
+          live: { apiKey: '', profileId: '' }
+        },
+        square: {
+          enabled: true,
+          mode: 'test',
+          test: { applicationId: 'sq0idp-sample', accessToken: 'EAAA-sample', locationId: 'L_sample' },
+          live: { applicationId: '', accessToken: '', locationId: '' }
+        },
+        payplug: {
+          enabled: true,
+          mode: 'test',
+          test: { secretKey: 'sk_test_sample' },
+          live: { secretKey: '' }
+        }
+      };
+
+      await setDocument('settings', 'payment_secrets', TEST_CONFIG);
+      
+      const publicConfig = {
+        stripe: { enabled: true, mode: 'test', publishableKey: 'pk_test_sample_key' },
+        paypal: { enabled: true, mode: 'test', clientId: 'sb' },
+        mollie: { enabled: true, mode: 'test', profileId: 'pfl_sample' },
+        payplug: { enabled: true, mode: 'test' },
+        square: { enabled: true, mode: 'test', applicationId: 'sq0idp-sample', locationId: 'L_sample' },
+      };
+      await setDocument('settings', 'payment_public', publicConfig);
+
+      setConfig(TEST_CONFIG);
+      alert('✅ Paramètres de test initialisés !');
+    } catch (err) {
+      console.error(err);
+      alert('Erreur lors de l\'initialisation.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const updateConfig = (terminal: string, key: string, value: any) => {
     setConfig((prev: any) => ({
       ...prev,
@@ -187,14 +247,24 @@ export function SettingsView() {
           <h2 className="text-2xl font-black text-gray-900 tracking-tight">Paramètres de Paiement</h2>
           <p className="text-sm font-medium text-gray-400 mt-1">Configurez et activez vos passerelles de paiement en un clic.</p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-all disabled:opacity-50"
-        >
-          {saving ? <ArrowClockwise size={18} className="animate-spin" /> : <Check size={18} weight="bold" />}
-          Enregistrer les API
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSeed}
+            disabled={saving}
+            className="flex items-center gap-2 bg-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-gray-200 transition-all disabled:opacity-50"
+          >
+            <ArrowClockwise size={18} weight="bold" className={saving ? 'animate-spin' : ''} />
+            Initialiser Test
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-all disabled:opacity-50"
+          >
+            {saving ? <ArrowClockwise size={18} className="animate-spin" /> : <Check size={18} weight="bold" />}
+            Enregistrer les API
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}

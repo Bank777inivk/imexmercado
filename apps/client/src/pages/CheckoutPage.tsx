@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@imexmercado/firebase';
 import { Link } from 'react-router-dom';
 import { 
   User, Truck, CreditCard, CheckCircle, 
   ArrowRight, ShieldCheck, CaretRight, NavigationArrow,
-  Bank, Globe, Fingerprint, PaypalLogo
+  Bank, Globe, Fingerprint, PaypalLogo, MapPin
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePayment } from '../context/PaymentContext';
+import { useCart } from '../context/CartContext';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { StripePaymentForm } from '../components/shop/StripePaymentForm';
+import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import { CreditCard as SquareCreditCard, PaymentForm } from 'react-square-web-payments-sdk';
 
 const steps = [
   { id: 1, label: 'Identité', icon: User },
@@ -19,28 +23,148 @@ const steps = [
   { id: 4, label: 'Confirmation', icon: CheckCircle },
 ];
 
+function StripePaymentInner({ isProcessing, setIsProcessing, nextStep, totalPrice }: any) {
+  const stripe = useStripe();
+  const elements = useElements();
+
+  useEffect(() => {
+    const handleSumbit = async () => {
+      if (!stripe || !elements || isProcessing) return;
+
+      setIsProcessing(true);
+      try {
+        // 1. Créer le Payment Intent via notre API
+        const response = await fetch('/api/create-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: totalPrice,
+            currency: 'EUR',
+            gateway: 'stripe',
+            orderId: `ORD-STR-${Date.now()}`
+          }),
+        });
+        
+        const { clientSecret } = await response.json();
+
+        // 2. Confirmer le paiement avec Stripe
+        const result = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: elements.getElement(CardElement)!,
+          },
+        });
+
+        if (result.error) {
+          alert(result.error.message);
+        } else if (result.paymentIntent.status === 'succeeded') {
+          nextStep();
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    document.addEventListener('STRIPE_SUBMIT', handleSumbit);
+    return () => document.removeEventListener('STRIPE_SUBMIT', handleSumbit);
+  }, [stripe, elements, isProcessing, totalPrice]);
+
+  return <StripePaymentForm />;
+}
+
 export function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState(1);
-  const { config, activeGateways, isLoading: isPaymentLoading } = usePayment();
   const [selectedGateway, setSelectedGateway] = useState<string | null>(null);
   const [stripePromise, setStripePromise] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { config, isLoading: isPaymentLoading, activeGateways } = usePayment();
+  const { totalItems, totalPrice } = useCart();
 
-  // Load Stripe only if enabled and key exists
-  React.useEffect(() => {
+  // Charge Stripe dès que la configuration est disponible
+  useEffect(() => {
     if (config?.stripe?.enabled && config?.stripe?.publishableKey) {
       setStripePromise(loadStripe(config.stripe.publishableKey));
     }
   }, [config]);
 
-  // Initialize selected gateway when config loads if none selected
-  React.useEffect(() => {
-    if (activeGateways.length > 0 && !selectedGateway) {
-      setSelectedGateway(activeGateways[0]);
+  const { user, profile, loading: authLoading } = useAuth();
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    zipCode: '',
+    country: 'Portugal'
+  });
+
+  // Sync profile data to formData once loaded
+  useEffect(() => {
+    if (profile && !authLoading) {
+      setFormData(prev => ({
+        ...prev,
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        email: profile.email || user?.email || '',
+        phone: profile.phone || '',
+        address: profile.address || '',
+        city: profile.city || '',
+        zipCode: profile.zipCode || '',
+        country: profile.country || 'Portugal'
+      }));
+    } else if (user && !authLoading) {
+      // If user is logged in but no profile (rare), at least prefill email
+      setFormData(prev => ({ ...prev, email: user.email || '' }));
     }
-  }, [activeGateways, selectedGateway]);
+  }, [profile, user, authLoading]);
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 4));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreatePayment = async (gateway: string, additionalData: any = {}) => {
+    setIsProcessing(true);
+    try {
+      const response = await fetch('/api/create-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: totalPrice,
+          currency: 'EUR',
+          gateway,
+          orderId: `ORD-${Date.now()}`,
+          ...additionalData
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.checkoutUrl) {
+        // Redirection pour Mollie ou PayPlug
+        window.location.href = data.checkoutUrl;
+      } else if (data.payment) {
+        // Succès Square
+        nextStep();
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Payment Error:', error);
+      alert('Une erreur est survenue lors du paiement.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const InputSkeleton = () => (
+    <div className="w-full h-[52px] bg-gray-100 rounded-xl animate-pulse" />
+  );
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -102,30 +226,83 @@ export function CheckoutPage() {
               <div className="min-h-[500px] p-6 md:p-16 flex flex-col">
                 {currentStep === 1 && (
                   <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 flex-1">
-                    <div className="flex items-center gap-4 mb-10">
-                      <div className="bg-primary/10 p-3 rounded-xl text-primary"><User size={24} weight="duotone" /></div>
-                      <div>
-                        <h2 className="text-2xl font-black uppercase tracking-tight text-gray-900">Informations Personnelles</h2>
-                        <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">Étape 1 sur 3</p>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-primary/10 p-3 rounded-xl text-primary"><User size={24} weight="duotone" /></div>
+                        <div>
+                          <h2 className="text-2xl font-black uppercase tracking-tight text-gray-900">Informations Personnelles</h2>
+                          <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">Étape 1 sur 3</p>
+                        </div>
                       </div>
+                      
+                      {/* Welcome / Login Nudge */}
+                      {user && profile ? (
+                        <div className="flex items-center gap-3 px-4 py-2 bg-success/10 border border-success/20 rounded-xl">
+                          <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                          <p className="text-[10px] font-black uppercase tracking-widest text-success">
+                            Client Premium : {profile.firstName}
+                          </p>
+                        </div>
+                      ) : !authLoading && (
+                        <Link to="/connexion?redirect=/commande" className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline flex items-center gap-2">
+                          Déjà client ? Connectez-vous
+                          <ArrowRight size={14} weight="bold" />
+                        </Link>
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Prénom</label>
-                        <input type="text" placeholder="Jean" className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" />
+                        {authLoading ? <InputSkeleton /> : (
+                          <input 
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleInputChange}
+                            type="text" 
+                            placeholder="Jean" 
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" 
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Nom</label>
-                        <input type="text" placeholder="Dupont" className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" />
+                        {authLoading ? <InputSkeleton /> : (
+                          <input 
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleInputChange}
+                            type="text" 
+                            placeholder="Dupont" 
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" 
+                          />
+                        )}
                       </div>
                       <div className="md:col-span-2 space-y-2">
                         <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Adresse E-mail</label>
-                        <input type="email" placeholder="jean.dupont@email.com" className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" />
+                        {authLoading ? <InputSkeleton /> : (
+                          <input 
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            type="email" 
+                            placeholder="jean.dupont@email.com" 
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" 
+                          />
+                        )}
                       </div>
                       <div className="md:col-span-2 space-y-2">
                         <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Téléphone</label>
-                        <input type="tel" placeholder="+351 000 000 000" className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" />
+                        {authLoading ? <InputSkeleton /> : (
+                          <input 
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleInputChange}
+                            type="tel" 
+                            placeholder="+351 000 000 000" 
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" 
+                          />
+                        )}
                       </div>
                     </div>
                   </section>
@@ -133,40 +310,85 @@ export function CheckoutPage() {
 
                 {currentStep === 2 && (
                   <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 flex-1">
-                    <div className="flex items-center gap-4 mb-10">
-                      <div className="bg-primary/10 p-3 rounded-xl text-primary"><Truck size={24} weight="duotone" /></div>
-                      <div>
-                        <h2 className="text-2xl font-black uppercase tracking-tight text-gray-900">Adresse de Livraison</h2>
-                        <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">Étape 2 sur 3</p>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-primary/10 p-3 rounded-xl text-primary"><Truck size={24} weight="duotone" /></div>
+                        <div>
+                          <h2 className="text-2xl font-black uppercase tracking-tight text-gray-900">Adresse de Livraison</h2>
+                          <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">Étape 2 sur 3</p>
+                        </div>
                       </div>
+
+                      {profile?.address && (
+                        <div className="flex items-center gap-3 px-4 py-2 bg-gray-100 border border-gray-200 rounded-xl">
+                          <MapPin size={14} className="text-gray-400" weight="fill" />
+                          <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                            Adresse par défaut appliquée
+                          </p>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="md:col-span-2 space-y-2">
                         <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Adresse Complète</label>
-                        <input type="text" placeholder="Rue des Fleurs, 123" className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" />
+                        {authLoading ? <InputSkeleton /> : (
+                          <input 
+                            name="address"
+                            value={formData.address}
+                            onChange={handleInputChange}
+                            type="text" 
+                            placeholder="Rue des Fleurs, 123" 
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" 
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Ville</label>
-                        <input type="text" placeholder="Lisbonne" className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" />
+                        {authLoading ? <InputSkeleton /> : (
+                          <input 
+                            name="city"
+                            value={formData.city}
+                            onChange={handleInputChange}
+                            type="text" 
+                            placeholder="Lisbonne" 
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" 
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Code Postal</label>
-                        <input type="text" placeholder="1000-001" className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" />
+                        {authLoading ? <InputSkeleton /> : (
+                          <input 
+                            name="zipCode"
+                            value={formData.zipCode}
+                            onChange={handleInputChange}
+                            type="text" 
+                            placeholder="1000-001" 
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm" 
+                          />
+                        )}
                       </div>
                       <div className="md:col-span-2 space-y-2">
                         <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Pays</label>
-                        <div className="relative">
-                          <select className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm appearance-none cursor-pointer">
-                            <option>Portugal</option>
-                            <option>France</option>
-                            <option>Belgique</option>
-                            <option>Luxembourg</option>
-                          </select>
-                           <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        {authLoading ? <InputSkeleton /> : (
+                          <div className="relative">
+                            <select 
+                              name="country"
+                              value={formData.country}
+                              onChange={handleInputChange}
+                              className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm appearance-none cursor-pointer"
+                            >
+                              <option value="Portugal">Portugal</option>
+                              <option value="France">France</option>
+                              <option value="Belgique">Belgique</option>
+                              <option value="Luxembourg">Luxembourg</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
 
@@ -264,6 +486,17 @@ export function CheckoutPage() {
                               <span className={`text-[10px] font-black uppercase tracking-widest ${selectedGateway === 'square' ? 'text-gray-900' : 'text-gray-500'}`}>Square</span>
                             </button>
                           )}
+
+                          {activeGateways.includes('payplug') && (
+                            <button 
+                               onClick={() => setSelectedGateway('payplug')}
+                               className={`flex flex-col items-center justify-center gap-3 p-4 border-2 rounded-2xl relative shadow-sm transition-all ${selectedGateway === 'payplug' ? 'border-primary bg-primary/5' : 'border-gray-100 bg-white hover:border-gray-300'}`}
+                            >
+                              {selectedGateway === 'payplug' && <div className="absolute top-2 right-2 text-primary"><CheckCircle size={14} weight="fill" /></div>}
+                              <ShieldCheck size={24} weight={selectedGateway === 'payplug' ? 'fill' : 'bold'} className={selectedGateway === 'payplug' ? 'text-cyan-600' : 'text-gray-400'} />
+                              <span className={`text-[10px] font-black uppercase tracking-widest ${selectedGateway === 'payplug' ? 'text-gray-900' : 'text-gray-500'}`}>PayPlug</span>
+                            </button>
+                          )}
                         </div>
                         
                         {/* Dynamic Payment Forms Area */}
@@ -279,7 +512,12 @@ export function CheckoutPage() {
                               >
                                 {stripePromise ? (
                                   <Elements stripe={stripePromise}>
-                                    <StripePaymentForm />
+                                    <StripePaymentInner 
+                                       isProcessing={isProcessing}
+                                       setIsProcessing={setIsProcessing}
+                                       nextStep={nextStep}
+                                       totalPrice={totalPrice}
+                                    />
                                   </Elements>
                                 ) : (
                                   <div className="p-8 text-center text-gray-400 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center gap-3">
@@ -308,7 +546,7 @@ export function CheckoutPage() {
                                           purchase_units: [{
                                             amount: {
                                               currency_code: "EUR",
-                                              value: "538.00" // Devrait être dynamique
+                                              value: totalPrice.toFixed(2)
                                             }
                                           }]
                                         });
@@ -339,11 +577,32 @@ export function CheckoutPage() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 p-8 text-center"
+                                className="flex flex-col items-center justify-center py-6 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 p-8 text-center"
                               >
-                                <Globe size={48} weight="fill" className="text-gray-900 mb-4" />
-                                <p className="text-xs font-bold text-gray-900 uppercase tracking-widest mb-1">Paiement Square (Squareup)</p>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Terminal de paiement sécurisé activé.</p>
+                                <PaymentForm
+                                  applicationId={config.square.applicationId}
+                                  locationId={config.square.locationId}
+                                  cardTokenizeResponseReceived={async (token, buyer) => {
+                                    console.log({ token, buyer });
+                                    await handleCreatePayment('square', { sourceId: token.token });
+                                  }}
+                                >
+                                  <SquareCreditCard />
+                                </PaymentForm>
+                              </motion.div>
+                            )}
+
+                            {selectedGateway === 'payplug' && config?.payplug?.enabled && (
+                              <motion.div 
+                                key="payplug-section"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="flex flex-col items-center justify-center py-10 bg-cyan-50/20 rounded-[2.5rem] border-2 border-dashed border-cyan-200 p-8 text-center"
+                              >
+                                <Fingerprint size={48} weight="fill" className="text-cyan-600 mb-4" />
+                                <p className="text-xs font-bold text-gray-900 uppercase tracking-widest mb-1">Passerelle PayPlug Activée</p>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Paiement sécurisé par carte bancaire (3D Secure).</p>
                               </motion.div>
                             )}
 
@@ -366,7 +625,7 @@ export function CheckoutPage() {
                       </div>
                     </div>
                     <h1 className="text-3xl md:text-5xl font-black text-gray-900 uppercase tracking-tighter mb-4 leading-none">Commande <br /><span className="text-success italic-none">Confirmée !</span></h1>
-                    <p className="text-gray-500 mb-8 font-medium max-w-sm">Merci pour votre confiance, Jean. Votre colis est déjà en cours de préparation dans notre hub.</p>
+                    <p className="text-gray-500 mb-8 font-medium max-w-sm">Merci pour votre confiance, {formData.firstName || 'Jean'}. Votre colis est déjà en cours de préparation dans notre hub.</p>
                     
                     <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 mb-12 w-full max-w-sm">
                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Numéro de commande</p>
@@ -394,11 +653,30 @@ export function CheckoutPage() {
                       <div /> /* Empty div to push next button to right */
                     )}
                     <button 
-                      onClick={nextStep}
-                      className="bg-gray-900 text-white font-black uppercase tracking-widest py-4 px-10 rounded-xl shadow-lg hover:bg-black transition-all flex items-center gap-3 active:scale-95 text-xs"
+                      onClick={() => {
+                        if (currentStep === 3) {
+                          if (['mollie', 'payplug'].includes(selectedGateway || '')) {
+                            handleCreatePayment(selectedGateway!);
+                          } else if (selectedGateway === 'stripe') {
+                            // Le bouton du bas déclenche le formulaire Stripe via un événement
+                            document.dispatchEvent(new CustomEvent('STRIPE_SUBMIT'));
+                          } else if (!selectedGateway) {
+                            alert('Veuillez sélectionner un moyen de paiement.');
+                          }
+                          // Square & Stripe sont gérés par leurs propres composants interne
+                        } else {
+                          nextStep();
+                        }
+                      }}
+                      disabled={isProcessing}
+                      className="bg-gray-900 text-white font-black uppercase tracking-widest py-4 px-10 rounded-xl shadow-lg hover:bg-black transition-all flex items-center gap-3 active:scale-95 text-xs disabled:opacity-50"
                     >
-                      <span>{currentStep === 3 ? 'Payer avec sécurité' : 'Étape suivante'}</span>
-                      {currentStep !== 3 && <ArrowRight size={18} weight="bold" />}
+                      {isProcessing ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <span>{currentStep === 3 ? 'Payer avec sécurité' : 'Étape suivante'}</span>
+                      )}
+                      {currentStep !== 3 && !isProcessing && <ArrowRight size={18} weight="bold" />}
                     </button>
                   </div>
                 )}
@@ -420,16 +698,16 @@ export function CheckoutPage() {
                   <div className="flex gap-4 items-center">
                     <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center text-xl border border-gray-200">📦</div>
                     <div>
-                      <p className="text-xs font-black uppercase text-gray-900">Articles (x2)</p>
+                      <p className="text-xs font-black uppercase text-gray-900">Articles (x{totalItems})</p>
                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">En stock</p>
                     </div>
                   </div>
-                  <span className="font-black text-sm">538.00€</span>
+                  <span className="font-black text-sm">{totalPrice.toFixed(2)}€</span>
                 </div>
 
                 <div className="flex justify-between items-center text-gray-600 px-2 mt-8">
                   <span className="font-black uppercase text-[10px] tracking-widest text-gray-400">Sous-total</span>
-                  <span className="font-black text-sm">538.00€</span>
+                  <span className="font-black text-sm">{totalPrice.toFixed(2)}€</span>
                 </div>
                 <div className="flex justify-between items-center text-gray-600 px-2">
                   <span className="font-black uppercase text-[10px] tracking-widest text-gray-400">Livraison CTT</span>
@@ -437,7 +715,7 @@ export function CheckoutPage() {
                 </div>
                 <div className="flex justify-between items-center pt-6 pb-2 px-2 mt-4 border-t border-gray-200">
                   <span className="text-xs font-black uppercase tracking-widest text-gray-900">Total TTC</span>
-                  <span className="text-4xl font-black text-primary tracking-tighter">538.00€</span>
+                  <span className="text-4xl font-black text-primary tracking-tighter">{totalPrice.toFixed(2)}€</span>
                 </div>
               </div>
               

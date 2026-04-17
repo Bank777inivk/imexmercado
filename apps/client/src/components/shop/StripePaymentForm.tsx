@@ -1,11 +1,7 @@
 import React from 'react';
-import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { CardElement } from '@stripe/react-stripe-js';
 
-export function StripePaymentForm() {
-  const stripe = useStripe();
-  const elements = useElements();
-
-  const cardElementOptions = {
+const cardElementOptions = {
     style: {
       base: {
         fontSize: '14px',
@@ -22,6 +18,7 @@ export function StripePaymentForm() {
     hidePostalCode: true,
   };
 
+export function StripePaymentForm() {
   return (
     <div className="space-y-4">
       <div className="p-4 bg-white border border-gray-200 rounded-xl transition-all focus-within:border-primary focus-within:ring-1 focus-within:ring-primary shadow-sm">
@@ -30,7 +27,7 @@ export function StripePaymentForm() {
       <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
         <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
         <p className="text-[10px] items-center font-black uppercase tracking-widest text-gray-400">
-          Chiffrement SSL 256 bits activé
+          Chiffrement SSL 256 bits activé par Stripe
         </p>
       </div>
     </div>
