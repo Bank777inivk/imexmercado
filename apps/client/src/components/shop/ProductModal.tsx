@@ -19,6 +19,8 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews' | 'shipping'>('description');
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [isAdding, setIsAdding] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
+  const [isZooming, setIsZooming] = useState(false);
 
   // Reset state when product changes
   useEffect(() => {
@@ -54,6 +56,13 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
     setIsAdding(true);
     for (let i = 0; i < qty; i++) addItem(product);
     setTimeout(() => setIsAdding(false), 1200);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.pageX - left) / width) * 100;
+    const y = ((e.pageY - top) / height) * 100;
+    setZoomPos({ x, y });
   };
 
   if (!isOpen || !product) return null;
@@ -102,11 +111,20 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
               {/* ── Gallery Column ── */}
               <div className="bg-gray-50 p-6 md:p-8 flex flex-col gap-4">
                 {/* Main image */}
-                <div className="aspect-square rounded-2xl overflow-hidden bg-white flex items-center justify-center relative">
+                <div 
+                  className="aspect-square rounded-2xl overflow-hidden bg-white flex items-center justify-center relative cursor-zoom-in"
+                  onMouseEnter={() => setIsZooming(true)}
+                  onMouseLeave={() => setIsZooming(false)}
+                  onMouseMove={handleMouseMove}
+                >
                   <img
                     src={selectedImage || product.image}
                     alt={product.name}
-                    className="w-full h-full object-contain p-6 transition-all duration-300"
+                    className="w-full h-full object-contain p-6 transition-transform duration-300 ease-out"
+                    style={{
+                      transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                      transform: isZooming ? 'scale(2.5)' : 'scale(1)'
+                    }}
                   />
                   {discountPct && discountPct > 0 && (
                     <span className="absolute top-4 right-4 bg-red-500 text-white text-[11px] font-black px-3 py-1.5 rounded-full shadow-lg">
