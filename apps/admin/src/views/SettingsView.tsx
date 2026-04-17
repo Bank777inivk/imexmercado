@@ -99,7 +99,7 @@ export function SettingsView() {
   const [config, setConfig] = useState<any>(DEFAULT_PAYMENT_CONFIG);
 
   useEffect(() => {
-    const unsubscribe = subscribeToDocument('settings', 'payment', (data) => {
+    const unsubscribe = subscribeToDocument('settings', 'payment_secrets', (data) => {
       if (data) setConfig({ ...DEFAULT_PAYMENT_CONFIG, ...data });
       setLoading(false);
     });
@@ -109,8 +109,40 @@ export function SettingsView() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await setDocument('settings', 'payment', config);
-      alert('✅ Paramètres de paiement enregistrés avec succès !');
+      // 1. Sauvegarder l'intégralité (Secrets + Config) pour l'Admin
+      await setDocument('settings', 'payment_secrets', config);
+
+      // 2. Extraire uniquement les données publiques pour la Boutique
+      const publicConfig = {
+        stripe: { 
+          enabled: config.stripe.enabled, 
+          mode: config.stripe.mode, 
+          publishableKey: config.stripe[config.stripe.mode].publishableKey 
+        },
+        mollie: { 
+          enabled: config.mollie.enabled, 
+          mode: config.mollie.mode, 
+          profileId: config.mollie[config.mollie.mode].profileId 
+        },
+        payplug: { 
+          enabled: config.payplug.enabled, 
+          mode: config.payplug.mode 
+        },
+        square: { 
+          enabled: config.square.enabled, 
+          mode: config.square.mode, 
+          applicationId: config.square[config.square.mode].applicationId,
+          locationId: config.square[config.square.mode].locationId 
+        },
+        paypal: { 
+          enabled: config.paypal.enabled, 
+          mode: config.paypal.mode, 
+          clientId: config.paypal[config.paypal.mode].clientId 
+        },
+      };
+      await setDocument('settings', 'payment_public', publicConfig);
+
+      alert('✅ Paramètres de paiement synchronisés en temps réel !');
     } catch (err) {
       console.error(err);
       alert('Erreur lors de la sauvegarde.');

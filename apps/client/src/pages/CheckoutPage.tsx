@@ -2,9 +2,15 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   User, Truck, CreditCard, CheckCircle, 
-  ArrowRight, ShieldCheck, CaretRight, NavigationArrow
+  ArrowRight, ShieldCheck, CaretRight, NavigationArrow,
+  Bank, Globe, Fingerprint, PaypalLogo
 } from '@phosphor-icons/react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { usePayment } from '../context/PaymentContext';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import { StripePaymentForm } from '../components/shop/StripePaymentForm';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 
 const steps = [
   { id: 1, label: 'Identité', icon: User },
@@ -15,6 +21,23 @@ const steps = [
 
 export function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState(1);
+  const { config, activeGateways, isLoading: isPaymentLoading } = usePayment();
+  const [selectedGateway, setSelectedGateway] = useState<string | null>(null);
+  const [stripePromise, setStripePromise] = useState<any>(null);
+
+  // Load Stripe only if enabled and key exists
+  React.useEffect(() => {
+    if (config?.stripe?.enabled && config?.stripe?.publishableKey) {
+      setStripePromise(loadStripe(config.stripe.publishableKey));
+    }
+  }, [config]);
+
+  // Initialize selected gateway when config loads if none selected
+  React.useEffect(() => {
+    if (activeGateways.length > 0 && !selectedGateway) {
+      setSelectedGateway(activeGateways[0]);
+    }
+  }, [activeGateways, selectedGateway]);
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 4));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
@@ -179,50 +202,158 @@ export function CheckoutPage() {
                       <div className="bg-primary/10 p-3 rounded-xl text-primary"><CreditCard size={24} weight="duotone" /></div>
                       <div>
                         <h2 className="text-2xl font-black uppercase tracking-tight text-gray-900">Moyen de Paiement</h2>
-                        <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">Dernière étape ! 🔐</p>
+                        <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mt-1">
+                          {isPaymentLoading ? 'Chargement des options sécurisées...' : 'Dernière étape ! 🔐'}
+                        </p>
                       </div>
                     </div>
                     
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <button className="flex flex-col items-center justify-center gap-3 p-4 border-2 border-primary bg-primary/5 rounded-2xl relative shadow-sm">
-                          <div className="absolute top-2 right-2 text-primary">
-                            <CheckCircle size={14} weight="fill" />
-                          </div>
-                          <div className="text-2xl">💳</div>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-900">Carte</span>
-                        </button>
-                        <button className="flex flex-col items-center justify-center gap-3 p-4 border-2 border-gray-100 bg-white hover:border-gray-300 rounded-2xl transition-all grayscale opacity-50 cursor-not-allowed">
-                          <div className="text-2xl">🅿️</div>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">PayPal</span>
-                        </button>
-                        <button className="flex flex-col items-center justify-center gap-3 p-4 border-2 border-gray-100 bg-white hover:border-gray-300 rounded-2xl transition-all grayscale opacity-50 cursor-not-allowed">
-                          <div className="text-2xl">📱</div>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">MBWay</span>
-                        </button>
-                        <button className="flex flex-col items-center justify-center gap-3 p-4 border-2 border-gray-100 bg-white hover:border-gray-300 rounded-2xl transition-all grayscale opacity-50 cursor-not-allowed">
-                          <div className="text-2xl">🏦</div>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Virement</span>
-                        </button>
+                    {isPaymentLoading ? (
+                      <div className="flex flex-col items-center justify-center py-12 gap-3">
+                        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
                       </div>
-                      
-                      <div className="pt-8 border-t border-gray-100 space-y-6">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Numéro de carte sécurisé</label>
-                          <input type="text" placeholder="0000 0000 0000 0000" className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm tracking-widest" />
+                    ) : activeGateways.length === 0 ? (
+                      <div className="bg-orange-50 border border-orange-100 rounded-2xl p-6 text-center">
+                         <p className="text-sm font-bold text-orange-800">Aucun moyen de paiement n'est disponible pour le moment.</p>
+                         <p className="text-[10px] uppercase font-black text-orange-400 mt-2">Veuillez contacter le support ou réessayer plus tard.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-8">
+                        {/* Gateway Selection Grid */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                          {activeGateways.includes('stripe') && (
+                            <button 
+                              onClick={() => setSelectedGateway('stripe')}
+                              className={`flex flex-col items-center justify-center gap-3 p-4 border-2 rounded-2xl relative shadow-sm transition-all ${selectedGateway === 'stripe' ? 'border-primary bg-primary/5' : 'border-gray-100 bg-white hover:border-gray-300'}`}
+                            >
+                              {selectedGateway === 'stripe' && <div className="absolute top-2 right-2 text-primary"><CheckCircle size={14} weight="fill" /></div>}
+                              <CreditCard size={24} weight={selectedGateway === 'stripe' ? 'fill' : 'bold'} className={selectedGateway === 'stripe' ? 'text-primary' : 'text-gray-400'} />
+                              <span className={`text-[10px] font-black uppercase tracking-widest ${selectedGateway === 'stripe' ? 'text-gray-900' : 'text-gray-500'}`}>Carte / Stripe</span>
+                            </button>
+                          )}
+                          
+                          {activeGateways.includes('paypal') && (
+                            <button 
+                               onClick={() => setSelectedGateway('paypal')}
+                               className={`flex flex-col items-center justify-center gap-3 p-4 border-2 rounded-2xl relative shadow-sm transition-all ${selectedGateway === 'paypal' ? 'border-primary bg-primary/5' : 'border-gray-100 bg-white hover:border-gray-300'}`}
+                            >
+                              {selectedGateway === 'paypal' && <div className="absolute top-2 right-2 text-primary"><CheckCircle size={14} weight="fill" /></div>}
+                              <PaypalLogo size={24} weight={selectedGateway === 'paypal' ? 'fill' : 'bold'} className={selectedGateway === 'paypal' ? 'text-blue-600' : 'text-gray-400'} />
+                              <span className={`text-[10px] font-black uppercase tracking-widest ${selectedGateway === 'paypal' ? 'text-gray-900' : 'text-gray-500'}`}>PayPal</span>
+                            </button>
+                          )}
+
+                          {activeGateways.includes('mollie') && (
+                            <button 
+                               onClick={() => setSelectedGateway('mollie')}
+                               className={`flex flex-col items-center justify-center gap-3 p-4 border-2 rounded-2xl relative shadow-sm transition-all ${selectedGateway === 'mollie' ? 'border-primary bg-primary/5' : 'border-gray-100 bg-white hover:border-gray-300'}`}
+                            >
+                              {selectedGateway === 'mollie' && <div className="absolute top-2 right-2 text-primary"><CheckCircle size={14} weight="fill" /></div>}
+                              <Bank size={24} weight={selectedGateway === 'mollie' ? 'fill' : 'bold'} className={selectedGateway === 'mollie' ? 'text-blue-500' : 'text-gray-400'} />
+                              <span className={`text-[10px] font-black uppercase tracking-widest ${selectedGateway === 'mollie' ? 'text-gray-900' : 'text-gray-500'}`}>Mollie</span>
+                            </button>
+                          )}
+
+                          {activeGateways.includes('square') && (
+                            <button 
+                               onClick={() => setSelectedGateway('square')}
+                               className={`flex flex-col items-center justify-center gap-3 p-4 border-2 rounded-2xl relative shadow-sm transition-all ${selectedGateway === 'square' ? 'border-primary bg-primary/5' : 'border-gray-100 bg-white hover:border-gray-300'}`}
+                            >
+                              {selectedGateway === 'square' && <div className="absolute top-2 right-2 text-primary"><CheckCircle size={14} weight="fill" /></div>}
+                              <Globe size={24} weight={selectedGateway === 'square' ? 'fill' : 'bold'} className={selectedGateway === 'square' ? 'text-gray-900' : 'text-gray-400'} />
+                              <span className={`text-[10px] font-black uppercase tracking-widest ${selectedGateway === 'square' ? 'text-gray-900' : 'text-gray-500'}`}>Square</span>
+                            </button>
+                          )}
                         </div>
-                        <div className="grid grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Date d'Expiration</label>
-                            <input type="text" placeholder="MM / YY" className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm tracking-widest text-center" />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Cryptogramme (CVV)</label>
-                            <input type="text" placeholder="***" className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm tracking-widest text-center" />
-                          </div>
+                        
+                        {/* Dynamic Payment Forms Area */}
+                        <div className="pt-8 border-t border-gray-100 animate-in fade-in slide-in-from-top-4 duration-500">
+                          <AnimatePresence mode="wait">
+                            {selectedGateway === 'stripe' && (
+                              <motion.div 
+                                key="stripe-form"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="space-y-6"
+                              >
+                                {stripePromise ? (
+                                  <Elements stripe={stripePromise}>
+                                    <StripePaymentForm />
+                                  </Elements>
+                                ) : (
+                                  <div className="p-8 text-center text-gray-400 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center gap-3">
+                                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest">Initialisation sécurisée...</p>
+                                  </div>
+                                )}
+                              </motion.div>
+                            )}
+
+                            {selectedGateway === 'paypal' && config?.paypal?.enabled && (
+                              <motion.div 
+                                key="paypal-btn"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="space-y-6"
+                              >
+                                <div className="flex flex-col items-center justify-center py-6 bg-blue-50/30 rounded-[2.5rem] border-2 border-dashed border-blue-100 p-8">
+                                  <PayPalScriptProvider options={{ clientId: config.paypal.clientId, currency: "EUR" }}>
+                                    <PayPalButtons 
+                                      style={{ layout: "vertical", shape: "pill", label: "pay" }}
+                                      createOrder={(data, actions) => {
+                                        return actions.order.create({
+                                          intent: "CAPTURE",
+                                          purchase_units: [{
+                                            amount: {
+                                              currency_code: "EUR",
+                                              value: "538.00" // Devrait être dynamique
+                                            }
+                                          }]
+                                        });
+                                      }}
+                                    />
+                                  </PayPalScriptProvider>
+                                </div>
+                              </motion.div>
+                            )}
+
+                            {selectedGateway === 'mollie' && config?.mollie?.enabled && (
+                              <motion.div 
+                                key="mollie-section"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="flex flex-col items-center justify-center py-10 bg-blue-50/20 rounded-[2.5rem] border-2 border-dashed border-blue-200 p-8 text-center"
+                              >
+                                <Bank size={48} weight="fill" className="text-blue-500 mb-4" />
+                                <p className="text-xs font-bold text-gray-900 uppercase tracking-widest mb-1">Terminal Mollie Activé</p>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight max-w-[200px]">Vous pourrez choisir iDEAL, Bancontact ou Carte après validation.</p>
+                              </motion.div>
+                            )}
+
+                            {selectedGateway === 'square' && config?.square?.enabled && (
+                              <motion.div 
+                                key="square-section"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 p-8 text-center"
+                              >
+                                <Globe size={48} weight="fill" className="text-gray-900 mb-4" />
+                                <p className="text-xs font-bold text-gray-900 uppercase tracking-widest mb-1">Paiement Square (Squareup)</p>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Terminal de paiement sécurisé activé.</p>
+                              </motion.div>
+                            )}
+
+                            {!selectedGateway && !isPaymentLoading && (
+                              <p className="text-center text-gray-300 italic text-sm">Sélectionnez une méthode pour continuer</p>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </section>
                 )}
 

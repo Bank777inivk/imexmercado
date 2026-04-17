@@ -9,25 +9,28 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@imexmercado/ui": "workspace:*",
-    "@imexmercado/types": "workspace:*",
     "@imexmercado/firebase": "workspace:*",
     "@imexmercado/i18n": "workspace:*",
+    "@imexmercado/types": "workspace:*",
+    "@imexmercado/ui": "workspace:*",
+    "@paypal/react-paypal-js": "^9.1.1",
+    "@stripe/react-stripe-js": "^6.2.0",
+    "@stripe/stripe-js": "^9.2.0",
+    "@tanstack/react-query": "^5.24.1",
+    "framer-motion": "^11.0.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
-    "framer-motion": "^11.0.8",
-    "zustand": "^4.5.1",
-    "@tanstack/react-query": "^5.24.1"
+    "zustand": "^4.5.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.56",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",
-    "typescript": "^5.3.3",
-    "vite": "^5.1.4",
-    "tailwindcss": "^3.4.1",
     "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.35"
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4"
   }
 }
