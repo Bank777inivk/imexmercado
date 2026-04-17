@@ -25,6 +25,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [currentProduct, setCurrentProduct] = useState<any>(null);
   const [isFullViewOpen, setIsFullViewOpen] = useState(false);
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
 
   // Sync internal state with prop
   useEffect(() => {
@@ -32,6 +33,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
       setCurrentProduct(product);
       setSelectedImage(product.image || '');
       setQty(1);
+      setIsDescExpanded(false);
     }
   }, [product]);
 
@@ -302,10 +304,27 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-3 flex items-center gap-2">
                        Description
                     </h4>
-                    <div 
-                      className="text-[11px] leading-relaxed text-gray-600 font-medium"
-                      dangerouslySetInnerHTML={{ __html: formatProductDescription(p.description) }}
-                    />
+                    <div className="relative">
+                      <div 
+                        className={`text-[11px] leading-relaxed text-gray-600 font-medium overflow-hidden transition-all duration-500 ease-in-out ${!isDescExpanded ? 'max-h-[120px]' : 'max-h-[2000px]'}`}
+                        dangerouslySetInnerHTML={{ __html: formatProductDescription(p.description) }}
+                      />
+                      {p.description && p.description.length > 250 && !isDescExpanded && (
+                        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                      )}
+                    </div>
+                    {p.description && p.description.length > 250 && (
+                      <button 
+                        onClick={() => setIsDescExpanded(!isDescExpanded)}
+                        className="mt-2 text-[9px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1"
+                      >
+                        {isDescExpanded ? (
+                          <>Voir moins <Minus size={10} weight="bold" /></>
+                        ) : (
+                          <>Afficher la suite <Plus size={10} weight="bold" /></>
+                        )}
+                      </button>
+                    )}
                   </div>
 
                   {/* Section: Specifications */}
