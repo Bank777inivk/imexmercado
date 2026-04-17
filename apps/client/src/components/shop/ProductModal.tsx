@@ -159,10 +159,13 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
       >
         <div className="relative bg-white w-full md:max-w-5xl md:rounded-[2.5rem] rounded-t-[2rem] overflow-hidden shadow-2xl max-h-[95dvh] md:max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-4 md:zoom-in-95 duration-300">
           
+          {/* Mobile Handle */}
+          <div className="md:hidden w-12 h-1.5 bg-gray-200 rounded-full mx-auto my-4 flex-shrink-0" />
+          
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 z-10 w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-all"
+            className="absolute top-4 right-4 md:top-5 md:right-5 z-20 w-10 h-10 flex items-center justify-center bg-gray-100/80 backdrop-blur-sm hover:bg-gray-200 text-gray-700 rounded-full transition-all"
             aria-label="Fermer"
           >
             <X size={20} weight="bold" />
@@ -170,10 +173,10 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
 
           {/* ── Scrollable Content ── */}
           <div className="overflow-y-auto flex-1 overscroll-contain">
-            <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="flex flex-col md:grid md:grid-cols-2">
               
               {/* ── Gallery Column ── */}
-              <div className="bg-gray-50 p-6 md:p-8 flex flex-col gap-4">
+              <div className="bg-gray-50 flex flex-col gap-4 p-4 md:p-8 order-1 md:order-1">
                 {/* Main image */}
                 <div 
                   className="aspect-square rounded-2xl overflow-hidden bg-white flex items-center justify-center relative cursor-zoom-in group/main"
@@ -204,7 +207,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                 </div>
                 {/* Thumbnails */}
                 {allImages.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto pb-1">
+                  <div className="flex gap-2 overflow-x-auto pb-1 order-3 md:order-2">
                     {allImages.map((img, i) => (
                       <button
                         key={i}
@@ -219,9 +222,9 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                   </div>
                 )}
 
-                {/* Section: Similar Products (Moved to left column) */}
+                {/* Section: Similar Products (Desktop only here) */}
                 {similarProducts.length > 0 && (
-                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 mt-8 pt-8 border-t border-gray-100">
+                  <div className="hidden md:block animate-in fade-in slide-in-from-bottom-2 duration-300 mt-8 pt-8 border-t border-gray-100 order-last">
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-5 flex items-center justify-between">
                       <span>Vous aimerez aussi</span>
                     </h4>
@@ -252,7 +255,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
               </div>
 
               {/* ── Info Column ── */}
-              <div className="p-6 md:p-8 flex flex-col gap-5 text-left">
+              <div className="p-6 md:p-8 flex flex-col gap-5 text-left order-2 md:order-2">
                 {/* Brand + name */}
                 <div>
                   {p.brand && (
@@ -419,6 +422,36 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                     </div>
                   </div>
                 </div>
+
+                  {/* Section: Similar Products (Mobile only here) */}
+                  {similarProducts.length > 0 && (
+                    <div className="md:hidden animate-in fade-in slide-in-from-bottom-2 duration-300 mt-8 pt-8 border-t border-gray-100">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-5 flex items-center justify-between">
+                        <span>Vous aimerez aussi</span>
+                      </h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        {similarProducts.map((item) => (
+                          <button
+                            key={item.id || item.name}
+                            onClick={() => {
+                              setCurrentProduct(item);
+                              setSelectedImage(item.image || '');
+                              setQty(1);
+                              document.querySelector('.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className="flex items-center gap-2 p-2 rounded-2xl bg-gray-50 border border-gray-100 active:scale-95 transition-all text-left"
+                          >
+                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-white flex-shrink-0 border border-gray-50">
+                              <img src={getOptimizedImageUrl(item.image, 200)} alt="" className="w-full h-full object-contain p-1" />
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <p className="text-[8px] font-black text-gray-900 truncate leading-tight uppercase">{item.name}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                 {/* Trust Footer (Icones simples) */}
                 <div className="grid grid-cols-3 gap-2 border-t border-gray-100 pt-6 mt-4">
