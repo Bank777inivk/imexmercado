@@ -584,7 +584,11 @@ export function CheckoutPage() {
                                   locationId={config.square.locationId}
                                   cardTokenizeResponseReceived={async (token, buyer) => {
                                     console.log({ token, buyer });
-                                    await handleCreatePayment('square', { sourceId: token.token });
+                                    if (token.status === 'OK' && token.token) {
+                                      await handleCreatePayment('square', { sourceId: token.token });
+                                    } else {
+                                      alert('Erreur lors de la validation de la carte Square.');
+                                    }
                                   }}
                                 >
                                   <SquareCreditCard />
