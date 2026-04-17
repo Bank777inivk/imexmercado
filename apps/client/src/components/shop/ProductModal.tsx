@@ -16,7 +16,7 @@ interface ProductModalProps {
 export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
   const { addItem } = useCart();
   const [qty, setQty] = useState(1);
-  const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews'>('description');
+  const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews' | 'shipping'>('description');
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [isAdding, setIsAdding] = useState(false);
 
