@@ -5,6 +5,7 @@ service cloud.firestore {
     // Helper pour vérifier si l'utilisateur est admin
     function isAdmin() {
       return request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
@@ -38,10 +39,10 @@ service cloud.firestore {
 
     // Paramètres (CMS & Paiement)
     match /settings/{settingId} {
-      // La page d'accueil et les configs publiques sont lisibles par tous
-      // Les secrets de paiement sont strictement Admin
-      allow read: if settingId in ['homepage', 'payment_public'] || isAdmin();
-      allow write: if isAdmin();
+      // Accès public spécifique pour éviter les erreurs d'évaluation isAdmin() chez les invités
+      allow read: if settingId in ['homepage', 'payment_public'];
+      // Accès Admin complet
+      allow read, write: if isAdmin();
     }
 
     // Catégories : Lecture publique, écriture Admin uniquement
