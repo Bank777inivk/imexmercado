@@ -101,6 +101,14 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
     .filter(item => item.id !== p.id && item.category === p.category)
     .slice(0, 4);
 
+  const formatProductDescription = (text: string) => {
+    if (!text) return "";
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+      .replace(/\n\n/g, '<div class="h-4"></div>')
+      .replace(/\n/g, '<br/>');
+  };
+
   return (
     <>
       {/* ── Backdrop ── */}
@@ -175,6 +183,37 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                         <img src={img} alt="" className="w-full h-full object-cover" />
                       </button>
                     ))}
+                  </div>
+                )}
+
+                {/* Section: Similar Products (Moved to left column) */}
+                {similarProducts.length > 0 && (
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 mt-8 pt-8 border-t border-gray-100">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-5 flex items-center justify-between">
+                      <span>Vous aimerez aussi</span>
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      {similarProducts.map((item) => (
+                        <button
+                          key={item.id || item.name}
+                          onClick={() => {
+                            setCurrentProduct(item);
+                            setSelectedImage(item.image || '');
+                            setQty(1);
+                            document.querySelector('.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="flex items-center gap-3 p-2 rounded-2xl bg-white border border-gray-100 hover:border-primary/30 hover:shadow-sm transition-all group text-left"
+                        >
+                          <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-50 group-hover:scale-105 transition-transform duration-300">
+                            <img src={getOptimizedImageUrl(item.image, 200)} alt="" className="w-full h-full object-contain p-1" />
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <p className="text-[9px] font-black text-gray-900 truncate leading-tight uppercase group-hover:text-primary transition-colors">{item.name}</p>
+                            <p className="text-[10px] font-black text-primary mt-0.5">{item.price?.toFixed(2)}€</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -263,9 +302,10 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-3 flex items-center gap-2">
                        Description
                     </h4>
-                    <p className="text-xs leading-relaxed text-gray-500 font-medium">
-                      {p.description || "Aucune description détaillée n'est disponible pour ce produit."}
-                    </p>
+                    <div 
+                      className="text-[11px] leading-relaxed text-gray-600 font-medium"
+                      dangerouslySetInnerHTML={{ __html: formatProductDescription(p.description) }}
+                    />
                   </div>
 
                   {/* Section: Specifications */}
@@ -328,40 +368,6 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                       </div>
                     </div>
                   </div>
-
-                  {/* Section: Similar Products */}
-                  {similarProducts.length > 0 && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pt-8 border-t border-gray-100 pb-4">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-5 flex items-center justify-between">
-                        <span>Vous aimerez aussi</span>
-                        <span className="text-primary font-bold text-[8px] border border-primary/20 px-2 py-0.5 rounded-full bg-primary/5 uppercase">Sélectionné pour vous</span>
-                      </h4>
-                      <div className="grid grid-cols-2 gap-3">
-                        {similarProducts.map((item) => (
-                          <button
-                            key={item.id || item.name}
-                            onClick={() => {
-                              setCurrentProduct(item);
-                              setSelectedImage(item.image || '');
-                              setQty(1);
-                              document.querySelector('.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="flex items-center gap-3 p-2 rounded-2xl bg-gray-50/50 border border-gray-100 hover:border-primary/30 hover:bg-white transition-all group text-left"
-                          >
-                            <div className="w-16 h-16 rounded-xl overflow-hidden bg-white flex-shrink-0 border border-gray-50 group-hover:scale-105 transition-transform duration-300">
-                              <img src={getOptimizedImageUrl(item.image, 200)} alt="" className="w-full h-full object-contain p-2" />
-                            </div>
-                            <div className="flex flex-col min-w-0">
-                              <p className="text-[10px] font-black text-gray-900 truncate leading-tight uppercase group-hover:text-primary transition-colors">{item.name}</p>
-                              <p className="text-[11px] font-black text-primary mt-1">{item.price?.toFixed(2)}€</p>
-                              <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Voir l'article</p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                 </div>
 
                 {/* Trust Footer (Icones simples) */}
