@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { auth, setDocument, useAuth } from '@imexmercado/firebase';
 console.log("CheckoutPage.tsx Module Loaded - setDocument exists:", !!setDocument);
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   User, Truck, CreditCard, CheckCircle, 
-  ArrowRight, ShieldCheck, CaretRight,
+  ArrowRight, ShieldCheck, CaretRight, House,
   Bank, Globe, LockKey, SealCheck, NavigationArrow, Check, Info, Gift, PencilSimple, ShoppingCart, CaretDown, CaretUp,
   Eye, EyeSlash, MapPin, Trash
 } from '@phosphor-icons/react';
@@ -68,12 +68,13 @@ function StripePaymentInner({ isProcessing, setIsProcessing, nextStep, totalPric
 }
 
 export function CheckoutPage() {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedGateway, setSelectedGateway] = useState<string | null>(null);
   const [stripePromise, setStripePromise] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { config, isLoading: isPaymentLoading, activeGateways } = usePayment();
-  const { items, totalItems, totalPrice } = useCart();
+  const { items, totalItems, totalPrice, setDrawerOpen } = useCart();
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(false);
   console.log("CheckoutPage Render - isLoginMode status:", isLoginMode);
@@ -85,6 +86,7 @@ export function CheckoutPage() {
   const [loginPassword, setLoginPassword] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const { user, profile, loading: authLoading } = useAuth();
 
   // Smart Auto-Scroll to Active Step
   useEffect(() => {
@@ -94,13 +96,19 @@ export function CheckoutPage() {
     }
   }, [currentStep]);
 
+  // Security: Redirect to store if cart becomes empty during checkout (except on success)
+  useEffect(() => {
+    if (totalItems === 0 && currentStep !== 4 && !authLoading) {
+      navigate('/boutique');
+    }
+  }, [totalItems, currentStep, navigate, authLoading]);
+
   useEffect(() => {
     if (config?.stripe?.enabled && config?.stripe?.publishableKey) {
       setStripePromise(loadStripe(config.stripe.publishableKey));
     }
   }, [config]);
 
-  const { user, profile, loading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -191,6 +199,8 @@ export function CheckoutPage() {
           currency: 'EUR',
           gateway,
           orderId: `ORD-${Date.now()}`,
+          customer: formData,
+          items: items,
           ...additionalData
         }),
       });
@@ -239,55 +249,112 @@ export function CheckoutPage() {
   // Écran de chargement plein écran supprimé au profit des Skeletons par section
 
   return (
-    <div className="relative min-h-screen bg-white">
+    <div className="relative lg:min-h-screen bg-white">
+
       {/* Background Split for Desktop */}
       <div className="hidden lg:block absolute top-0 right-0 bottom-0 w-[45%] bg-[#F5F5F5] border-l border-gray-200 z-0" />
       
       <div className="relative z-10 w-full max-w-[1600px] lg:px-8 mx-auto flex flex-col-reverse lg:flex-row">
         
         {/* ─── LEFT COLUMN: CHECKOUT FLOW ─── */}
-        <div className="w-full lg:w-[55%] bg-white pb-32 pt-4 px-4 sm:px-6 lg:pt-12 lg:pr-12 xl:pr-16 lg:min-h-screen">
+        <div className="w-full lg:w-[55%] bg-white pb-32 lg:pb-32 pt-1 lg:pt-12 px-4 sm:px-6 lg:pt-12 lg:pr-12 xl:pr-16 lg:min-h-screen">
           <div className="w-full ml-auto">
         
-        {/* NEW STEPPER SECTION */}
-        <div className="mb-10 px-1 sm:px-0">
-          <nav className="flex items-center gap-0 sm:gap-4 md:gap-8 overflow-hidden">
+        {/* DASHBOARD CARD FOR MOBILE (Summary + Stepper) — FULL WIDTH EDITION */}
+        <div className="lg:hidden -mt-1 mb-6 bg-white border-b border-gray-100 shadow-sm overflow-hidden relative z-50">
+          {/* 1. Summary Header (Repris du bloc Sticky) */}
+            <div 
+              onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
+              className="bg-gray-50/50 px-4 py-4 flex items-center justify-between cursor-pointer border-b border-gray-100 transition-colors active:bg-gray-100"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase text-gray-900 tracking-[0.2em]">Détails commande</span>
+                <motion.div animate={{ rotate: isSummaryExpanded ? 180 : 0 }}>
+                  <CaretDown size={10} weight="bold" className="text-primary" />
+                </motion.div>
+              </div>
+              <span className="text-base font-black text-gray-900 tracking-tighter">{totalPrice.toFixed(2)}€</span>
+            </div>
+
+          {/* 2. Stepper Navigation integrated in card */}
+          <div className="px-4 py-3 bg-white">
+            <nav className="flex items-center justify-between">
+              <button 
+                onClick={() => setDrawerOpen(true)}
+                className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-gray-400 hover:text-gray-900 transition-colors" 
+                title="Consulter mon panier"
+              >
+                Panier
+              </button>
+              <div className="flex items-center gap-1 text-gray-200">
+                <CaretRight size={8} weight="bold" />
+              </div>
+              <div className="flex-1 flex items-center justify-between px-2">
+                {[
+                  { id: 1, label: 'Infos' },
+                  { id: 2, label: 'Livraison' },
+                  { id: 3, label: 'Paiement' }
+                ].map((step, idx) => {
+                  const isActive = currentStep === step.id;
+                  const isCompleted = currentStep > step.id;
+                  return (
+                    <React.Fragment key={step.id}>
+                      <button 
+                        onClick={() => isCompleted && setCurrentStep(step.id)}
+                        disabled={!isCompleted}
+                        className={`text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] transition-all relative py-1 ${
+                          isActive ? 'text-gray-900' : 
+                          isCompleted ? 'text-success' : 'text-gray-300'
+                        }`}
+                      >
+                        {step.label}
+                        {isActive && (
+                          <motion.div layoutId="active-nav-dot" className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary" />
+                        )}
+                      </button>
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </nav>
+          </div>
+        </div>
+
+        {/* DESKTOP ONLY STEPPER (Original version hidden on mobile) */}
+        <div className="hidden lg:block mb-12">
+          <nav className="flex items-center gap-3 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em]">
+            <button 
+              onClick={() => setDrawerOpen(true)}
+              className="text-gray-400 hover:text-gray-900 transition-colors flex items-center gap-2"
+              title="Consulter mon panier"
+            >
+              Panier
+              <CaretRight size={8} weight="bold" className="text-gray-300" />
+            </button>
             {[
-              { id: 1, label: 'Coordonnées' },
+              { id: 1, label: 'Infos' },
               { id: 2, label: 'Livraison' },
               { id: 3, label: 'Paiement' }
             ].map((step, idx) => {
               const isActive = currentStep === step.id;
               const isCompleted = currentStep > step.id;
-              const isPending = currentStep < step.id;
 
               return (
                 <React.Fragment key={step.id}>
-                  {idx > 0 && (
-                    <div className="flex-shrink-0 mx-1 sm:mx-0">
-                      <CaretRight size={12} className="text-gray-300" weight="bold" />
-                    </div>
-                  )}
                   <button 
                     onClick={() => isCompleted && setCurrentStep(step.id)}
                     disabled={!isCompleted}
-                    className={`flex items-center gap-2 group transition-all duration-300 relative py-2 ${isCompleted ? 'cursor-pointer' : 'cursor-default'}`}
-                  >
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black transition-colors ${
-                      isActive ? 'bg-gray-900 text-white shadow-md' : 
-                      isCompleted ? 'bg-success text-white' : 
-                      'bg-gray-100 text-gray-400'
-                    }`}>
-                      {isCompleted ? <Check size={10} weight="bold" /> : step.id}
-                    </div>
-                    <span className={`text-[10px] md:text-xs font-black uppercase tracking-widest whitespace-nowrap transition-colors ${
+                    className={`transition-all duration-300 ${
                       isActive ? 'text-gray-900 border-b-2 border-gray-900 pb-0.5' : 
-                      isCompleted ? 'text-gray-900 group-hover:text-primary transition-colors' : 
-                      'text-gray-300'
-                    }`}>
-                      {step.label}
-                    </span>
+                      isCompleted ? 'text-success hover:text-gray-900' : 
+                      'text-gray-300 cursor-default'
+                    }`}
+                  >
+                    {step.label}
                   </button>
+                  {idx < 2 && (
+                    <CaretRight size={8} weight="bold" className="text-gray-200" />
+                  )}
                 </React.Fragment>
               );
             })}
@@ -297,8 +364,8 @@ export function CheckoutPage() {
         {/* EXPRESS CHECKOUT REMOVED FOR CLASSIC CHRONOLOGICAL FLOW */}
 
         {/* ACCORDION 1: Contact */}
-        <div className={`mb-6 transition-all duration-300 ${currentStep > 1 ? 'opacity-80' : 'opacity-100'}`}>
-          <div id="step-content-1" className="flex items-center justify-between mb-4 h-8 scroll-mt-24">
+        <div className={`mb-2 lg:mb-6 transition-all duration-300 ${currentStep > 1 ? 'opacity-80' : 'opacity-100'}`}>
+          <div id="step-content-1" className="flex items-center justify-between mb-2 lg:mb-4 h-8 scroll-mt-24">
             <h2 className="font-black text-lg uppercase tracking-tight text-gray-900 border-b-2 border-primary pb-1">
               Vos Coordonnées
             </h2>
@@ -326,7 +393,7 @@ export function CheckoutPage() {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="space-y-4 pt-4 pb-6 w-full">
+                <div className="space-y-2 lg:space-y-4 pt-1 pb-1 w-full">
                   {authError && (
                     <div className="bg-red-50 text-red-600 p-3 rounded-xl text-[10px] font-bold uppercase tracking-tight border border-red-100 flex items-center gap-2">
                        <div className="w-1 h-1 bg-red-600 rounded-full" />
@@ -410,7 +477,8 @@ export function CheckoutPage() {
 
                       <button 
                         onClick={() => setCurrentStep(2)}
-                        className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-black transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+                        disabled={!formData.firstName || !formData.email}
+                        className="w-full lg:flex hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-black transition-all mt-4 text-xs disabled:opacity-50 flex items-center justify-center gap-3"
                       >
                         Continuer vers la livraison <ArrowRight size={16} weight="bold" />
                       </button>
@@ -456,21 +524,21 @@ export function CheckoutPage() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Prénom</label>
-                          <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-sm font-medium transition-all" placeholder="Votre prénom" />
+                          <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="Votre prénom" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Nom</label>
-                          <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-sm font-medium transition-all" placeholder="Votre nom" />
+                          <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="Votre nom" />
                         </div>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Email</label>
-                        <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-sm font-medium transition-all" placeholder="votre@email.com" />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Téléphone</label>
-                        <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-sm font-medium transition-all" placeholder="+33 6 12 34 56 78" />
-                      </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Email</label>
+                          <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="votre@email.com" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Téléphone</label>
+                          <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="+33 6 12 34 56 78" />
+                        </div>
 
                       <div className="pt-2 space-y-3">
                         <label className="flex items-start gap-3 cursor-pointer group">
@@ -488,10 +556,17 @@ export function CheckoutPage() {
                       <button 
                         onClick={() => setCurrentStep(2)}
                         disabled={!formData.firstName || !formData.email}
-                        className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-black transition-all mt-4 text-xs disabled:opacity-50"
+                        className="w-full lg:block hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-black transition-all mt-4 text-xs disabled:opacity-50"
                       >
                         Continuer vers la livraison
                       </button>
+
+                      <div className="flex justify-center mt-4">
+                        <Link to="/boutique" className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-gray-900 transition-colors flex items-center gap-2">
+                          <Bank size={14} weight="bold" />
+                          Retour à la Boutique
+                        </Link>
+                      </div>
 
                       <p className="text-[9px] text-gray-400 font-medium text-center px-4 mt-6 leading-relaxed uppercase tracking-tighter">
                         En continuant, vous acceptez nos <Link to="/cgv" className="underline hover:text-gray-900">Conditions Générales de Vente</Link> et notre <Link to="/confidentialite" className="underline hover:text-gray-900">Politique de Confidentialité</Link>.
@@ -502,15 +577,18 @@ export function CheckoutPage() {
               </motion.div>
             </AnimatePresence>
           ) : (
-            <div className="p-3 bg-gray-50/80 border border-gray-100 rounded-xl flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-100 transition-all cursor-pointer group" onClick={() => setCurrentStep(1)}>
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-success border border-gray-100 shadow-sm">
+            <div className="p-3 bg-gray-50/80 border border-gray-100 rounded-xl flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-100 transition-all cursor-pointer group" onClick={() => setCurrentStep(1)}>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex-shrink-0 w-6 h-6 bg-white rounded-lg flex items-center justify-center text-success border border-gray-100 shadow-sm">
                   <Check size={12} weight="bold" />
                 </div>
-                <span>Envoyé à : <span className="text-gray-900">{user?.email || formData.email}</span></span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-2 min-w-0 overflow-hidden">
+                  <span className="whitespace-nowrap">Envoyé à :</span>
+                  <span className="text-gray-900 truncate lowercase">{user?.email || formData.email}</span>
+                </div>
               </div>
-              <button className="text-primary group-hover:underline flex items-center gap-1">
-                <PencilSimple size={12} weight="bold" /> Modifier
+              <button className="flex-shrink-0 text-primary group-hover:underline flex items-center gap-1 ml-2">
+                <PencilSimple size={12} weight="bold" /> <span className="hidden xs:inline">Modifier</span>
               </button>
             </div>
           )}
@@ -518,11 +596,11 @@ export function CheckoutPage() {
 
         {/* SECTION 2: Shipping */}
         {currentStep >= 2 && (
-          <div className="mb-6 transition-all duration-300">
+          <div className="mb-1 lg:mb-6 transition-all duration-300">
             {currentStep === 2 && (
-              <div id="step-content-2" className="flex items-center justify-between mb-4 scroll-mt-24">
+              <div id="step-content-2" className="flex items-center justify-between mb-1 lg:mb-4 scroll-mt-24">
                 <h2 className="font-black text-lg uppercase tracking-tight text-gray-900">
-                  Adresse de Livraison
+                  Où devons-nous vous livrer ?
                 </h2>
               </div>
             )}
@@ -530,7 +608,7 @@ export function CheckoutPage() {
             {currentStep === 2 ? (
               <AnimatePresence>
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden">
-                  <div className="space-y-5 pt-4 pb-6 w-full">
+                  <div className="space-y-1 lg:space-y-5 pt-1 pb-0 w-full">
                     
                     {/* SMART MULTI-ADDRESS SELECTION */}
                     {user && (
@@ -712,11 +790,11 @@ export function CheckoutPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1">
                             <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Code Postal</label>
-                            <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-sm font-medium transition-all" placeholder="75001" />
+                            <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="75001" />
                           </div>
                           <div className="space-y-1">
                             <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Ville</label>
-                            <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-sm font-medium transition-all" placeholder="Paris" />
+                            <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="Paris" />
                           </div>
                         </div>
 
@@ -826,17 +904,30 @@ export function CheckoutPage() {
                                     }));
                                   }, 1500);
                                 } catch (err) {
-                                  console.error("Erreur save profile:", err);
+                                  setSelectedAddressId('manual-session');
+                                  setIsAddressSaved(true);
+                                  setTimeout(() => {
+                                    setIsAddressSaved(false);
+                                    if (user) setShowManualAddress(false);
+                                  }, 1500);
                                 }
                               } else {
                                 // Cas où l'utilisateur ne veut pas sauvegarder dans le profil 
                                 // mais utilise l'adresse pour cette commande
+                                setSelectedAddressId('manual-session');
                                 setIsAddressSaved(true);
                                 setTimeout(() => {
                                   setIsAddressSaved(false);
                                   setShowManualAddress(false);
                                 }, 1500);
                               }
+                            } else {
+                              setSelectedAddressId('manual-session');
+                              setIsAddressSaved(true);
+                              setTimeout(() => {
+                                setIsAddressSaved(false);
+                                // For guests, we keep the manual address form visible
+                              }, 1500);
                             }
                           }}
                           disabled={!formData.address || !formData.city}
@@ -857,7 +948,7 @@ export function CheckoutPage() {
                     )}
 
                     {/* Mode de Livraison */}
-                    <div className="mt-8 pt-6 border-t border-gray-100">
+                    <div className="mt-2 pt-6 border-t border-gray-100">
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-900 ml-1 mb-4 block">Mode d'expédition</label>
                       <label className="flex items-center justify-between p-4 border-2 border-gray-900 rounded-xl bg-gray-50 cursor-pointer">
                         <div className="flex items-center gap-4">
@@ -873,24 +964,50 @@ export function CheckoutPage() {
 
                     <button 
                       onClick={() => setCurrentStep(3)}
-                      disabled={!selectedAddressId}
-                      className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-black transition-all mt-4 text-xs disabled:opacity-50"
+                      disabled={!selectedAddressId && (!showManualAddress || !formData.address || !formData.city)}
+                      className="w-full lg:block hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-black transition-all text-xs disabled:opacity-50"
                     >
-                      Continuer vers le paiement
+                      {!selectedAddressId && showManualAddress && formData.address ? "Valider & Continuer" : 
+                       !selectedAddressId ? "Sélectionnez une adresse" : "Continuer vers le paiement"}
                     </button>
+
+                    <div className="lg:flex hidden justify-center mt-4">
+                      <Link to="/boutique" className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-gray-900 transition-colors flex items-center gap-2">
+                        <Bank size={14} weight="bold" />
+                        Retour à la Boutique
+                      </Link>
+                    </div>
                   </div>
                 </motion.div>
               </AnimatePresence>
             ) : currentStep > 2 ? (
-              <div className="p-3 bg-gray-50/80 border border-gray-100 rounded-xl flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-100 transition-all cursor-pointer group" onClick={() => setCurrentStep(2)}>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-success border border-gray-100 shadow-sm">
+              <div className="p-3 bg-gray-50/80 border border-gray-100 rounded-xl flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-100 transition-all cursor-pointer group" onClick={() => setCurrentStep(2)}>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex-shrink-0 w-6 h-6 bg-white rounded-lg flex items-center justify-center text-success border border-gray-100 shadow-sm">
                     <Check size={12} weight="bold" />
                   </div>
-                  <span className="truncate max-w-[200px] sm:max-w-none">Livré à : <span className="text-gray-900">{formData.address}, {formData.city}</span></span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-2 min-w-0">
+                    <span className="whitespace-nowrap">Livré à :</span>
+                    <span className="text-gray-900 font-black truncate">
+                      {(() => {
+                        if (selectedAddressId) {
+                          if (selectedAddressId === 'manual-session') {
+                            return formData.address ? `${formData.address}, ${formData.city}` : "Adresse saisie";
+                          }
+                          const savedAddresses = [
+                            ...(profile?.addresses || []),
+                            ...(profile?.address ? [{ id: 'root-default', address: profile.address, city: profile.city }] : [])
+                          ];
+                          const selected = savedAddresses.find(a => a.id === selectedAddressId);
+                          return selected ? `${selected.address}, ${selected.city}` : "Adresse sélectionnée";
+                        }
+                        return formData.address ? `${formData.address}, ${formData.city}` : "Adresse non définie";
+                      })()}
+                    </span>
+                  </div>
                 </div>
-                <button className="text-primary group-hover:underline flex items-center gap-1">
-                  <PencilSimple size={12} weight="bold" /> Modifier
+                <button className="flex-shrink-0 text-primary group-hover:underline flex items-center gap-1 ml-2">
+                  <PencilSimple size={12} weight="bold" /> <span className="hidden xs:inline">Modifier</span>
                 </button>
               </div>
             ) : null}
@@ -899,17 +1016,17 @@ export function CheckoutPage() {
 
         {/* SECTION 3: Payment */}
         {currentStep >= 3 && (
-          <div id="step-content-3" className="transition-all duration-300 scroll-mt-24">
-            <div className="flex items-center mb-6">
+          <div id="step-content-3" className="transition-all duration-300 scroll-mt-24 mb-1">
+            <div className="flex items-center mb-1 lg:mb-6">
               <h2 className="font-black text-lg uppercase tracking-tight text-gray-900 border-b-2 border-primary pb-1">
-                Paiement Sécurisé
+                Comment préférez-vous régler ?
               </h2>
             </div>
           
           {currentStep === 3 && (
             <AnimatePresence>
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden">
-                <div className="pt-4 pb-6 w-full">
+                <div className="pt-2 pb-0 lg:pt-4 lg:pb-6 w-full">
 
                   {/* Payment Gateway Accordion — formulaire inline */}
                   <div className="space-y-3 mb-8">
@@ -938,7 +1055,7 @@ export function CheckoutPage() {
                             <button
                               onClick={() => document.dispatchEvent(new CustomEvent('STRIPE_SUBMIT'))}
                               disabled={isProcessing}
-                              className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg hover:bg-black transition-all mt-6 text-xs disabled:opacity-50 flex items-center justify-center gap-3"
+                              className="w-full lg:flex hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg hover:bg-black transition-all mt-6 text-xs disabled:opacity-50 items-center justify-center gap-3"
                             >
                               {isProcessing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><LockKey size={16} weight="bold" /> Payer {totalPrice.toFixed(2)}€</>}
                             </button>
@@ -1072,34 +1189,29 @@ export function CheckoutPage() {
             )}
           </div>
         )}
+        </div>
       </div>
-    </div>
+
 
       {/* ─── RIGHT COLUMN: STICKY ORDER SUMMARY ─── */}
-      <div className="w-full lg:w-[45%] bg-[#F5F5F5] lg:min-h-screen lg:pl-12 pt-0 lg:pt-12 pb-8 border-b lg:border-b-0 border-gray-200">
+      <div className="w-full lg:w-[45%] bg-[#F5F5F5] lg:min-h-screen lg:pl-12 pt-0 lg:pt-12 pb-0 lg:pb-8 border-b lg:border-b-0 border-gray-200">
         <div className="w-full max-w-xl mr-auto sticky top-0 lg:top-12 z-40 lg:z-10">
           
-          {/* Mobile ONLY: Sticky Floating Header Summary */}
-          <div 
-            onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
-            className="lg:hidden sticky top-0 bg-white/90 backdrop-blur-2xl border-b border-gray-100 px-4 sm:px-6 py-3 flex items-center justify-between cursor-pointer z-50 shadow-sm transition-all"
-          >
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-9 h-9 bg-gray-900 rounded-lg flex items-center justify-center text-white shadow-lg">
-                <ShoppingCart size={18} weight="fill" />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                   <h3 className="text-xs font-black text-gray-900 uppercase tracking-tight">Résumé</h3>
-                   {isSummaryExpanded ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}
-                </div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 leading-none mt-0.5">{totalItems} Article(s)</p>
-              </div>
+          {/* Mobile ONLY: Updated to Card approach */}
+          {isSummaryExpanded && (
+            <div className="lg:hidden p-4 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between sticky top-0 z-[60] backdrop-blur-md">
+               <div className="flex items-center gap-2">
+                 <ShoppingCart size={18} weight="bold" className="text-gray-900" />
+                 <span className="text-xs font-black uppercase tracking-widest text-gray-900">Résumé de commande</span>
+               </div>
+                <button 
+                onClick={() => setIsSummaryExpanded(false)}
+                className="p-2 bg-primary/10 rounded-lg border border-primary/20 text-primary hover:bg-primary/20 transition-all shadow-sm flex items-center justify-center translate-y-1"
+               >
+                 <CaretUp size={16} weight="bold" />
+               </button>
             </div>
-            <div className="text-right">
-              <span className="text-base font-black text-gray-900 tracking-tighter italic">{totalPrice.toFixed(2)}€</span>
-            </div>
-          </div>
+          )}
 
           <AnimatePresence>
             {(isSummaryExpanded || window.innerWidth >= 1024) && (
@@ -1153,9 +1265,9 @@ export function CheckoutPage() {
                   {/* Promo Code Field */}
                   <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm mb-8">
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">Code Promotionnel</p>
-                    <div className="flex gap-2">
-                      <input type="text" placeholder="Entrez votre code" className="flex-1 bg-gray-50 border border-transparent focus:border-gray-900 focus:bg-white rounded-xl px-4 py-3 text-sm font-medium outline-none transition-all placeholder:text-gray-400" />
-                      <button className="bg-gray-100 text-gray-400 font-bold text-xs px-5 py-3 rounded-xl cursor-not-allowed uppercase tracking-widest transition-colors hover:bg-gray-200">Appliquer</button>
+                    <div className="flex gap-2 items-center">
+                      <input type="text" placeholder="Entrez votre code" className="flex-1 min-w-0 bg-white border border-gray-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl px-3 py-3 text-sm font-medium outline-none transition-all placeholder:text-gray-400" />
+                      <button className="flex-shrink-0 bg-primary text-white font-black text-[10px] px-4 py-3 rounded-xl uppercase tracking-widest transition-all hover:bg-primary/90 shadow-md shadow-primary/10 active:scale-95">Appliquer</button>
                     </div>
                   </div>
                   
@@ -1175,38 +1287,50 @@ export function CheckoutPage() {
                   </div>
 
                   {/* Total */}
+                  {/* Total */}
                   <div className="bg-gray-900 rounded-3xl p-8 flex justify-between items-center mb-8 shadow-[0_20px_40px_rgba(0,0,0,0.1)] relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/10 transition-colors" />
                     <div className="relative z-10">
                       <span className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-1 block">Total à régler</span>
-                      <h2 className="text-white text-3xl font-black tracking-tighter">Total</h2>
+                      <h2 className="text-white text-3xl font-black tracking-tighter uppercase">Total</h2>
                     </div>
                     <div className="relative z-10 text-right">
-                      <span className="text-[10px] font-black text-white/30 mb-1 block">EUR</span>
+                      <span className="text-[10px] font-black text-white/30 mb-1 block uppercase">EUR</span>
                       <span className="text-4xl font-black text-white tracking-tighter">
                         {totalPrice.toFixed(2)}<span className="text-2xl ml-0.5">€</span>
                       </span>
                     </div>
                   </div>
 
+                  {/* FOOTER OF SUMMARY: CLOSE BUTTON */}
+                  <div className="mt-4 mb-12 lg:hidden">
+                    <button 
+                      onClick={() => setIsSummaryExpanded(false)}
+                      className="w-full py-4 bg-white border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-gray-900 transition-all flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      Fermer le résumé
+                      <CaretUp size={14} weight="bold" />
+                    </button>
+                  </div>
+
                   {/* Unified Trust Badges */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 group-hover:text-success transition-colors">
-                        <ShieldCheck size={24} weight="fill" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                    <div className="bg-white p-2 rounded-xl border border-gray-100 flex items-center gap-2 shadow-sm">
+                      <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400">
+                        <ShieldCheck size={18} weight="fill" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-900">Sécurisé</p>
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">SSL 256-bit</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-900 leading-none">Sécurisé</p>
+                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-0.5">SSL 256-bit</p>
                       </div>
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400">
-                        <CheckCircle size={24} weight="fill" />
+                    <div className="bg-white p-2 rounded-xl border border-gray-100 flex items-center gap-2 shadow-sm">
+                      <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400">
+                        <CheckCircle size={18} weight="fill" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-900">Garantie</p>
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Satisfaction</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-900 leading-none">Garantie</p>
+                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-0.5">Satisfaction</p>
                       </div>
                     </div>
                   </div>
@@ -1216,7 +1340,38 @@ export function CheckoutPage() {
           </AnimatePresence>
         </div>
       </div>
+
       </div>
+
+
+      {/* ─── MOBILE ONLY: STICKY BOTTOM ACTION BAR (Shopify Pro Style) ─── */}
+      {currentStep < 4 && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 p-3 z-[100] shadow-[0_-10px_30px_rgba(0,0,0,0.08)]">
+          <button 
+            onClick={() => {
+              if (currentStep === 1) setCurrentStep(2);
+              else if (currentStep === 2) setCurrentStep(3);
+              else if (currentStep === 3) document.dispatchEvent(new CustomEvent('STRIPE_SUBMIT'));
+            }}
+            disabled={isProcessing || (currentStep === 2 && !selectedAddressId && !formData.address)}
+            className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg active:scale-95 transition-all text-[11px] flex items-center justify-center gap-3 disabled:opacity-50"
+          >
+            {isProcessing ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                {currentStep === 1 && "Continuer vers la livraison"}
+                {currentStep === 2 && (
+                  (selectedAddressId || formData.address) ? "Passer au paiement sécurisé" : "Choisir une adresse"
+                )}
+                {currentStep === 3 && `Valider & Payer ${totalPrice.toFixed(2)}€`}
+                <ArrowRight size={16} weight="bold" />
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
+
   );
 }

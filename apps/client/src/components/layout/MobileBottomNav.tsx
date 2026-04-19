@@ -5,7 +5,7 @@ import { useCart } from '../../context/CartContext';
 
 export function MobileBottomNav() {
   const location = useLocation();
-  const { totalItems } = useCart();
+  const { totalItems, isDrawerOpen, setDrawerOpen } = useCart();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -32,12 +32,12 @@ export function MobileBottomNav() {
         </Link>
         
         {/* Panier */}
-        <Link 
-          to="/panier" 
-          className={`flex flex-col items-center justify-center w-16 h-12 transition-colors relative ${isActive('/panier') ? 'text-primary' : 'text-gray-400 hover:text-gray-900'}`}
+        <button 
+          onClick={() => setDrawerOpen(true)}
+          className={`flex flex-col items-center justify-center w-16 h-12 transition-colors relative ${isDrawerOpen ? 'text-primary' : 'text-gray-400 hover:text-gray-900'}`}
         >
           <div className="relative">
-             <ShoppingCart size={26} weight={isActive('/panier') ? 'fill' : 'regular'} />
+             <ShoppingCart size={26} weight={isDrawerOpen ? 'fill' : 'regular'} />
              {totalItems > 0 && (
                <span className="absolute -top-1 -right-2 bg-primary text-white text-[9px] font-black h-4 w-4 flex items-center justify-center rounded-full ring-2 ring-white shadow-sm">
                  {totalItems}
@@ -45,7 +45,7 @@ export function MobileBottomNav() {
              )}
           </div>
           <span className="text-[9px] font-black uppercase tracking-tight mt-1">Panier</span>
-        </Link>
+        </button>
         
         {/* Compte */}
         <Link 

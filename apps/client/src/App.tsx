@@ -17,7 +17,6 @@ import {
 
 import { LoginPage, RegisterPage, ForgotPasswordPage } from './pages/auth/AuthPages';
 import { ProductPage } from './pages/ProductPage';
-import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { Dashboard, Orders, Addresses, Favorites } from './pages/account/AccountPages';
 
@@ -37,9 +36,8 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/a-propos" element={<AboutPage />} />
         
-        {/* Product & Cart */}
+        {/* Product Drawer (overlay logic is global) */}
         <Route path="/p/:productSlug" element={<ProductPage />} />
-        <Route path="/panier" element={<CartPage />} />
 
         {/* Auth (Still using Store Layout for branding) */}
         <Route path="/connexion" element={<LoginPage />} />

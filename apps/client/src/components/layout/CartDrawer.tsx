@@ -42,7 +42,7 @@ export function CartDrawer() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 bottom-0 w-full md:w-[450px] bg-white z-[110] shadow-2xl flex flex-col"
+            className="fixed top-0 right-0 bottom-0 w-[85vw] md:w-[450px] bg-white z-[110] shadow-2xl flex flex-col"
           >
             {/* Header */}
             <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
@@ -180,7 +180,7 @@ export function CartDrawer() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1">
                 <button 
                   onClick={handleCheckout}
                   disabled={items.length === 0}
@@ -189,15 +189,6 @@ export function CartDrawer() {
                   <span>Passer en Caisse</span>
                   <ArrowRight size={18} weight="bold" />
                 </button>
-                
-                <Link 
-                  to="/panier" 
-                  onClick={() => setDrawerOpen(false)}
-                  className="w-full bg-white text-gray-900 border-2 border-gray-200 font-black uppercase tracking-widest py-4 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-3 active:scale-95 text-[11px]"
-                >
-                  <Receipt size={18} weight="bold" />
-                  <span>Voir le Panier</span>
-                </Link>
               </div>
             </div>
           </motion.div>

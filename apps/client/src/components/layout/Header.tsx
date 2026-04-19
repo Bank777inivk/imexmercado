@@ -91,8 +91,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           </Link>
 
           {/* Cart */}
-          <Link 
-            to="/panier" 
+          <button 
             onClick={handleCartClick}
             className="flex items-center gap-2 cursor-pointer group hover:opacity-80 transition-opacity"
           >
@@ -104,11 +103,11 @@ export function Header({ onMenuClick }: HeaderProps) {
                 </span>
               )}
             </div>
-            <div className="flex flex-col text-xs leading-tight">
+            <div className="flex flex-col text-left text-xs leading-tight">
               <span className="text-gray-400">Mon Panier</span>
               <span className="font-bold text-primary">€{totalPrice.toFixed(2)}</span>
             </div>
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -145,8 +144,7 @@ export function Header({ onMenuClick }: HeaderProps) {
            
            {/* Right: Cart/Account (Optional, keeping it symmetrical) */}
            <div className="flex justify-end">
-             <Link 
-               to="/panier" 
+             <button 
                onClick={handleCartClick}
                className="relative w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full"
              >
@@ -156,7 +154,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                    {totalItems}
                  </span>
                )}
-             </Link>
+             </button>
            </div>
         </div>
 

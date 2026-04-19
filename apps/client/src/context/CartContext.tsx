@@ -35,6 +35,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isSyncing, setIsSyncing] = useState(false);
   
   // Track if we just logged in to prevent infinite loops during merge
+  const isClearingRef = useRef(false);
   const isInitialSyncDone = useRef(false);
 
   // Persist to localStorage for guests and backup
@@ -58,8 +59,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = subscribeToDocument<{ items: CartItem[] }>('carts', user.uid, async (remoteCart) => {
       const savedUid = localStorage.getItem('imex_last_uid');
       
+      // If we are currently clearing the cart, ignore remote updates that are not empty
+      if (isClearingRef.current && remoteCart?.items && remoteCart.items.length > 0) {
+        console.log("Cart sync: Ignoring non-empty remote update during clearCart action.");
+        return;
+      }
+
       if (!isInitialSyncDone.current && savedUid !== user.uid) {
-        // FIRST TIME LOGIN / SWITCH: Merge
+        // ... (rest of merge logic remains same)
         const remoteItems = remoteCart?.items || [];
         const localItems = items;
         const mergedMap = new Map<string, CartItem>();
@@ -79,17 +86,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('imex_last_uid', user.uid);
         isInitialSyncDone.current = true;
 
-        // Push merged state back to Firestore
         await setDocument('carts', user.uid, { 
           items: finalItems, 
           updatedAt: new Date(),
           mergedAt: new Date()
         });
       } else {
-        // ALREADY SYNCED: Just follow remote
         if (remoteCart && remoteCart.items) {
-          // Compare to avoid state update loops if possible, though React handles simple identity well
           setItems(remoteCart.items);
+          // If we received an empty cart from remote, we can stop the clearing lock
+          if (remoteCart.items.length === 0) {
+            isClearingRef.current = false;
+          }
         }
         isInitialSyncDone.current = true;
         localStorage.setItem('imex_last_uid', user.uid);
@@ -116,6 +124,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addItem = (product: any) => {
+    isClearingRef.current = false; // Reset lock if user adds items
     const existing = items.find(item => item.id === product.id);
     let newItems;
     if (existing) {
@@ -151,7 +160,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     persistItems(newItems);
   };
 
-  const clearCart = () => persistItems([]);
+  const clearCart = () => {
+    isClearingRef.current = true;
+    localStorage.removeItem('imex_cart'); // Force clear localStorage
+    persistItems([]);
+    
+    // Safety timeout: stop clearing lock after 3 seconds if no remote sync confirmed
+    setTimeout(() => {
+      isClearingRef.current = false;
+    }, 3000);
+  };
 
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
