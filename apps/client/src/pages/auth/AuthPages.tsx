@@ -171,6 +171,9 @@ export function RegisterPage() {
   const [lastName, setLastName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [address, setAddress] = React.useState('');
+  const [zipCode, setZipCode] = React.useState('');
+  const [city, setCity] = React.useState('');
+  const [country, setCountry] = React.useState('France');
   const [phone, setPhone] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
@@ -199,9 +202,19 @@ export function RegisterPage() {
       await setDocument('users', user.uid, {
         firstName,
         lastName,
-        address,
-        phone,
         email,
+        phone,
+        addresses: [{
+          id: 'initial-addr',
+          firstName,
+          lastName,
+          address,
+          city,
+          zipCode,
+          country,
+          phone,
+          isDefault: true
+        }],
         createdAt: new Date().toISOString()
       });
       
@@ -322,9 +335,50 @@ export function RegisterPage() {
                           value={address}
                           onChange={(e) => setAddress(e.target.value)}
                           required
+                          placeholder="Rue, numéro, appartement..."
                           className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 pl-12 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm"
                         />
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Code Postal</label>
+                        <input 
+                          type="text" 
+                          value={zipCode}
+                          onChange={(e) => setZipCode(e.target.value)}
+                          required
+                          placeholder="75001"
+                          className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Ville</label>
+                        <input 
+                          type="text" 
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          required
+                          placeholder="Paris"
+                          className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Pays / Région</label>
+                      <select 
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        required
+                        className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium text-sm appearance-none"
+                      >
+                        <option value="France">France métropolitaine</option>
+                        <option value="Suisse">Suisse</option>
+                        <option value="Portugal">Portugal</option>
+                        <option value="Belgique">Belgique</option>
+                      </select>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

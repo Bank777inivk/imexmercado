@@ -16,9 +16,7 @@ const accountMenu = [
 ];
 
 export function DashboardLayout() {
-  const { user, loading: authLoading } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, profile, loading: authLoading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,21 +28,6 @@ export function DashboardLayout() {
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    async function fetchProfile() {
-      if (user) {
-        const data = await getDocument('users', user.uid);
-        setProfile(data);
-      }
-      setLoading(false);
-    }
-    if (!authLoading && user) {
-      fetchProfile();
-    } else if (!authLoading && !user) {
-      setLoading(false);
-    }
-  }, [user, authLoading]);
-
-  useEffect(() => {
     // Fermer la sidebar sur mobile en cas de changement de route
     setIsSidebarOpen(false);
   }, [location.pathname]);
@@ -54,7 +37,7 @@ export function DashboardLayout() {
     navigate('/');
   };
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

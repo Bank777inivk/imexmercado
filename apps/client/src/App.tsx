@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { StoreLayout } from './components/layout/StoreLayout';
 import { DashboardLayout } from './components/layout/DashboardLayout';
+import { CheckoutLayout } from './components/layout/CheckoutLayout';
 
 import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
@@ -23,6 +24,11 @@ import { Dashboard, Orders, Addresses, Favorites } from './pages/account/Account
 function App() {
   return (
     <Routes>
+      {/* ─── Special Isolated Checkout ─── */}
+      <Route element={<CheckoutLayout />}>
+        <Route path="/commande" element={<CheckoutPage />} />
+      </Route>
+
       {/* ─── Public & Shop Universe ─── */}
       <Route element={<StoreLayout />}>
         <Route path="/" element={<HomePage isSidebarOpen={true} />} />
@@ -34,7 +40,6 @@ function App() {
         {/* Product & Cart */}
         <Route path="/p/:productSlug" element={<ProductPage />} />
         <Route path="/panier" element={<CartPage />} />
-        <Route path="/commande" element={<CheckoutPage />} />
 
         {/* Auth (Still using Store Layout for branding) */}
         <Route path="/connexion" element={<LoginPage />} />

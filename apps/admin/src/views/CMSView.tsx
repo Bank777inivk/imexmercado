@@ -3,7 +3,7 @@ import {
   Monitor, Megaphone, Plus, Trash, ImageSquare, Check,
   ArrowClockwise, ListDashes, Fire, Storefront,
   Newspaper, Star, Layout, Truck, Lock, ChatCircle, SquaresFour,
-  CaretDown, CaretUp, List
+  CaretDown, CaretUp, List, CreditCard
 } from '@phosphor-icons/react';
 import { subscribeToDocument, setDocument } from '@imexmercado/firebase';
 import { CloudinaryUploader } from '../components/CloudinaryUploader';
@@ -20,6 +20,7 @@ const TABS = [
   { id: 'promo', label: 'Blocs Promo', icon: Star, color: 'text-teal-500', bg: 'bg-teal-50' },
   { id: 'newsletter', label: 'Newsletter', icon: Newspaper, color: 'text-gray-500', bg: 'bg-gray-100' },
   { id: 'sidebar', label: 'Barre Latérale', icon: List, color: 'text-cyan-500', bg: 'bg-cyan-50' },
+  { id: 'carte', label: 'Carte Paiement', icon: CreditCard, color: 'text-yellow-600', bg: 'bg-yellow-50' },
 ];
 
 // ─── Default settings ──────────────────────────────────────────────────────────
@@ -118,7 +119,15 @@ const DEFAULT_SETTINGS = {
       { value: '24h', label: 'Traitement', subtext: 'Commande express', emoji: '⚡' },
       { value: '100%', label: 'Vérifiés', subtext: 'Contrôle strict', emoji: '✅' }
     ]
-  }
+  },
+  cardTheme: {
+    baseColor: '#1a1c22',
+    faceLight: '#2c303a',
+    faceMid: '#22262f',
+    faceDark: '#1e2028',
+    textColor: '#D4AF37',
+    accentColor: '#D4AF37',
+  },
 };
 
 // ─── Reusable Toggle ───────────────────────────────────────────────────────────
@@ -542,6 +551,7 @@ function HomeCategoriesSection({ settings, setSettings }: any) {
 }
 
 function SidebarSection({ settings, setSettings }: any) {
+  // ...existing sidebar section code...
   const side = settings.sidebar || DEFAULT_SETTINGS.sidebar;
   const set = (path: string, v: any) => {
     const keys = path.split('.');
@@ -623,6 +633,134 @@ function SidebarSection({ settings, setSettings }: any) {
                <Field label="Libellé"><Input value={stat.label} onChange={v => updateItem('engagementStats', i, 'label', v)} /></Field>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Card Theme Section ────────────────────────────────────────────────────────
+function CardThemeSection({ settings, setSettings }: any) {
+  const ct = settings.cardTheme || DEFAULT_SETTINGS.cardTheme;
+  const set = (k: string, v: string) => setSettings((s: any) => ({ ...s, cardTheme: { ...s.cardTheme, [k]: v } }));
+
+  const colorFields = [
+    { key: 'baseColor', label: 'Fond de base', desc: 'La couleur principale du fond de la carte' },
+    { key: 'faceLight', label: 'Facette Claire', desc: 'Les polygones les plus éclairés (effets 3D)' },
+    { key: 'faceMid', label: 'Facette Moyenne', desc: 'Tons intermédiaires des polygones' },
+    { key: 'faceDark', label: 'Facette Sombre', desc: 'Zones en ombre des polygones' },
+    { key: 'textColor', label: 'Couleur du Texte', desc: 'Numéros, noms et champs de saisie' },
+    { key: 'accentColor', label: 'Couleur des Accents', desc: 'Séparateurs, icônes, bordures, badges' },
+  ];
+
+  const presets = [
+    { name: 'Or & Noir', baseColor: '#1a1c22', faceLight: '#2c303a', faceMid: '#22262f', faceDark: '#1e2028', textColor: '#D4AF37', accentColor: '#D4AF37' },
+    { name: 'Argent & Nuit', baseColor: '#0d1117', faceLight: '#21262d', faceMid: '#161b22', faceDark: '#0d1117', textColor: '#E0E0E0', accentColor: '#A0A0A0' },
+    { name: 'Marine & Or', baseColor: '#0a1628', faceLight: '#1a2d4a', faceMid: '#112238', faceDark: '#081020', textColor: '#D4AF37', accentColor: '#D4AF37' },
+    { name: 'Bordeaux & Argent', baseColor: '#1a0810', faceLight: '#3a1020', faceMid: '#2a0c18', faceDark: '#150608', textColor: '#E8E8E8', accentColor: '#C0A0A0' },
+    { name: 'Forêt & Or', baseColor: '#0d1a0d', faceLight: '#1e3a1e', faceMid: '#162816', faceDark: '#0a120a', textColor: '#D4AF37', accentColor: '#8BC34A' },
+    { name: 'Violet & Or', baseColor: '#12091a', faceLight: '#261540', faceMid: '#1a0d2e', faceDark: '#0e0618', textColor: '#D4AF37', accentColor: '#9C27B0' },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <SectionTitle title="Apparence Carte Paiement" subtitle="Personnalisez les couleurs de la carte bancaire affichée lors du paiement." />
+
+      {/* Live Mini Preview */}
+      <div className="bg-gray-900 rounded-[2rem] p-8 flex flex-col items-center gap-4">
+        <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">Aperçu en temps réel</p>
+        {/* Miniature card using dynamic colors */}
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl"
+          style={{ width: 160, height: 254, background: ct.baseColor, border: `1px solid ${ct.accentColor}33` }}>
+          {/* Mini polygons simulation */}
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 160 254" preserveAspectRatio="xMidYMid slice">
+            <polygon points="0,0 70,0 32,48" fill={ct.faceMid} />
+            <polygon points="70,0 160,0 128,37" fill={ct.faceLight} />
+            <polygon points="32,48 86,43 59,86" fill={ct.faceDark} />
+            <polygon points="86,43 128,37 107,86" fill={ct.faceLight} />
+            <polygon points="59,86 107,86 83,128" fill={ct.faceMid} />
+            <polygon points="0,120 32,100 16,160" fill={ct.faceDark} />
+            <polygon points="83,128 140,110 120,180" fill={ct.faceMid} />
+            <polygon points="16,160 80,200 40,254" fill={ct.faceMid} />
+            <polygon points="80,200 120,180 160,220 160,254" fill={ct.faceLight} />
+            <polygon points="40,254 160,254 110,210" fill={ct.faceDark} />
+            <rect width="160" height="254" fill="url(#miniVig)" />
+            <defs><radialGradient id="miniVig" cx="50%" cy="50%" r="70%"><stop offset="60%" stopColor="transparent"/><stop offset="100%" stopColor="rgba(0,0,0,0.5)"/></radialGradient></defs>
+          </svg>
+          {/* Mini card content */}
+          <div className="relative z-10 p-5 h-full flex flex-col">
+            <div className="flex justify-between items-start mb-6">
+              <div className="w-6 h-4 rounded-[2px]" style={{ background: 'linear-gradient(135deg,#d8d8d8,#a0a0a0,#e8e8e8)' }} />
+            </div>
+            <div className="flex flex-col gap-1.5 mt-auto">
+              <div className="h-1.5 w-20 rounded-full" style={{ background: ct.accentColor + '60' }} />
+              <div className="h-2.5 w-28 rounded-full" style={{ background: ct.textColor + '99' }} />
+              <div className="flex gap-2 mt-2">
+                <div className="h-1.5 w-10 rounded-full" style={{ background: ct.accentColor + '50' }} />
+                <div className="h-1.5 w-8 rounded-full" style={{ background: ct.accentColor + '50' }} />
+              </div>
+              <div className="mt-3 flex justify-between">
+                <div className="h-1 w-8 rounded-full" style={{ background: ct.accentColor + '30' }} />
+                <div className="h-1 w-6 rounded-full" style={{ background: ct.accentColor + '30' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Presets */}
+      <div className="space-y-3">
+        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-1">Thèmes prédéfinis</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {presets.map((preset) => (
+            <button
+              key={preset.name}
+              type="button"
+              onClick={() => setSettings((s: any) => ({ ...s, cardTheme: { ...preset } }))}
+              className="flex items-center gap-3 p-3 rounded-2xl border border-gray-100 hover:border-gray-300 transition-all hover:shadow-md bg-white group"
+            >
+              <div className="flex gap-1 flex-shrink-0">
+                <div className="w-5 h-8 rounded-l-[6px]" style={{ background: preset.baseColor }} />
+                <div className="w-5 h-8 rounded-r-[6px]" style={{ background: preset.accentColor }} />
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-widest text-gray-700 group-hover:text-gray-900 text-left leading-tight">{preset.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Color Pickers */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {colorFields.map(({ key, label, desc }) => (
+          <div key={key} className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-800">{label}</p>
+              <p className="text-[9px] text-gray-400 mt-0.5">{desc}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                className="w-12 h-12 rounded-xl border-none cursor-pointer p-0 overflow-hidden shadow-sm flex-shrink-0"
+                value={(ct as any)[key]}
+                onChange={e => set(key, e.target.value)}
+              />
+              <Input
+                value={(ct as any)[key]}
+                onChange={v => set(key, v)}
+                placeholder="#000000"
+                className="font-mono text-xs"
+              />
+            </div>
+            <div className="h-6 rounded-xl" style={{ background: (ct as any)[key] }} />
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4 flex items-start gap-3">
+        <CreditCard size={20} weight="duotone" className="text-yellow-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-yellow-800 mb-1">Synchronisation temps réel</p>
+          <p className="text-[10px] text-yellow-700 leading-relaxed">Les changements sont appliqués immédiatement sur le site client dès que vous enregistrez, sans rechargement de page.</p>
         </div>
       </div>
     </div>
@@ -728,6 +866,7 @@ export function CMSView() {
         {activeTab === 'promo' && <PromoBlocksSection settings={settings} setSettings={setSettings} />}
         {activeTab === 'newsletter' && <NewsletterSection settings={settings} setSettings={setSettings} />}
         {activeTab === 'sidebar' && <SidebarSection settings={settings} setSettings={setSettings} />}
+        {activeTab === 'carte' && <CardThemeSection settings={settings} setSettings={setSettings} />}
       </div>
 
       {/* ── Info card ── */}
