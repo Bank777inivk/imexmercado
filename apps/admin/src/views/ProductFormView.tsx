@@ -3,16 +3,22 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { 
   ArrowLeft, Check, Plus, Trash, Tag, ListBullets, X, Sparkle
 } from '@phosphor-icons/react';
-import { setDocument, getDocument, updateDocument } from '@imexmercado/firebase';
+import { setDocument, getDocument, updateDocument, subscribeToCollection } from '@imexmercado/firebase';
 import { CloudinaryUploader } from '../components/CloudinaryUploader';
 
-const CATEGORIES = [
-  'Téléphones & Hi-Tech',
-  'Maison & Décoration',
-  'Meubles & Lampes',
-  'Bricolage',
-  'Barbecues & Planchas',
-  'Piscines & Spas',
+interface Category {
+  id: string;
+  name: string;
+  subCategories?: string[];
+}
+
+const DEFAULT_CATEGORIES: Category[] = [
+  { id: 'hitech', name: 'Téléphones & Hi-Tech', subCategories: ['Smartphones', 'Tablettes', 'Audio', 'Accessoires'] },
+  { id: 'maison', name: 'Maison & Décoration', subCategories: ['Cuisine', 'Salon', 'Déco', 'Rangement'] },
+  { id: 'meubles', name: 'Meubles & Lampes', subCategories: ['Chambre', 'Salon', 'Bureau', 'Éclairage'] },
+  { id: 'bricolage', name: 'Bricolage', subCategories: ['Outillage', 'Peinture', 'Électricité', 'Jardinage'] },
+  { id: 'barbecues', name: 'Barbecues & Planchas', subCategories: ['Gaz', 'Charbon', 'Électrique', 'Accessoires'] },
+  { id: 'piscines', name: 'Piscines & Spas', subCategories: ['Hors-sol', 'Spas', 'Entretien', 'Accessoires'] },
 ];
 
 interface Spec {
@@ -28,10 +34,18 @@ export function ProductFormView() {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEdit);
   const [tagInput, setTagInput] = useState('');
+  
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  
+  const [isAddingSubCategory, setIsAddingSubCategory] = useState(false);
+  const [newSubCategoryName, setNewSubCategoryName] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
     category: '',
+    subCategory: '',
     brand: '',
     price: '',
     oldPrice: '',
@@ -51,6 +65,17 @@ export function ProductFormView() {
   });
 
   useEffect(() => {
+    const unsubscribe = subscribeToCollection('categories', (data) => {
+      setCategories(data.map(c => ({
+        id: c.id,
+        name: c.name,
+        subCategories: c.subCategories || []
+      })));
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (isEdit) {
       (async () => {
         try {
@@ -59,6 +84,7 @@ export function ProductFormView() {
             setFormData({
               name: data.name || '',
               category: data.category || '',
+              subCategory: data.subCategory || '',
               brand: data.brand || '',
               price: data.price?.toString() || '',
               oldPrice: data.oldPrice?.toString() || '',
@@ -141,6 +167,55 @@ export function ProductFormView() {
     }
 
     set('specs', [...formData.specs, ...newSpecs]);
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    const catId = newCategoryName.toLowerCase().replace(/\s+/g, '-');
+    await setDocument('categories', catId, { 
+      name: newCategoryName, 
+      id: catId, 
+      order: categories.length,
+      subCategories: []
+    });
+    set('category', newCategoryName);
+    setNewCategoryName('');
+    setIsAddingCategory(false);
+  };
+
+  const handleAddSubCategory = async () => {
+    if (!newSubCategoryName.trim() || !formData.category) return;
+    const currentCat = categories.find(c => c.name === formData.category);
+    if (!currentCat) return;
+
+    const updatedSubCats = [...(currentCat.subCategories || []), newSubCategoryName];
+    await updateDocument('categories', currentCat.id, { subCategories: updatedSubCats });
+    set('subCategory', newSubCategoryName);
+    setNewSubCategoryName('');
+    setIsAddingSubCategory(false);
+  };
+
+  const selectedCategoryData = categories.find(c => c.name.toLowerCase() === formData.category.toLowerCase());
+  const subCategoryOptions = selectedCategoryData?.subCategories || [];
+
+  const handleSeedDefaults = async () => {
+    setLoading(true);
+    try {
+      for (const cat of DEFAULT_CATEGORIES) {
+        await setDocument('categories', cat.id, {
+          id: cat.id,
+          name: cat.name,
+          subCategories: cat.subCategories,
+          order: DEFAULT_CATEGORIES.indexOf(cat),
+          isActive: true
+        });
+      }
+      alert("✅ Catégories initialisées avec succès !");
+    } catch (error) {
+      console.error("Error seeding categories:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ─── Submit ──────────────────────────────────────────────────────────────────
@@ -251,17 +326,106 @@ export function ProductFormView() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Catégorie *</label>
-                <select
-                  required
-                  className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium text-gray-700 focus:ring-4 focus:ring-primary/5 outline-none appearance-none cursor-pointer"
-                  value={formData.category}
-                  onChange={e => set('category', e.target.value)}
-                >
-                  <option value="">Sélectionner...</option>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <div className="flex items-center justify-between mb-2 ml-1">
+                  <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">Catégorie *</label>
+                  <button 
+                    type="button"
+                    onClick={() => setIsAddingCategory(!isAddingCategory)}
+                    className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline"
+                  >
+                    {isAddingCategory ? 'Annuler' : '+ Nouveau'}
+                  </button>
+                </div>
+                
+                {isAddingCategory ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
+                      placeholder="Nom de la catégorie"
+                      value={newCategoryName}
+                      onChange={e => setNewCategoryName(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCategory}
+                      className="bg-primary text-white p-4 rounded-2xl shadow-lg active:scale-90 transition-all"
+                    >
+                      <Check size={18} weight="bold" />
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    required
+                    className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium text-gray-700 focus:ring-4 focus:ring-primary/5 outline-none appearance-none cursor-pointer"
+                    value={formData.category}
+                    onChange={e => {
+                      set('category', e.target.value);
+                      set('subCategory', '');
+                    }}
+                  >
+                    <option value="">Sélectionner...</option>
+                    {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                  </select>
+                )}
+                {((categories.length === 0) || (formData.category && subCategoryOptions.length === 0)) && !isAddingCategory && (
+                  <button 
+                    type="button" 
+                    onClick={handleSeedDefaults}
+                    className="mt-2 text-[8px] font-black text-primary uppercase tracking-widest hover:opacity-70 transition-all flex items-center gap-1"
+                  >
+                    <Sparkle size={12} weight="fill" /> 
+                    {categories.length === 0 ? "Initialiser les catégories par défaut" : "Ajouter les sous-catégories prédéfinies"}
+                  </button>
+                )}
               </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2 ml-1">
+                  <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">Sous-catégorie</label>
+                  {formData.category && (
+                    <button 
+                      type="button"
+                      onClick={() => setIsAddingSubCategory(!isAddingSubCategory)}
+                      className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline"
+                    >
+                      {isAddingSubCategory ? 'Annuler' : '+ Nouveau'}
+                    </button>
+                  )}
+                </div>
+
+                {isAddingSubCategory ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
+                      placeholder="Nom de la sous-catégorie"
+                      value={newSubCategoryName}
+                      onChange={e => setNewSubCategoryName(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddSubCategory}
+                      className="bg-primary text-white p-4 rounded-2xl shadow-lg active:scale-90 transition-all"
+                    >
+                      <Check size={18} weight="bold" />
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    disabled={!formData.category}
+                    className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium text-gray-700 focus:ring-4 focus:ring-primary/5 outline-none appearance-none cursor-pointer disabled:opacity-50"
+                    value={formData.subCategory}
+                    onChange={e => set('subCategory', e.target.value)}
+                  >
+                    <option value="">Sélectionner...</option>
+                    {subCategoryOptions.map(sc => <option key={sc} value={sc}>{sc}</option>)}
+                  </select>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
               <div>
                 <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Marque</label>
                 <input
@@ -584,9 +748,9 @@ export function ProductFormView() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Galerie</h3>
-                <p className="text-[9px] text-gray-300 font-medium mt-0.5">Jusqu'à 4 vues supplémentaires</p>
+                <p className="text-[9px] text-gray-300 font-medium mt-0.5">Jusqu'à 15 vues supplémentaires</p>
               </div>
-              {formData.images.length < 4 && (
+              {formData.images.length < 15 && (
                 <button
                   type="button"
                   onClick={() => set('images', [...formData.images, ''])}

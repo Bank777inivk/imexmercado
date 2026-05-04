@@ -5,8 +5,6 @@ import { AdminGuard } from './components/AdminGuard';
 import { DashboardView } from './views/DashboardView';
 import { ProductsView } from './views/ProductsView';
 import { ProductFormView } from './views/ProductFormView';
-import { CategoriesView } from './views/CategoriesView';
-import { CategoryFormView } from './views/CategoryFormView';
 import { CMSView } from './views/CMSView';
 import { OrdersView } from './views/OrdersView';
 import { LoginView } from './views/LoginView';
@@ -63,8 +61,6 @@ function App() {
           <Route path="/produits" element={<ProductsView />} />
           <Route path="/produits/nouveau" element={<ProductFormView />} />
           <Route path="/produits/modifier/:id" element={<ProductFormView />} />
-          <Route path="/categories" element={<CategoriesView />} />
-          <Route path="/categories/nouveau" element={<CategoryFormView />} />
           <Route path="/cms" element={<CMSView />} />
           <Route path="/commandes" element={<OrdersView />} />
           <Route path="/clients" element={<CustomersView />} />

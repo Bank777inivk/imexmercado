@@ -15,7 +15,6 @@ export function AdminLayout() {
     if (path.startsWith('/commandes')) return 'Suivi des Commandes';
     if (path.startsWith('/clients')) return 'Base Clients';
     if (path.startsWith('/parametres')) return 'Paramètres Système';
-    if (path.startsWith('/categories')) return 'Catégories';
     if (path.startsWith('/cms')) return 'Contenu Site';
     return 'IMEX-ADMIN';
   };

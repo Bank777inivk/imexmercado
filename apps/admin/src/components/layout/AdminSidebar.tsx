@@ -9,7 +9,6 @@ import {
 const adminMenu = [
   { label: 'Tableau de bord', path: '/', icon: Layout },
   { label: 'Produits', path: '/produits', icon: Package },
-  { label: 'Catégories', path: '/categories', icon: Layout },
   { label: 'Contenu Site', path: '/cms', icon: Megaphone },
   { label: 'Commandes', path: '/commandes', icon: ShoppingCart },
   { label: 'Clients', path: '/clients', icon: Users },
