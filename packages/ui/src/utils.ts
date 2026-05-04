@@ -30,3 +30,25 @@ export function getOptimizedImageUrl(
     `/upload/f_auto,q_auto,w_${width}/`
   );
 }
+
+export const hexToRgb = (hex: string) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+};
+
+export const rgbToHex = (r: number, g: number, b: number) => {
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+};
+
+export const adjustColor = (hex: string, amount: number) => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const r = Math.max(0, Math.min(255, rgb.r + amount));
+  const g = Math.max(0, Math.min(255, rgb.g + amount));
+  const b = Math.max(0, Math.min(255, rgb.b + amount));
+  return rgbToHex(r, g, b);
+};

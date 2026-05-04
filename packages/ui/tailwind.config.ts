@@ -10,18 +10,18 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#F15A24', // Orange-rouge principal (couleur exacte du design)
-          dark: '#C94A1C',   // Hover / états actifs
-          light: '#FF7A45',  // Accents clairs
+          DEFAULT: 'var(--color-primary, #F15A24)', // Orange-rouge principal
+          dark: 'var(--color-primary-dark, #C94A1C)',   // Hover
+          light: 'var(--color-primary-light, #FF7A45)',  // Accents clairs
         },
         secondary: {
-          DEFAULT: '#1E3A5F', // Bleu marine — couleur complémentaire de l'orange
-          dark: '#142844',   // Hover / états actifs
-          light: '#2A5080',  // Accents clairs
+          DEFAULT: 'var(--color-secondary, #1E3A5F)', // Bleu marine
+          dark: 'var(--color-secondary-dark, #142844)',
+          light: 'var(--color-secondary-light, #2A5080)',
         },
         accent: {
-          DEFAULT: '#F5A623', // Jaune doré — badges "NEW", "HOT", timers
-          dark: '#D4891A',
+          DEFAULT: 'var(--color-accent, #F5A623)', // Jaune doré
+          dark: 'var(--color-accent-dark, #D4891A)',
         },
         bg: {
           DEFAULT: '#FFFFFF',

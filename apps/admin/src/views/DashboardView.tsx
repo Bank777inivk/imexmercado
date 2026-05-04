@@ -5,7 +5,7 @@ import {
   AreaChart, Area
 } from 'recharts';
 import { TrendUp, TrendDown, Package, ShoppingCart, Users, CurrencyEur, ArrowClockwise, Database } from '@phosphor-icons/react';
-import { subscribeToCollection, seedProducts, seedCategories } from '@imexmercado/firebase';
+import { subscribeToCollection } from '@imexmercado/firebase';
 import { useMemo } from 'react';
 
 const StatCard = ({ label, value, diff, trend, icon: Icon, color }: any) => (
@@ -88,22 +88,7 @@ export function DashboardView() {
     };
   }, [orders, products, users]);
 
-  const handleSeed = async () => {
-    if (!window.confirm("BOMBARDER LA BASE DE DONNÉES ? (350 produits vont être générés et ajoutés)")) return;
-    setSeeding(true);
-    try {
-      await Promise.all([
-        seedProducts(),
-        seedCategories()
-      ]);
-      alert("🔥 BOMBARDEMENT RÉUSSI ! Produits et catégories ont été injectés.");
-    } catch (error) {
-      console.error("Error seeding:", error);
-      alert("Erreur lors du bombardement.");
-    } finally {
-      setSeeding(false);
-    }
-  };
+
 
 
   return (
@@ -124,14 +109,7 @@ export function DashboardView() {
             <ArrowClockwise size={20} className={loading ? 'animate-spin' : ''} />
           </button>
           
-          <button 
-            onClick={handleSeed}
-            disabled={seeding}
-            className="flex items-center gap-2 bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl shadow-xl shadow-orange-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
-          >
-            {seeding ? <ArrowClockwise size={16} className="animate-spin" /> : <Database size={16} weight="bold" />}
-            BOMBARDER FIRESTORE
-          </button>
+
 
           <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm w-fit font-black">
             <button className="px-4 py-2 text-[10px] font-black uppercase tracking-widest bg-gray-900 text-white rounded-xl">7 Jours</button>

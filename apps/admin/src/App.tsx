@@ -10,6 +10,39 @@ import { OrdersView } from './views/OrdersView';
 import { LoginView } from './views/LoginView';
 import { CustomersView } from './views/CustomersView';
 import { SettingsView } from './views/SettingsView';
+import { subscribeToDocument } from '@imexmercado/firebase';
+import { adjustColor } from '@imexmercado/ui/src/utils';
+
+function useDynamicTheme() {
+  React.useEffect(() => {
+    const unsubscribe = subscribeToDocument('settings', 'homepage', (data: any) => {
+      if (data?.globalTheme?.admin) {
+        const { 
+          primaryColor, sidebarColor, sidebarTextColor, sidebarActiveColor, 
+          cardBgColor, cardTextColor, accentColor 
+        } = data.globalTheme.admin;
+        const root = document.documentElement;
+        
+        // Primary variants
+        root.style.setProperty('--color-primary', primaryColor);
+        root.style.setProperty('--color-primary-dark', adjustColor(primaryColor, -20));
+        root.style.setProperty('--color-primary-light', adjustColor(primaryColor, 30));
+        
+        // Accent variants
+        root.style.setProperty('--color-accent', accentColor);
+        root.style.setProperty('--color-accent-dark', adjustColor(accentColor, -20));
+        
+        // Admin specific
+        root.style.setProperty('--admin-sidebar-bg', sidebarColor);
+        root.style.setProperty('--admin-sidebar-text', sidebarTextColor || '#6B7280');
+        root.style.setProperty('--admin-sidebar-active-text', sidebarActiveColor || '#FFFFFF');
+        root.style.setProperty('--admin-card-bg', cardBgColor || 'rgba(128,128,128,0.08)');
+        root.style.setProperty('--admin-card-text', cardTextColor || '#111827');
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+}
 
 const Products = () => (
   <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
@@ -50,6 +83,7 @@ const Unauthorized = () => (
 );
 
 function App() {
+  useDynamicTheme();
   return (
     <Routes>
       <Route path="/unauthorized" element={<Unauthorized />} />

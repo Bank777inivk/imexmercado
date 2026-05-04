@@ -34,9 +34,12 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 w-[280px] bg-white border-r border-gray-100 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
+      <aside 
+        style={{ backgroundColor: 'var(--admin-sidebar-bg, #FFFFFF)' }}
+        className={`fixed inset-y-0 left-0 w-[280px] border-r border-gray-100 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}
+      >
         <div className="p-8 border-b border-gray-50 flex items-center justify-between">
-          <Link to="/" className="font-black text-2xl tracking-tight text-gray-900">
+          <Link to="/" className="font-black text-2xl tracking-tight" style={{ color: 'var(--admin-sidebar-text, #111827)' }}>
             <span className="text-primary">i</span>M-ADMIN
           </Link>
           <button className="lg:hidden text-gray-400 p-2 hover:text-gray-900" onClick={onClose}>
@@ -52,9 +55,14 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
               onClick={() => onClose()}
               className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${
                 location.pathname === item.path 
-                  ? 'bg-primary text-white shadow-xl shadow-primary/20' 
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-primary shadow-xl shadow-primary/20' 
+                  : 'hover:bg-black/5'
               }`}
+              style={{ 
+                color: location.pathname === item.path 
+                  ? 'var(--admin-sidebar-active-text, #FFFFFF)' 
+                  : 'var(--admin-sidebar-text, #6B7280)'
+              }}
             >
               <div className="flex items-center gap-3">
                 <item.icon size={22} weight={location.pathname === item.path ? 'fill' : 'bold'} />
@@ -65,14 +73,14 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           ))}
         </nav>
 
-        <div className="p-6 border-t border-gray-50">
-          <div className="bg-gray-50 p-4 rounded-2xl flex items-center gap-3">
+        <div className="p-6 border-t" style={{ borderColor: 'rgba(128,128,128,0.1)' }}>
+          <div className="p-4 rounded-2xl flex items-center gap-3" style={{ backgroundColor: 'var(--admin-card-bg, rgba(128,128,128,0.08))' }}>
             <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-white font-bold text-xs">
               AD
             </div>
             <div className="overflow-hidden">
-              <p className="text-xs font-bold text-gray-900 truncate">Seba Aussant</p>
-              <p className="text-[10px] text-gray-500 font-medium">Administrateur</p>
+              <p className="text-xs font-bold truncate" style={{ color: 'var(--admin-card-text, #111827)' }}>Seba Aussant</p>
+              <p className="text-[10px] font-medium opacity-60" style={{ color: 'var(--admin-card-text, #111827)' }}>Administrateur</p>
             </div>
           </div>
         </div>

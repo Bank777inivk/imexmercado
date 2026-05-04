@@ -19,8 +19,37 @@ import { LoginPage, RegisterPage, ForgotPasswordPage } from './pages/auth/AuthPa
 import { ProductPage } from './pages/ProductPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { Dashboard, Orders, Addresses, Favorites } from './pages/account/AccountPages';
+import { subscribeToDocument } from '@imexmercado/firebase';
+import { adjustColor } from '@imexmercado/ui/src/utils';
+
+function useDynamicTheme() {
+  React.useEffect(() => {
+    const unsubscribe = subscribeToDocument('settings', 'homepage', (data: any) => {
+      if (data?.globalTheme?.client) {
+        const { primaryColor, secondaryColor, accentColor } = data.globalTheme.client;
+        const root = document.documentElement;
+        
+        // Primary variants
+        root.style.setProperty('--color-primary', primaryColor);
+        root.style.setProperty('--color-primary-dark', adjustColor(primaryColor, -20));
+        root.style.setProperty('--color-primary-light', adjustColor(primaryColor, 30));
+        
+        // Secondary variants
+        root.style.setProperty('--color-secondary', secondaryColor);
+        root.style.setProperty('--color-secondary-dark', adjustColor(secondaryColor, -20));
+        root.style.setProperty('--color-secondary-light', adjustColor(secondaryColor, 30));
+        
+        // Accent variants
+        root.style.setProperty('--color-accent', accentColor);
+        root.style.setProperty('--color-accent-dark', adjustColor(accentColor, -20));
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+}
 
 function App() {
+  useDynamicTheme();
   return (
     <Routes>
       {/* ─── Special Isolated Checkout ─── */}

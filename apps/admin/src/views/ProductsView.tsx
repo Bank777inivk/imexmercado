@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { subscribeToCollection, deleteDocument, seedProducts } from '@imexmercado/firebase';
+import { subscribeToCollection, deleteDocument } from '@imexmercado/firebase';
 import { 
   Package, Plus, MagnifyingGlass, 
   Trash, PencilSimple, DotsThreeVertical,
@@ -138,27 +138,7 @@ export function ProductsView() {
           <p className="text-sm font-medium text-gray-500">Gérez vos articles, stocks et prix en un clin d'œil.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={async () => {
-              if (window.confirm("🔥 ATTENTION : Vous allez régénérer 350 produits et 100 témoignages. Les IDs existants seront conservés ou écrasés. Continuer ?")) {
-                setLoading(true);
-                try {
-                  await seedProducts();
-                  alert("✅ BOMBARDEMENT RÉUSSI ! Les produits et témoignages sont en ligne.");
-                } catch (err) {
-                  console.error("Erreur Bombardement :", err);
-                  alert("❌ Erreur lors du bombardement. Vérifiez la console pour plus de détails.");
-                } finally {
-                  setLoading(false);
-                }
-              }
-            }}
-            className="flex items-center gap-2 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl shadow-xl shadow-red-500/20 hover:scale-105 active:scale-95 transition-all"
-            title="Réinitialiser et peupler la base de données"
-          >
-            <ArrowClockwise size={18} weight="bold" className={loading ? 'animate-spin' : ''} />
-            Bombardement
-          </button>
+
           
           <button 
             disabled={loading}
@@ -288,8 +268,8 @@ export function ProductsView() {
                         <div className="w-12 h-12 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
                           <img src={product.image} alt="" className="w-full h-full object-cover" />
                         </div>
-                        <div className="min-w-0 text-left">
-                          <p className="text-sm font-bold text-gray-900 truncate">{product.name}</p>
+                        <div className="min-w-0 text-left py-2">
+                          <p className="text-sm font-bold text-gray-900 whitespace-normal break-words max-w-[220px]">{product.name}</p>
                           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{product.brand || 'No Brand'} • ID: {product.id.substring(0,8)}</p>
                         </div>
                       </div>

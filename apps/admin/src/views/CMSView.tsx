@@ -3,10 +3,11 @@ import {
   Monitor, Megaphone, Plus, Trash, ImageSquare, Check,
   ArrowClockwise, ListDashes, Fire, Storefront,
   Newspaper, Star, Layout, Truck, Lock, ChatCircle, SquaresFour,
-  CaretDown, CaretUp, List, CreditCard
+  CaretDown, CaretUp, List, CreditCard, Palette
 } from '@phosphor-icons/react';
 import { subscribeToDocument, setDocument } from '@imexmercado/firebase';
 import { CloudinaryUploader } from '../components/CloudinaryUploader';
+import { adjustColor } from '@imexmercado/ui/src/utils';
 
 // ─── Section Tabs ──────────────────────────────────────────────────────────────
 const TABS = [
@@ -21,6 +22,7 @@ const TABS = [
   { id: 'newsletter', label: 'Newsletter', icon: Newspaper, color: 'text-gray-500', bg: 'bg-gray-100' },
   { id: 'sidebar', label: 'Barre Latérale', icon: List, color: 'text-cyan-500', bg: 'bg-cyan-50' },
   { id: 'carte', label: 'Carte Paiement', icon: CreditCard, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+  { id: 'theme', label: 'Thème Global', icon: Palette, color: 'text-pink-500', bg: 'bg-pink-50' },
 ];
 
 // ─── Default settings ──────────────────────────────────────────────────────────
@@ -128,6 +130,22 @@ const DEFAULT_SETTINGS = {
     textColor: '#D4AF37',
     accentColor: '#D4AF37',
   },
+  globalTheme: {
+    client: {
+      primaryColor: '#F15A24',
+      secondaryColor: '#1E3A5F',
+      accentColor: '#F5A623',
+    },
+    admin: {
+      primaryColor: '#F15A24',
+      sidebarColor: '#FFFFFF',
+      sidebarTextColor: '#6B7280',
+      sidebarActiveColor: '#FFFFFF',
+      cardBgColor: 'rgba(0,0,0,0.05)',
+      cardTextColor: '#111827',
+      accentColor: '#F5A623',
+    }
+  }
 };
 
 // ─── Reusable Toggle ───────────────────────────────────────────────────────────
@@ -767,12 +785,138 @@ function CardThemeSection({ settings, setSettings }: any) {
   );
 }
 
+// ─── Global Theme Section ─────────────────────────────────────────────────────
+function ThemeSection({ settings, setSettings }: any) {
+  const theme = settings.globalTheme || DEFAULT_SETTINGS.globalTheme;
+  const setClient = (k: string, v: string) => setSettings((s: any) => ({ ...s, globalTheme: { ...s.globalTheme, client: { ...s.globalTheme.client, [k]: v } } }));
+  const setAdmin = (k: string, v: string) => setSettings((s: any) => ({ ...s, globalTheme: { ...s.globalTheme, admin: { ...s.globalTheme.admin, [k]: v } } }));
+
+  const clientFields = [
+    { key: 'primaryColor', label: 'Couleur Principale', desc: 'Boutons et accents boutique' },
+    { key: 'secondaryColor', label: 'Couleur Secondaire', desc: 'Header et Footer boutique' },
+    { key: 'accentColor', label: 'Couleur d\'Accent', desc: 'Badges et promos boutique' },
+  ];
+
+  const adminFields = [
+    { key: 'primaryColor', label: 'Couleur Principale', desc: 'Boutons et accents admin' },
+    { key: 'sidebarColor', label: 'Sidebar Admin', desc: 'Fond du menu latéral' },
+    { key: 'sidebarTextColor', label: 'Texte Sidebar', desc: 'Couleur des menus inactifs' },
+    { key: 'sidebarActiveColor', label: 'Texte Actif Sidebar', desc: 'Couleur du menu sélectionné' },
+    { key: 'cardBgColor', label: 'Carte Profil', desc: 'Fond de l\'encadré utilisateur' },
+    { key: 'cardTextColor', label: 'Texte Carte Profil', desc: 'Nom et rôle utilisateur' },
+    { key: 'accentColor', label: 'Couleur d\'Accent', desc: 'Badges et alertes admin' },
+  ];
+
+  return (
+    <div className="space-y-12">
+      <SectionTitle title="Personnalisation Localisée" subtitle="Définissez des identités visuelles distinctes pour vos deux plateformes." />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* CLIENT THEME */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 border-b border-blue-50 pb-4">
+             <div className="p-2 bg-blue-50 text-blue-500 rounded-xl"><Monitor size={20} weight="fill" /></div>
+             <h4 className="font-black text-sm uppercase tracking-widest text-gray-900">Thème Boutique (Client)</h4>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {clientFields.map(({ key, label, desc }) => (
+              <div key={key} className="bg-gray-50/50 border border-gray-100 rounded-2xl p-4 flex items-center justify-between gap-4">
+                <div className="text-left">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-700">{label}</p>
+                  <p className="text-[8px] text-gray-400 uppercase font-bold">{desc}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input type="color" className="w-10 h-10 rounded-xl border-none cursor-pointer p-0 overflow-hidden shadow-sm" value={theme.client[key]} onChange={e => setClient(key, e.target.value)} />
+                  <input type="text" className="w-20 bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-[10px] font-mono" value={theme.client[key]} onChange={e => setClient(key, e.target.value)} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ADMIN THEME */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 border-b border-orange-50 pb-4">
+             <div className="p-2 bg-orange-50 text-orange-500 rounded-xl"><Layout size={20} weight="fill" /></div>
+             <h4 className="font-black text-sm uppercase tracking-widest text-gray-900">Thème Administration</h4>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {adminFields.map(({ key, label, desc }) => (
+              <div key={key} className="bg-gray-50/50 border border-gray-100 rounded-2xl p-4 flex items-center justify-between gap-4">
+                <div className="text-left">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-700">{label}</p>
+                  <p className="text-[8px] text-gray-400 uppercase font-bold">{desc}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input type="color" className="w-10 h-10 rounded-xl border-none cursor-pointer p-0 overflow-hidden shadow-sm" value={theme.admin[key]} onChange={e => setAdmin(key, e.target.value)} />
+                  <input type="text" className="w-20 bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-[10px] font-mono" value={theme.admin[key]} onChange={e => setAdmin(key, e.target.value)} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
+        <SectionTitle title="Aperçu des Boutons" subtitle="Comparaison directe entre Client et Admin." />
+        <div className="grid grid-cols-2 gap-8">
+           <div className="space-y-3">
+              <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest text-center">Style Boutique</p>
+              <button className="w-full py-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg" style={{ backgroundColor: theme.client.primaryColor }}>Bouton Client</button>
+           </div>
+           <div className="space-y-3">
+              <p className="text-[9px] font-black text-orange-400 uppercase tracking-widest text-center">Style Admin</p>
+              <button className="w-full py-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg" style={{ backgroundColor: theme.admin.primaryColor }}>Bouton Admin</button>
+           </div>
+        </div>
+      </div>
+      <div className="flex justify-center pt-8 border-t border-gray-50">
+        <button
+          onClick={() => {
+            if(confirm("Voulez-vous vraiment réinitialiser toutes les couleurs par défaut ?")) {
+              setSettings((s: any) => ({ ...s, globalTheme: DEFAULT_SETTINGS.globalTheme }));
+            }
+          }}
+          className="flex items-center gap-2 px-8 py-4 rounded-2xl border border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 hover:text-red-500 hover:border-red-100 transition-all shadow-sm"
+        >
+          <ArrowClockwise size={18} weight="bold" />
+          Réinitialiser aux réglages d'usine
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main CMSView ──────────────────────────────────────────────────────────────
 export function CMSView() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('promobar');
   const [settings, setSettings] = useState<any>(DEFAULT_SETTINGS);
+
+  // Preview colors in real-time while editing (before save)
+  useEffect(() => {
+    if (settings?.globalTheme?.admin) {
+      const { 
+        primaryColor, sidebarColor, sidebarTextColor, sidebarActiveColor, 
+        cardBgColor, cardTextColor, accentColor 
+      } = settings.globalTheme.admin;
+      const root = document.documentElement;
+      
+      root.style.setProperty('--color-primary', primaryColor);
+      root.style.setProperty('--color-primary-dark', adjustColor(primaryColor, -20));
+      root.style.setProperty('--color-primary-light', adjustColor(primaryColor, 30));
+      
+      root.style.setProperty('--color-accent', accentColor);
+      root.style.setProperty('--color-accent-dark', adjustColor(accentColor, -20));
+      
+      root.style.setProperty('--admin-sidebar-bg', sidebarColor);
+      root.style.setProperty('--admin-sidebar-text', sidebarTextColor || '#6B7280');
+      root.style.setProperty('--admin-sidebar-active-text', sidebarActiveColor || '#FFFFFF');
+      root.style.setProperty('--admin-card-bg', cardBgColor || 'rgba(128,128,128,0.08)');
+      root.style.setProperty('--admin-card-text', cardTextColor || '#111827');
+    }
+  }, [settings?.globalTheme?.admin]);
 
   useEffect(() => {
     setLoading(true);
@@ -867,6 +1011,7 @@ export function CMSView() {
         {activeTab === 'newsletter' && <NewsletterSection settings={settings} setSettings={setSettings} />}
         {activeTab === 'sidebar' && <SidebarSection settings={settings} setSettings={setSettings} />}
         {activeTab === 'carte' && <CardThemeSection settings={settings} setSettings={setSettings} />}
+        {activeTab === 'theme' && <ThemeSection settings={settings} setSettings={setSettings} />}
       </div>
 
       {/* ── Info card ── */}
