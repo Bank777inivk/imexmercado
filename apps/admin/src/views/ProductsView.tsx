@@ -17,6 +17,8 @@ export function ProductsView() {
   const [optionFilter, setOptionFilter] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(window.innerWidth < 768 ? 10 : 20);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
 
   // Extract unique categories for the filter
   const categories = useMemo(() => {
@@ -52,10 +54,44 @@ export function ProductsView() {
     try {
       await deleteDocument('products', id);
       setProducts(products.filter(p => p.id !== id));
+      setSelectedIds(prev => prev.filter(sid => sid !== id));
     } catch (error) {
       console.error("Error deleting product:", error);
       alert("Erreur lors de la suppression.");
     }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`⚠️ Êtes-vous sûr de vouloir supprimer les ${selectedIds.length} produits sélectionnés ? Cette action est irréversible.`)) {
+      return;
+    }
+
+    setIsDeletingBulk(true);
+    try {
+      await Promise.all(selectedIds.map(id => deleteDocument('products', id)));
+      setProducts(products.filter(p => !selectedIds.includes(p.id)));
+      setSelectedIds([]);
+      alert("✅ Produits supprimés avec succès !");
+    } catch (error) {
+      console.error("Error bulk deleting products:", error);
+      alert("Une erreur est survenue lors de la suppression groupée.");
+    } finally {
+      setIsDeletingBulk(false);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === paginatedProducts.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedProducts.map(p => p.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
+    );
   };
 
   const filteredProducts = products.filter(p => {
@@ -213,6 +249,18 @@ export function ProductsView() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="px-8 py-6 w-10">
+                    <button 
+                      onClick={toggleSelectAll}
+                      className={`w-5 h-5 rounded border transition-all flex items-center justify-center ${
+                        selectedIds.length === paginatedProducts.length && paginatedProducts.length > 0
+                          ? 'bg-primary border-primary text-white' 
+                          : 'bg-white border-gray-200 hover:border-primary/50'
+                      }`}
+                    >
+                      {selectedIds.length === paginatedProducts.length && paginatedProducts.length > 0 && <Plus size={14} weight="bold" className="rotate-45" />}
+                    </button>
+                  </th>
                   <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Produit</th>
                   <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">Catégorie</th>
                   <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">Prix</th>
@@ -222,7 +270,19 @@ export function ProductsView() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {paginatedProducts.map((product) => (
-                  <tr key={`table-${product.id}`} className="hover:bg-gray-50/50 transition-colors group">
+                  <tr key={`table-${product.id}`} className={`hover:bg-gray-50/50 transition-colors group ${selectedIds.includes(product.id) ? 'bg-primary/5' : ''}`}>
+                    <td className="px-8 py-6">
+                      <button 
+                        onClick={() => toggleSelect(product.id)}
+                        className={`w-5 h-5 rounded border transition-all flex items-center justify-center ${
+                          selectedIds.includes(product.id)
+                            ? 'bg-primary border-primary text-white' 
+                            : 'bg-white border-gray-200 group-hover:border-primary/50'
+                        }`}
+                      >
+                        {selectedIds.includes(product.id) && <Plus size={14} weight="bold" className="rotate-45" />}
+                      </button>
+                    </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
@@ -283,7 +343,17 @@ export function ProductsView() {
           {/* Mobile Card View */}
           <div className="md:hidden space-y-4">
             {paginatedProducts.map((product) => (
-              <div key={`card-${product.id}`} className="bg-white p-6 rounded-[2rem] border border-gray-200 shadow-sm space-y-4 active:scale-[0.98] transition-all animate-in slide-in-from-right-4 duration-500">
+              <div key={`card-${product.id}`} className={`bg-white p-6 rounded-[2rem] border transition-all animate-in slide-in-from-right-4 duration-500 relative ${selectedIds.includes(product.id) ? 'border-primary shadow-lg shadow-primary/10' : 'border-gray-200 shadow-sm'}`}>
+                <button 
+                  onClick={() => toggleSelect(product.id)}
+                  className={`absolute top-4 right-4 w-6 h-6 rounded-lg border transition-all flex items-center justify-center z-10 ${
+                    selectedIds.includes(product.id)
+                      ? 'bg-primary border-primary text-white shadow-md' 
+                      : 'bg-white border-gray-200'
+                  }`}
+                >
+                  {selectedIds.includes(product.id) && <Plus size={16} weight="bold" className="rotate-45" />}
+                </button>
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shrink-0">
                     <img src={product.image} alt="" className="w-full h-full object-cover" />
@@ -372,6 +442,39 @@ export function ProductsView() {
           </button>
         </div>
       </div>
+
+      {/* Floating Action Bar for Bulk Actions */}
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 duration-500">
+          <div className="bg-gray-900 text-white px-8 py-5 rounded-[2.5rem] shadow-2xl shadow-gray-900/40 flex items-center gap-10">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Actions groupées</span>
+              <span className="text-sm font-bold">{selectedIds.length} produit{selectedIds.length > 1 ? 's' : ''} sélectionné{selectedIds.length > 1 ? 's' : ''}</span>
+            </div>
+            <div className="h-10 w-px bg-white/10" />
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setSelectedIds([])}
+                className="text-[10px] font-black uppercase tracking-widest hover:text-gray-400 transition-colors"
+              >
+                Annuler
+              </button>
+              <button 
+                onClick={handleBulkDelete}
+                disabled={isDeletingBulk}
+                className="bg-red-500 text-white text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-2xl shadow-xl shadow-red-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {isDeletingBulk ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Trash size={18} weight="bold" />
+                )}
+                Supprimer la sélection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
