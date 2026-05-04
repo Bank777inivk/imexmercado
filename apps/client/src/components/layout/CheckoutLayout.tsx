@@ -27,24 +27,30 @@ export function CheckoutLayout() {
     <div className="min-h-screen bg-white text-gray-900 overflow-x-hidden">
       {/* Checkout Minimalist Header — DESIGN PREMIUM FIXED */}
       <header className="fixed top-0 left-0 right-0 z-[60] bg-white/90 backdrop-blur-xl border-b border-gray-100 px-4 py-3 lg:py-5">
-        <div className="w-full max-w-[1600px] lg:px-8 mx-auto grid grid-cols-3 items-center">
+        <div className="w-full max-w-[1600px] lg:px-12 mx-auto flex lg:flex-row items-center justify-between lg:justify-between grid grid-cols-3 lg:block lg:flex">
           
-          {/* Left: Boutique Navigation — Home Icon */}
-          <div className="flex justify-start">
+          {/* Left: Boutique Navigation / Brand Identity */}
+          <div className="flex justify-start lg:w-auto">
+            {/* Mobile: Home Icon */}
             <Link 
               to="/boutique" 
-              className="group flex items-center gap-2 text-primary hover:text-primary/80 transition-all ml-1"
+              className="lg:hidden group flex items-center gap-2 text-primary hover:text-primary/80 transition-all ml-1"
               title="Retour à la boutique"
             >
               <div className="p-2 rounded-full bg-primary/5 border border-primary/10 group-hover:bg-primary/10 transition-all shadow-sm shadow-primary/5">
                 <House size={20} weight="fill" />
               </div>
             </Link>
+
+            {/* Desktop: Brand Logo (Positioned Left) */}
+            <Link to="/boutique" className="hidden lg:block text-xl lg:text-2xl font-black tracking-tighter text-gray-900 group">
+              IMEX<span className="text-primary group-hover:opacity-80 transition-opacity">MERCADO</span>
+            </Link>
           </div>
 
-          {/* Center: Brand Identity */}
-          <div className="flex justify-center">
-            <Link to="/" className="text-xl lg:text-2xl font-black tracking-tighter text-gray-900 group">
+          {/* Center: Brand Identity (Mobile Only) */}
+          <div className="flex justify-center lg:hidden">
+            <Link to="/" className="text-xl font-black tracking-tighter text-gray-900 group">
               IMEX<span className="text-primary group-hover:opacity-80 transition-opacity">MERCADO</span>
             </Link>
           </div>
@@ -53,10 +59,11 @@ export function CheckoutLayout() {
           <div className="flex justify-end relative" ref={securityRef}>
             <button 
               onClick={() => setShowSecurityInfo(!showSecurityInfo)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-success/5 border border-success/10 rounded-full text-success transition-all active:scale-95 z-20"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-success/5 border border-success/10 rounded-full text-success transition-all active:scale-95 z-20 whitespace-nowrap"
             >
               <ShieldCheck size={14} weight="fill" className="opacity-80" />
-              <span className="text-[9px] font-black uppercase tracking-tight">Sécurisé</span>
+              <span className="text-[9px] font-black uppercase tracking-tight lg:hidden">Sécurisé</span>
+              <span className="text-[9px] font-black uppercase tracking-widest hidden lg:inline">Paiement 100% sécurisé & crypté</span>
             </button>
 
             {/* Downward Pop-over */}
