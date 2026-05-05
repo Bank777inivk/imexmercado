@@ -3,12 +3,13 @@ import { useParams, Link } from 'react-router-dom';
 import { 
   Star, ShoppingCart, Heart, ShareNetwork, 
   Truck, ArrowsCounterClockwise, ShieldCheck,
-  Check, WarningCircle, Minus, Plus
+  Minus, Plus, Check
 } from '@phosphor-icons/react';
 import { ProductCard as ProductCardComponent } from '../components/home/ProductCard';
-import { subscribeToDocument } from '@imexmercado/firebase';
+import { subscribeToDocument, subscribeToCollection } from '@imexmercado/firebase';
 import { getOptimizedImageUrl } from '@imexmercado/ui';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 
 export function ProductPage() {
   const { productSlug } = useParams();
@@ -17,8 +18,39 @@ export function ProductPage() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState('');
-  const { addItem, setDrawerOpen } = useCart();
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const { addItem } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [isAdding, setIsAdding] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const isFavorite = product ? isInWishlist(product.id) : false;
+
+  useEffect(() => {
+    if (!productSlug) return;
+    setLoading(true);
+    const unsubscribe = subscribeToDocument('products', productSlug, (data) => {
+      if (data) {
+        setProduct(data);
+        if (!selectedImage) {
+          setSelectedImage(data.image || '');
+        }
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [productSlug, selectedImage]);
+
+  useEffect(() => {
+    if (!product) return;
+    const unsubscribe = subscribeToCollection('products', (data) => {
+      const filtered = data
+        .filter((p: any) => p.category === product.category && p.id !== product.id)
+        .slice(0, 4);
+      setRelatedProducts(filtered);
+    });
+    return () => unsubscribe();
+  }, [product]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -29,21 +61,29 @@ export function ProductPage() {
     setTimeout(() => setIsAdding(false), 1000);
   };
 
-  useEffect(() => {
-    if (!productSlug) return;
-    setLoading(true);
-    const unsubscribe = subscribeToDocument('products', productSlug, (data) => {
-      if (data) {
-        setProduct(data);
-        // Only set initial image if not already set or if product changed
-        if (!selectedImage) {
-          setSelectedImage(data.image || '');
-        }
+  const handleShare = async () => {
+    const shareData = {
+      title: product.name,
+      text: `Découvrez ${product.name} sur ImexMercado`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error('Error sharing:', err);
       }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [productSlug]);
+    } else {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Error copying:', err);
+      }
+    }
+  };
 
   if (loading) {
     return <div className="min-h-screen bg-bg flex items-center justify-center font-black uppercase text-gray-400 tracking-widest text-xs">Chargement...</div>;
@@ -52,7 +92,6 @@ export function ProductPage() {
   if (!product) {
     return <div className="min-h-screen bg-bg flex items-center justify-center font-black uppercase text-gray-400 tracking-widest text-xs">Produit introuvable.</div>;
   }
-
 
   return (
     <div className="bg-bg min-h-screen">
@@ -70,20 +109,20 @@ export function ProductPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 p-4 sm:p-6 md:p-12">
             
             {/* Gallery Column */}
             <div className="space-y-6">
-              <div className="aspect-square bg-white border border-gray-100 rounded-2xl overflow-hidden relative group">
+              <div className="aspect-square bg-white border border-gray-100 rounded-3xl overflow-hidden relative group">
                 <img 
                   src={getOptimizedImageUrl(selectedImage, 900)} 
                   alt={product.name} 
                   className="w-full h-full object-contain p-8 transition-transform duration-500 group-hover:scale-110"
                 />
-                {product.badge && (
+                {(product.oldPrice && product.oldPrice > product.price) && (
                   <div className="absolute top-6 left-6 bg-primary text-white font-black text-sm px-4 py-1.5 rounded-full shadow-lg">
-                    {product.badge}
+                    -{Math.round((1 - product.price / product.oldPrice) * 100)}%
                   </div>
                 )}
               </div>
@@ -94,7 +133,7 @@ export function ProductPage() {
                   <button 
                     key={i}
                     onClick={() => setSelectedImage(img)}
-                    className={`w-20 h-20 flex-shrink-0 border-2 rounded-xl overflow-hidden transition-all ${selectedImage === img ? 'border-primary shadow-md' : 'border-gray-100 hover:border-gray-200'}`}
+                    className={`w-20 h-20 flex-shrink-0 border-2 rounded-2xl overflow-hidden transition-all ${selectedImage === img ? 'border-primary shadow-md' : 'border-gray-100 hover:border-gray-200'}`}
                   >
                     <img src={getOptimizedImageUrl(img, 200)} alt="thumb" className="w-full h-full object-cover" />
                   </button>
@@ -105,64 +144,56 @@ export function ProductPage() {
             {/* Info Column */}
             <div className="flex flex-col">
               <div className="mb-6">
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-gray-50 px-3 py-1 rounded">{product.brand}</span>
-                <h1 className="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight mt-3 mb-2 leading-tight">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-gray-50 px-3 py-1 rounded-lg">{product.brand || 'Premium'}</span>
+                <h1 className="text-2xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-3 mb-2 leading-tight">
                   {product.name}
                 </h1>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">SKU: IMX-PROD-{product.id}</p>
               </div>
 
               {/* Rating */}
               <div className="flex items-center gap-4 mb-8">
-                <div className="flex items-center gap-1 text-primary">
+                <div className="flex items-center gap-1 text-yellow-400">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} weight={i < Math.floor(product.rating) ? "fill" : "bold"} />
+                    <Star key={i} size={16} weight="fill" />
                   ))}
                 </div>
-                <button className="text-xs font-bold text-gray-400 hover:text-primary transition-colors uppercase tracking-widest">
-                  (12 avis clients)
-                </button>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">5 (12 avis)</span>
               </div>
 
-              {/* Price */}
-              <div className="bg-gray-50 px-6 py-8 rounded-2xl mb-8 relative overflow-hidden">
+              {/* Price Block */}
+              <div className="bg-gray-50 rounded-[2rem] p-6 md:p-8 mb-8 relative overflow-hidden group">
                 <div className="relative z-10">
                   {product.oldPrice && (
-                    <span className="text-lg text-gray-400 line-through font-bold mb-1 block">
-                      {product.oldPrice}€
+                    <span className="text-sm md:text-base text-gray-400 line-through font-bold mb-1 block">
+                      {product.oldPrice.toFixed(2)}€
                     </span>
                   )}
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-black text-primary">{product.price}€</span>
+                    <span className="text-4xl md:text-5xl font-black text-primary drop-shadow-sm">{product.price?.toFixed(2)}€</span>
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Prix TTC inclus</span>
                   </div>
                 </div>
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-primary/5 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
               </div>
 
               {/* Stock Status */}
               <div className="flex items-center gap-2 mb-8">
                 <div className="w-2.5 h-2.5 bg-success rounded-full animate-pulse"></div>
-                <span className="text-xs font-black uppercase tracking-widest text-success">En stock — Expédition immédiate</span>
+                <span className="text-xs font-black uppercase tracking-widest text-success">En stock — 50 disponibles</span>
               </div>
 
               {/* Actions */}
-              <div className="space-y-4 mb-10">
+              <div className="space-y-4 mb-8">
                 <div className="flex flex-col sm:flex-row gap-4">
                   {/* Qty Selector */}
-                  <div className="flex items-center border-2 border-gray-100 rounded-xl bg-gray-50 p-1">
+                  <div className="flex items-center border-2 border-gray-100 rounded-2xl bg-gray-50 p-1">
                     <button 
                       onClick={() => setQty(Math.max(1, qty - 1))}
                       className="p-3 text-gray-400 hover:text-primary transition-colors"
                     >
                       <Minus size={18} weight="bold" />
                     </button>
-                    <input 
-                      type="number" 
-                      value={qty}
-                      onChange={(e) => setQty(parseInt(e.target.value) || 1)}
-                      className="w-12 text-center bg-transparent font-black text-gray-900 outline-none"
-                    />
+                    <span className="w-10 text-center font-black text-gray-900">{qty}</span>
                     <button 
                       onClick={() => setQty(qty + 1)}
                       className="p-3 text-gray-400 hover:text-primary transition-colors"
@@ -174,7 +205,7 @@ export function ProductPage() {
                   <button 
                     onClick={handleAddToCart}
                     disabled={isAdding}
-                    className="flex-1 bg-primary text-white font-black uppercase tracking-widest h-14 rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-70"
+                    className="flex-1 bg-primary text-white font-black uppercase tracking-widest h-14 rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-70 group"
                   >
                     {isAdding ? (
                       <>
@@ -183,119 +214,107 @@ export function ProductPage() {
                       </>
                     ) : (
                       <>
-                        <ShoppingCart size={22} weight="bold" />
+                        <ShoppingCart size={22} weight="bold" className="group-hover:translate-x-1 transition-transform" />
                         <span>Ajouter au Panier</span>
                       </>
                     )}
                   </button>
                 </div>
+              </div>
 
-                <div className="flex gap-4">
-                  <button className="flex-1 border-2 border-gray-100 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] text-gray-400 hover:border-gray-200 hover:text-gray-900 transition-all flex items-center justify-center gap-2">
-                    <Heart size={16} weight="bold" />
-                    <span>Favoris</span>
-                  </button>
-                  <button className="flex-1 border-2 border-gray-100 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] text-gray-400 hover:border-gray-200 hover:text-gray-900 transition-all flex items-center justify-center gap-2">
-                    <ShareNetwork size={16} weight="bold" />
-                    <span>Partager</span>
-                  </button>
+              {/* Expandable Description */}
+              <div className="mb-8 border-t border-gray-100 pt-8">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-4">Description</h4>
+                <div className={`relative overflow-hidden transition-all duration-500 ${activeTab === 'description' ? 'max-h-[1000px]' : 'max-h-[100px]'}`}>
+                  <div 
+                    className="text-xs md:text-sm text-gray-500 font-medium leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: product.description?.replace(/\n/g, '<br/>') || 'Aucune description disponible.' }}
+                  />
+                  {activeTab !== 'description' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent" />
+                  )}
                 </div>
+                <button 
+                  onClick={() => setActiveTab(activeTab === 'description' ? '' : 'description')}
+                  className="mt-4 text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
+                >
+                  {activeTab === 'description' ? 'Voir moins -' : 'Afficher la suite +'}
+                </button>
+              </div>
+
+              {/* Social / Wishlist */}
+              <div className="flex gap-4 border-t border-gray-100 pt-8">
+                <button 
+                  onClick={() => toggleWishlist(product)}
+                  className={`flex-1 border-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 ${
+                    isFavorite 
+                      ? 'bg-primary border-primary text-white' 
+                      : 'border-gray-100 text-gray-400 hover:border-gray-200 hover:text-gray-900'
+                  }`}
+                >
+                  <Heart size={16} weight={isFavorite ? "fill" : "bold"} />
+                  <span>{isFavorite ? 'Favori' : 'Favoris'}</span>
+                </button>
+                <button 
+                  onClick={handleShare}
+                  className={`flex-1 border-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 ${
+                    copied ? 'bg-success border-success text-white' : 'border-gray-100 text-gray-400 hover:border-gray-200 hover:text-gray-900'
+                  }`}
+                >
+                  {copied ? (
+                    <>
+                      <Check size={16} weight="bold" />
+                      <span>Copié !</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShareNetwork size={16} weight="bold" />
+                      <span>Partager</span>
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Trust Section */}
-              <div className="grid grid-cols-3 gap-4 border-t border-gray-100 pt-8">
-                <div className="text-center">
-                  <Truck size={24} className="mx-auto mb-2 text-primary" />
-                  <p className="text-[9px] font-black uppercase text-gray-400">Livraison<br/>Gratiute</p>
+              <div className="grid grid-cols-3 gap-4 border-t border-gray-100 pt-8 mt-8">
+                <div className="flex flex-col items-center">
+                  <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mb-2">
+                    <Truck size={20} className="text-primary" />
+                  </div>
+                  <p className="text-[8px] font-black uppercase text-gray-400 text-center leading-tight">Livraison<br/>Gratuite</p>
                 </div>
-                <div className="text-center">
-                  <ArrowsCounterClockwise size={24} className="mx-auto mb-2 text-primary" />
-                  <p className="text-[9px] font-black uppercase text-gray-400">Retours<br/>14 Jours</p>
+                <div className="flex flex-col items-center">
+                  <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mb-2">
+                    <ArrowsCounterClockwise size={20} className="text-primary" />
+                  </div>
+                  <p className="text-[8px] font-black uppercase text-gray-400 text-center leading-tight">Retours<br/>14 Jours</p>
                 </div>
-                <div className="text-center">
-                  <ShieldCheck size={24} className="mx-auto mb-2 text-primary" />
-                  <p className="text-[9px] font-black uppercase text-gray-400">Paiement<br/>Sécurisé</p>
+                <div className="flex flex-col items-center">
+                  <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mb-2">
+                    <ShieldCheck size={20} className="text-primary" />
+                  </div>
+                  <p className="text-[8px] font-black uppercase text-gray-400 text-center leading-tight">Paiement<br/>Sécurisé</p>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Detailed Tabs */}
-          <div className="border-t border-gray-100">
-            <div className="flex border-b border-gray-100 overflow-x-auto scrollbar-hide">
-              {['description', 'specs', 'reviews'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-4 md:px-8 md:py-6 text-[10px] sm:text-xs whitespace-nowrap font-black uppercase tracking-widest transition-all border-b-2 ${
-                    activeTab === tab ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-gray-400 hover:text-gray-900'
-                  }`}
-                >
-                  {tab === 'description' ? 'Description' : tab === 'specs' ? 'Caractéristiques' : 'Avis Clients'}
-                </button>
-              ))}
-            </div>
-            <div className="p-6 md:p-12">
-              {activeTab === 'description' && (
-                <div className="max-w-4xl space-y-6 text-gray-600 leading-relaxed">
-                  <p className="font-bold text-gray-900">Une performance exceptionnelle au bout des doigts.</p>
-                  <p>Découvrez le nouveau {product.name}, une prouesse technologique conçue pour redéfinir vos standards. Avec son design élégant et ses performances de pointe, cet appareil est l'allié idéal pour votre quotidien.</p>
-                  <p>Inspiré par le dynamisme du marché européen et l'expertise import-export d'IMEXSULTING, ce produit allie robustesse et élégance. Chaque détail a été pensé pour vous offrir une expérience utilisateur fluide et intuitive.</p>
-                </div>
-              )}
-              {activeTab === 'specs' && (
-                <div className="max-w-2xl">
-                  <table className="w-full border-collapse">
-                    <tbody>
-                      <tr className="border-b border-gray-50">
-                        <td className="py-4 text-xs font-black uppercase text-gray-400 tracking-widest w-1/3">Marque</td>
-                        <td className="py-4 text-sm font-bold text-gray-900">{product.brand}</td>
-                      </tr>
-                      <tr className="border-b border-gray-50">
-                        <td className="py-4 text-xs font-black uppercase text-gray-400 tracking-widest">Modèle</td>
-                        <td className="py-4 text-sm font-bold text-gray-900">{product.name.split('—')[0]}</td>
-                      </tr>
-                      <tr className="border-b border-gray-50">
-                        <td className="py-4 text-xs font-black uppercase text-gray-400 tracking-widest">Couleur</td>
-                        <td className="py-4 text-sm font-bold text-gray-900">{product.color}</td>
-                      </tr>
-                      <tr className="border-b border-gray-50">
-                        <td className="py-4 text-xs font-black uppercase text-gray-400 tracking-widest">Dimensions</td>
-                        <td className="py-4 text-sm font-bold text-gray-900">{product.size}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
-              {activeTab === 'reviews' && (
-                <div className="space-y-8">
-                  <div className="flex items-center gap-12 border-b border-gray-50 pb-8">
-                    <div className="text-center">
-                      <p className="text-5xl font-black text-gray-900 mb-2">{product.rating}</p>
-                      <div className="flex items-center gap-1 text-primary justify-center mb-1">
-                        {[...Array(5)].map((_, i) => <Star key={i} size={16} weight="fill" />)}
-                      </div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Basé sur 12 avis</p>
-                    </div>
-                  </div>
-                  <p className="text-sm font-medium text-gray-500 italic">"Excellent produit, la livraison a été très rapide au Portugal. Je recommande vivement !" - Maria S.</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Related Products (Pending dynamic fetch) */}
-        {/* 
-        <section className="mt-12 md:mt-20">
-          <div className="flex items-center justify-between mb-8 md:mb-10">
-            <h2 className="text-xl md:text-3xl font-black text-gray-900 uppercase tracking-tight leading-tight">Vous pourriez <br className="md:hidden" /><span className="text-primary">aussi aimer</span></h2>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-            
-          </div>
-        </section>
-        */}
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <section className="mt-12 md:mt-20">
+            <div className="flex items-center justify-between mb-8 md:mb-10">
+              <h2 className="text-xl md:text-3xl font-black text-gray-900 uppercase tracking-tight">
+                Vous aimerez <span className="text-primary">aussi</span>
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+              {relatedProducts.map((p, idx) => (
+                <ProductCardComponent key={p.id} product={p} index={idx} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

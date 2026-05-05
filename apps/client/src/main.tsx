@@ -7,14 +7,17 @@ import '@imexmercado/i18n';
 import { BrowserRouter } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { PaymentProvider } from './context/PaymentContext';
+import { WishlistProvider } from './context/WishlistContext';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <CartProvider>
-        <PaymentProvider>
-          <App />
-        </PaymentProvider>
+        <WishlistProvider>
+          <PaymentProvider>
+            <App />
+          </PaymentProvider>
+        </WishlistProvider>
       </CartProvider>
     </BrowserRouter>
   </React.StrictMode>,

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Heart, getOptimizedImageUrl } from '@imexmercado/ui';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 
 // Shared ProductCard
 export function ProductCard({
@@ -13,7 +14,9 @@ export function ProductCard({
   onViewDetails?: (product: any) => void;
 }) {
   const { addItem } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [isAdding, setIsAdding] = useState(false);
+  const isFavorite = isInWishlist(product.id);
 
   const btnClass = 'bg-secondary hover:bg-secondary-dark';
 
@@ -63,10 +66,13 @@ export function ProductCard({
 
       {/* Wishlist on hover */}
       <button
-        onClick={(e) => e.stopPropagation()}
-        className={`absolute ${product.isNew ? 'top-10' : 'top-3'} right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-gray-200 rounded-full p-2 shadow-sm hover:border-primary hover:text-primary hover:scale-110 transition-transform duration-200`}
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleWishlist(product);
+        }}
+        className={`absolute ${product.isNew ? 'top-10' : 'top-3'} right-3 z-10 ${isFavorite ? 'opacity-100 bg-primary text-white border-primary' : 'opacity-0 group-hover:opacity-100 bg-white border-gray-200'} transition-all duration-300 rounded-full p-2 shadow-sm hover:scale-110`}
       >
-        <Heart size={18} />
+        <Heart size={18} weight={isFavorite ? "fill" : "bold"} />
       </button>
 
       {/* Info */}

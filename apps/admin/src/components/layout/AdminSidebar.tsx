@@ -8,11 +8,10 @@ import {
 
 const adminMenu = [
   { label: 'Tableau de bord', path: '/', icon: Layout },
-  { label: 'Produits', path: '/produits', icon: Package },
-  { label: 'Contenu Site', path: '/cms', icon: Megaphone },
-  { label: 'Commandes', path: '/commandes', icon: ShoppingCart },
-  { label: 'Clients', path: '/clients', icon: Users },
-  { label: 'Paramètres', path: '/parametres', icon: Gear },
+  { label: 'Mes Clients', path: '/clients', icon: Users },
+  { label: 'Gestion des Produits', path: '/produits', icon: Package },
+  { label: 'Mes Commandes', path: '/commandes', icon: ShoppingCart },
+  { label: 'Gestion technique du site', path: '/cms', icon: Gear },
 ];
 
 interface AdminSidebarProps {

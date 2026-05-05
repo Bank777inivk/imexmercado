@@ -1,9 +1,10 @@
 import React from 'react';
-import { ShoppingCart, User, MagnifyingGlass, List } from '@phosphor-icons/react';
+import { ShoppingCart, User, MagnifyingGlass, List, Heart } from '@phosphor-icons/react';
 import { subscribeToCollection } from '@imexmercado/firebase';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@imexmercado/firebase';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -12,6 +13,7 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuth();
   const { totalItems, totalPrice, setDrawerOpen } = useCart();
+  const { wishlist } = useWishlist();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [categories, setCategories] = React.useState<any[]>([]);
   const navigate = useNavigate();
@@ -89,6 +91,22 @@ export function Header({ onMenuClick }: HeaderProps) {
               </span>
             </div>
           </Link>
+          
+          {/* Wishlist */}
+          <Link to="/favoris" className="flex items-center gap-2 cursor-pointer group hover:opacity-80 transition-opacity">
+            <div className="relative">
+              <Heart size={26} />
+              {wishlist.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full">
+                  {wishlist.length}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col text-xs leading-tight">
+              <span className="text-gray-400">Favoris</span>
+              <span className="font-bold">Ma Liste</span>
+            </div>
+          </Link>
 
           {/* Cart */}
           <button 
@@ -142,8 +160,16 @@ export function Header({ onMenuClick }: HeaderProps) {
              </Link>
            </div>
            
-           {/* Right: Cart/Account (Optional, keeping it symmetrical) */}
-           <div className="flex justify-end">
+           {/* Right: Favoris/Cart */}
+           <div className="flex justify-end items-center gap-1">
+             <Link to="/favoris" className="relative w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full">
+               <Heart size={24} />
+               {wishlist.length > 0 && (
+                 <span className="absolute top-1 right-1 bg-primary text-white text-[9px] font-bold h-4 w-4 flex items-center justify-center rounded-full">
+                   {wishlist.length}
+                 </span>
+               )}
+             </Link>
              <button 
                onClick={handleCartClick}
                className="relative w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full"

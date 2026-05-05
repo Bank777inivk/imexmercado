@@ -106,7 +106,9 @@ export function OrdersView() {
                       <ShoppingCart size={22} weight="bold" />
                     </div>
                     <div className="text-left">
-                      <h3 className="text-sm font-black text-gray-900 tracking-tight">ORD-{order.id.substring(0,8).toUpperCase()}</h3>
+                      <h3 className="text-sm font-black text-gray-900 tracking-tight">
+                        ORD-{order.id.replace('ORD-', '').slice(-6).toUpperCase()}
+                      </h3>
                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{new Date(order.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>

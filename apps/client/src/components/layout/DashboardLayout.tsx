@@ -4,15 +4,15 @@ import {
   User, Package, MapPin, Heart, 
   SignOut, Layout, CaretRight,
   House, Bell, MagnifyingGlass,
-  List, X
+  List, X, Gear
 } from '@phosphor-icons/react';
-import { useAuth, logout, getDocument } from '@imexmercado/firebase';
+import { useAuth, logout, subscribeToCollectionWithFilter } from '@imexmercado/firebase';
 
 const accountMenu = [
   { label: 'Tableau de bord', path: '/compte', icon: Layout },
   { label: 'Mes Commandes', path: '/compte/commandes', icon: Package },
-  { label: 'Mes Adresses', path: '/compte/adresses', icon: MapPin },
   { label: 'Mes Favoris', path: '/compte/favoris', icon: Heart },
+  { label: 'Paramètres', path: '/compte/parametres', icon: Gear },
 ];
 
 export function DashboardLayout() {
@@ -20,6 +20,19 @@ export function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const [orders, setOrders] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      const unsubscribe = subscribeToCollectionWithFilter('orders', 'userId', user.uid, (data) => {
+        const sorted = [...data].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setOrders(sorted);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -58,56 +71,88 @@ export function DashboardLayout() {
     : user.displayName || 'Utilisateur';
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex overflow-hidden">
+    <div className="min-h-screen bg-[#F5F7F9] flex overflow-hidden font-sans">
       
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-gray-900/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 bg-black/60 z-[60] lg:hidden backdrop-blur-md transition-all duration-500"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar Dédiée (Desktop & Mobile Drawer) */}
-      <aside className={`fixed inset-y-0 left-0 w-[280px] sm:w-[300px] h-screen bg-white border-r border-gray-100 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} lg:relative lg:translate-x-0 lg:shadow-none`}>
-        <div className="p-6 md:p-8 border-b border-gray-50 flex items-center justify-between">
-          <div>
-            <Link to="/" className="font-black text-2xl tracking-tight hover:text-primary transition-colors">
-              <span className="text-primary">i</span>mexmercado
-            </Link>
-            <p className="text-sm text-gray-500 font-medium tracking-wide mt-1">Espace Membre</p>
-          </div>
-          <button className="lg:hidden text-gray-400 p-2 hover:text-gray-900" onClick={() => setIsSidebarOpen(false)}>
+      {/* Sidebar - Premium Dark Design */}
+      <aside 
+        className={`fixed inset-y-0 left-0 w-[280px] flex flex-col z-[70] transform transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarOpen ? 'translate-x-0 shadow-[20px_0_60px_rgba(0,0,0,0.3)]' : '-translate-x-full'} lg:relative lg:translate-x-0`}
+        style={{ backgroundColor: 'var(--client-sidebar-bg, #0F1115)' }}
+      >
+        
+        {/* Logo Section */}
+        <div className="p-8 pb-12 flex items-center justify-between">
+          <Link to="/" className="group">
+            <h1 className="text-2xl font-bold tracking-tighter leading-none" style={{ color: 'var(--client-sidebar-active-text, #FFFFFF)' }}>
+              IMEX<span className="text-primary transition-all group-hover:opacity-80">MERCADO</span>
+            </h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-2 opacity-60 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--client-sidebar-text, #9CA3AF)' }}>Espace Privé</p>
+          </Link>
+          <button className="lg:hidden text-white/50 hover:text-white transition-colors" onClick={() => setIsSidebarOpen(false)}>
             <X size={24} weight="bold" />
           </button>
         </div>
 
-
-
-        <nav className="flex-grow p-4 space-y-2 overflow-y-auto">
-          {accountMenu.map((item) => (
-            <Link 
-              key={item.path}
-              to={item.path}
-              className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${
-                location.pathname === item.path 
-                  ? 'bg-primary text-white shadow-xl shadow-primary/20' 
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <item.icon size={20} weight={location.pathname === item.path ? 'fill' : 'bold'} />
-                <span className="text-sm font-medium">{item.label}</span>
-              </div>
-              {location.pathname === item.path && <CaretRight size={14} weight="bold" />}
-            </Link>
-          ))}
+        {/* Navigation */}
+        <nav className="flex-grow px-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+          {accountMenu.map((item) => {
+            const active = location.pathname === item.path;
+            return (
+              <Link 
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 relative group overflow-hidden ${
+                  active 
+                    ? 'bg-primary text-white shadow-[0_10px_25px_-5px_rgba(255,92,0,0.4)]' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {/* Active Indicator Line */}
+                {active && (
+                  <div className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-white rounded-full shadow-[0_0_10px_#fff]"></div>
+                )}
+                
+                <item.icon 
+                  size={22} 
+                  weight={active ? 'fill' : 'bold'} 
+                  className={`transition-transform duration-300 group-hover:scale-110`}
+                  style={{ color: active ? 'var(--client-sidebar-active-text, #FFFFFF)' : 'var(--client-sidebar-text, #9CA3AF)' }}
+                />
+                <span 
+                  className="text-[13px] font-bold uppercase tracking-widest"
+                  style={{ color: active ? 'var(--client-sidebar-active-text, #FFFFFF)' : 'var(--client-sidebar-text, #9CA3AF)' }}
+                >
+                  {item.label}
+                </span>
+                
+                {/* Hover Glow Effect */}
+                {!active && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/0 to-primary/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="p-6 border-t border-gray-50">
+        {/* Footer Sidebar */}
+        <div className="p-6 mt-auto">
+          <div className="bg-white/5 rounded-3xl p-5 mb-4 border border-white/5">
+            <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: 'var(--client-sidebar-text, #9CA3AF)' }}>Besoin d'aide ?</p>
+            <Link to="/contact" className="text-xs font-bold hover:text-primary transition-colors flex items-center gap-2" style={{ color: 'var(--client-sidebar-active-text, #FFFFFF)' }}>
+              Support Client <CaretRight size={12} weight="bold" />
+            </Link>
+          </div>
+          
           <button 
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 p-4 rounded-2xl text-red-500 hover:bg-red-50 transition-all font-medium text-sm group"
+            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-all font-black text-[11px] uppercase tracking-widest group"
           >
             <SignOut size={22} weight="bold" className="group-hover:-translate-x-1 transition-transform" />
             <span>Déconnexion</span>
@@ -141,12 +186,6 @@ export function DashboardLayout() {
               <input type="text" placeholder="Rechercher..." className="bg-transparent border-none outline-none text-xs font-medium w-40" />
             </div>
             
-            <button className="relative p-2 text-gray-400 hover:text-primary transition-colors">
-              <Bell size={24} weight="bold" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
-            
-            <div className="hidden sm:block h-8 w-px bg-gray-100 mx-1"></div>
             
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
@@ -162,7 +201,7 @@ export function DashboardLayout() {
 
         {/* Scrollable Content */}
         <main className="p-4 md:p-8 lg:p-12 pb-12 flex-grow overflow-y-auto">
-          <Outlet context={{ user, profile }} />
+          <Outlet context={{ user, profile, orders }} />
           
           <footer className="mt-12 text-center text-sm font-medium text-gray-400 border-t border-gray-100 pt-8 pb-4">
             © 2026 ImexMercado • Espace Client Sécurisé

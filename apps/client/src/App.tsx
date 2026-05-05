@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { StoreLayout } from './components/layout/StoreLayout';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { CheckoutLayout } from './components/layout/CheckoutLayout';
@@ -17,8 +17,9 @@ import {
 
 import { LoginPage, RegisterPage, ForgotPasswordPage } from './pages/auth/AuthPages';
 import { ProductPage } from './pages/ProductPage';
+import { WishlistPage } from './pages/WishlistPage';
 import { CheckoutPage } from './pages/CheckoutPage';
-import { Dashboard, Orders, Addresses, Favorites } from './pages/account/AccountPages';
+import { Dashboard, Orders, Settings, Favorites } from './pages/account/AccountPages';
 import { subscribeToDocument } from '@imexmercado/firebase';
 import { adjustColor } from '@imexmercado/ui/src/utils';
 
@@ -26,7 +27,11 @@ function useDynamicTheme() {
   React.useEffect(() => {
     const unsubscribe = subscribeToDocument('settings', 'homepage', (data: any) => {
       if (data?.globalTheme?.client) {
-        const { primaryColor, secondaryColor, accentColor } = data.globalTheme.client;
+        const { 
+          primaryColor, secondaryColor, accentColor,
+          sidebarColor, sidebarTextColor, sidebarActiveColor,
+          cardBgColor, cardTextColor
+        } = data.globalTheme.client;
         const root = document.documentElement;
         
         // Primary variants
@@ -42,11 +47,24 @@ function useDynamicTheme() {
         // Accent variants
         root.style.setProperty('--color-accent', accentColor);
         root.style.setProperty('--color-accent-dark', adjustColor(accentColor, -20));
+
+        // Dashboard specific
+        root.style.setProperty('--client-sidebar-bg', sidebarColor || '#0F1115');
+        root.style.setProperty('--client-sidebar-text', sidebarTextColor || '#9CA3AF');
+        root.style.setProperty('--client-sidebar-active-text', sidebarActiveColor || '#FFFFFF');
+        root.style.setProperty('--client-card-bg', cardBgColor || '#FFFFFF');
+        root.style.setProperty('--client-card-text', cardTextColor || '#111827');
       }
     });
     return () => unsubscribe();
   }, []);
 }
+
+const ProductRedirect = () => {
+  const location = useLocation();
+  const id = location.pathname.split('/').pop();
+  return <Navigate to={`/p/${id}`} replace />;
+};
 
 function App() {
   useDynamicTheme();
@@ -67,6 +85,7 @@ function App() {
         
         {/* Product Drawer (overlay logic is global) */}
         <Route path="/p/:productSlug" element={<ProductPage />} />
+        <Route path="/produit/*" element={<ProductRedirect />} />
 
         {/* Auth (Still using Store Layout for branding) */}
         <Route path="/connexion" element={<LoginPage />} />
@@ -82,13 +101,14 @@ function App() {
         <Route path="/retours" element={<ReturnsInfoPage />} />
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/suivi-commande" element={<TrackingPage />} />
+        <Route path="/favoris" element={<WishlistPage />} />
       </Route>
 
       {/* ─── Private Dashboard Universe ─── */}
       <Route path="/compte" element={<DashboardLayout />}>
         <Route index element={<Dashboard />} />
         <Route path="commandes" element={<Orders />} />
-        <Route path="adresses" element={<Addresses />} />
+        <Route path="parametres" element={<Settings />} />
         <Route path="favoris" element={<Favorites />} />
       </Route>
     </Routes>

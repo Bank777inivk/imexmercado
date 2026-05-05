@@ -6,7 +6,7 @@ import {
   User, Truck, CreditCard, CheckCircle, 
   ArrowRight, ShieldCheck, CaretRight, House,
   Bank, Globe, LockKey, SealCheck, NavigationArrow, Check, Info, Gift, PencilSimple, ShoppingCart, CaretDown, CaretUp,
-  Eye, EyeSlash, MapPin, Trash
+  Eye, EyeSlash, MapPin, Trash, EnvelopeSimple
 } from '@phosphor-icons/react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,7 +19,7 @@ import { useStripe, useElements, CardNumberElement } from '@stripe/react-stripe-
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { CreditCard as SquareCreditCard, PaymentForm } from 'react-square-web-payments-sdk';
 
-function StripePaymentInner({ isProcessing, setIsProcessing, nextStep, totalPrice }: any) {
+function StripePaymentInner({ isProcessing, setIsProcessing, nextStep, totalPrice, saveOrder }: any) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -51,6 +51,7 @@ function StripePaymentInner({ isProcessing, setIsProcessing, nextStep, totalPric
         if (result.error) {
           alert(result.error.message);
         } else if (result.paymentIntent.status === 'succeeded') {
+          await saveOrder('stripe', result.paymentIntent);
           nextStep();
         }
       } catch (err) {
@@ -74,10 +75,11 @@ export function CheckoutPage() {
   const [stripePromise, setStripePromise] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { config, isLoading: isPaymentLoading, activeGateways } = usePayment();
-  const { items, totalItems, totalPrice, setDrawerOpen } = useCart();
+  const { items, totalItems, totalPrice, setDrawerOpen, clearCart, removeItem } = useCart();
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
-  const [isLoginMode, setIsLoginMode] = useState(false);
-  console.log("CheckoutPage Render - isLoginMode status:", isLoginMode);
+  const [authMode, setAuthMode] = useState<'guest' | 'login' | 'register'>('guest');
+  const [registerPassword, setRegisterPassword] = useState('');
+  console.log("CheckoutPage Render - authMode status:", authMode);
   const [isManualEditing, setIsManualEditing] = useState(false);
   const [showManualAddress, setShowManualAddress] = useState(false);
   const [isAddressSaved, setIsAddressSaved] = useState(false);
@@ -87,6 +89,9 @@ export function CheckoutPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const { user, profile, loading: authLoading } = useAuth();
+  const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
+
+  const isOrderConfirmed = React.useRef(false);
 
   // Smart Auto-Scroll to Active Step
   useEffect(() => {
@@ -98,7 +103,7 @@ export function CheckoutPage() {
 
   // Security: Redirect to store if cart becomes empty during checkout (except on success)
   useEffect(() => {
-    if (totalItems === 0 && currentStep !== 4 && !authLoading) {
+    if (totalItems === 0 && currentStep !== 4 && !authLoading && !isOrderConfirmed.current) {
       navigate('/boutique');
     }
   }, [totalItems, currentStep, navigate, authLoading]);
@@ -188,6 +193,134 @@ export function CheckoutPage() {
     }
   };
 
+  const handleIdentification = async () => {
+    if (authMode === 'register') {
+      setIsProcessing(true);
+      setAuthError(null);
+      try {
+        const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
+        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, registerPassword);
+        await updateProfile(userCredential.user, {
+          displayName: `${formData.firstName} ${formData.lastName}`
+        });
+        
+        // Créer le profil initial dans Firestore
+        await setDocument('users', userCredential.user.uid, {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          createdAt: new Date().toISOString()
+        });
+        
+        setCurrentStep(2);
+      } catch (err: any) {
+        console.error("Erreur Inscription:", err);
+        if (err.code === 'auth/email-already-in-use') {
+          setAuthError('Cet email est déjà utilisé. Veuillez vous connecter.');
+          setAuthMode('login');
+        } else {
+          setAuthError('Une erreur est survenue lors de la création du compte.');
+        }
+      } finally {
+        setIsProcessing(false);
+      }
+    } else {
+      setCurrentStep(2);
+    }
+  };
+
+  const saveOrder = async (gateway: string, paymentData: any = {}) => {
+    try {
+      const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
+      const orderData = {
+        id: orderId,
+        userId: user?.uid || null,
+        userName: `${formData.firstName} ${formData.lastName}`,
+        userEmail: formData.email,
+        userPhone: formData.phone,
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image
+        })),
+        total: totalPrice,
+        status: 'Processing',
+        shippingAddress: {
+          address: formData.address,
+          city: formData.city,
+          zipCode: formData.zipCode,
+          country: formData.country
+        },
+        payment: {
+          gateway,
+          ...paymentData
+        },
+        createdAt: new Date().toISOString()
+      };
+
+      await setDocument('orders', orderId, orderData);
+      
+      // Prevent redirect when cart clears
+      isOrderConfirmed.current = true;
+      
+      // Nettoyer le panier après commande réussie
+      clearCart();
+      
+      setConfirmedOrderId(orderId);
+      return orderId;
+    } catch (err) {
+      console.error("Erreur lors de l'enregistrement de la commande:", err);
+      return null;
+    }
+  };
+
+  const handleShippingSubmit = async () => {
+    // Si une adresse est déjà sélectionnée (sauvegardée), on passe directement
+    if (selectedAddressId) {
+      setCurrentStep(3);
+      return;
+    }
+
+    // Sinon l'utilisateur a rempli le formulaire manuellement
+    if (!formData.address || !formData.city) return; // Sécurité
+
+    if (user && saveAddressToProfile) {
+      setIsProcessing(true);
+      try {
+        const newId = `addr-${Date.now()}`;
+        const newAddress = {
+          id: newId,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          address: formData.address,
+          city: formData.city,
+          zipCode: formData.zipCode,
+          country: formData.country,
+          phone: formData.phone,
+          isDefault: (profile?.addresses?.length || 0) === 0
+        };
+        await setDocument('users', user.uid, {
+          ...profile,
+          addresses: [...(profile?.addresses || []), newAddress],
+          updatedAt: new Date().toISOString()
+        });
+        setSelectedAddressId(newId);
+      } catch (err) {
+        console.error("Erreur sauvegarde adresse:", err);
+        setSelectedAddressId('manual-session');
+      } finally {
+        setIsProcessing(false);
+      }
+    } else {
+      setSelectedAddressId('manual-session');
+    }
+
+    setCurrentStep(3);
+  };
+
   const handleCreatePayment = async (gateway: string, additionalData: any = {}) => {
     setIsProcessing(true);
     try {
@@ -210,6 +343,7 @@ export function CheckoutPage() {
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else if (data.payment) {
+        await saveOrder(gateway, data.payment);
         nextStep();
       }
       
@@ -223,28 +357,131 @@ export function CheckoutPage() {
   };
 
   if (currentStep === 4) {
+    const displayOrderId = confirmedOrderId || `ORD-${Date.now().toString().slice(-8)}`;
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 bg-white">
-        <div className="relative mb-8">
-          <div className="absolute inset-0 bg-green-500/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="bg-success text-white w-24 h-24 rounded-full flex items-center justify-center mx-auto shadow-2xl relative z-10 border-8 border-green-50">
+      <div className="min-h-screen bg-gradient-to-b from-green-50/60 via-white to-white flex flex-col items-center justify-center p-4 sm:p-8">
+        
+        {/* Success Animation */}
+        <div className="relative mb-8 flex items-center justify-center">
+          <div className="absolute w-40 h-40 bg-green-400/10 rounded-full animate-ping" />
+          <div className="absolute w-32 h-32 bg-green-400/15 rounded-full animate-pulse" />
+          <div className="relative z-10 w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-full flex items-center justify-center shadow-2xl shadow-green-500/30 border-4 border-white">
             <CheckCircle size={48} weight="bold" />
           </div>
         </div>
-        <h1 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter mb-4 text-center">
-          Commande <span className="text-success">Confirmée</span>
-        </h1>
-        <p className="text-gray-500 mb-8 font-medium max-w-sm text-center">
-          Merci pour votre achat {formData.firstName}. Vous allez recevoir un email de confirmation d'ici quelques minutes.
-        </p>
-        <div className="flex gap-4">
-          <Link to="/" className="px-8 py-4 bg-gray-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black transition-colors">
+
+        {/* Title */}
+        <div className="text-center mb-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-green-500 mb-3">Paiement accepté</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tighter mb-3">
+            Commande <span className="text-green-500">Confirmée !</span>
+          </h1>
+          <p className="text-gray-500 font-medium max-w-md mx-auto leading-relaxed">
+            Merci <span className="font-black text-gray-900">{formData.firstName}</span>, votre commande a bien été enregistrée et est en cours de préparation.
+          </p>
+        </div>
+
+        {/* Order Card */}
+        <div className="w-full max-w-lg mt-8 bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-100/80 overflow-hidden">
+          
+          {/* Order Header */}
+          <div className="bg-gray-900 px-6 py-4 flex items-center justify-between">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 mb-0.5">Référence commande</p>
+              <p className="text-sm font-black text-white tracking-widest"># {displayOrderId.toUpperCase()}</p>
+            </div>
+            <div className="bg-green-500/20 border border-green-500/30 px-3 py-1.5 rounded-xl">
+              <span className="text-[10px] font-black text-green-400 uppercase tracking-widest">Processing</span>
+            </div>
+          </div>
+
+          {/* Items List */}
+          <div className="divide-y divide-gray-50">
+            {items.map((item) => (
+              <div key={item.id} className="flex items-center gap-4 px-6 py-4">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                  {item.image
+                    ? <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    : <span className="text-2xl">📦</span>
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-gray-900 uppercase tracking-tight truncate">{item.name}</p>
+                  <p className="text-[10px] text-gray-400 font-bold">Qté : {item.quantity}</p>
+                </div>
+                <span className="font-black text-sm text-gray-900 shrink-0">{(item.price * item.quantity).toFixed(2)}€</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Totals */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 space-y-2">
+            <div className="flex justify-between text-xs font-medium text-gray-500">
+              <span>Sous-total</span>
+              <span className="font-bold text-gray-900">{totalPrice.toFixed(2)}€</span>
+            </div>
+            <div className="flex justify-between text-xs font-medium text-gray-500">
+              <span>Livraison</span>
+              <span className="font-black text-green-500">Gratuite</span>
+            </div>
+            <div className="flex justify-between text-sm font-black text-gray-900 border-t border-gray-200 pt-2 mt-1">
+              <span className="uppercase tracking-wide">Total payé</span>
+              <span>{totalPrice.toFixed(2)}€</span>
+            </div>
+          </div>
+
+          {/* Delivery Info */}
+          {(formData.address || formData.city) && (
+            <div className="px-6 py-4 border-t border-gray-100 flex items-start gap-3">
+              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                <MapPin size={16} weight="bold" className="text-blue-500" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Adresse de livraison</p>
+                <p className="text-sm font-bold text-gray-900">{formData.firstName} {formData.lastName}</p>
+                <p className="text-xs text-gray-500 font-medium">{formData.address}{formData.city ? `, ${formData.city}` : ''}{formData.zipCode ? ` ${formData.zipCode}` : ''}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Email confirmation note */}
+          <div className="px-6 py-4 border-t border-gray-100 flex items-start gap-3 bg-blue-50/50">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+              <EnvelopeSimple size={16} weight="bold" className="text-blue-500" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-0.5">Email de confirmation</p>
+              <p className="text-xs text-gray-600 font-medium">Un récapitulatif a été envoyé à <span className="font-black text-gray-900">{formData.email}</span></p>
+            </div>
+          </div>
+        </div>
+
+        {/* CTAs */}
+        <div className="flex flex-col sm:flex-row gap-3 mt-8 w-full max-w-lg">
+          <Link
+            to="/boutique"
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border-2 border-gray-200 text-gray-700 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:border-gray-900 hover:text-gray-900 transition-all"
+          >
+            <ShoppingCart size={16} weight="bold" />
+            Continuer mes achats
+          </Link>
+          <Link
+            to="/"
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gray-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-900/20"
+          >
+            <House size={16} weight="bold" />
             Retour à l'accueil
           </Link>
         </div>
+
+        <p className="mt-6 text-[10px] text-gray-400 font-medium text-center">
+          Des questions ? Contactez-nous à <span className="font-black text-gray-600">support@imexmercado.com</span>
+        </p>
+
       </div>
     );
   }
+
 
   // Écran de chargement plein écran supprimé au profit des Skeletons par section
 
@@ -370,30 +607,43 @@ export function CheckoutPage() {
               Vos Coordonnées
             </h2>
             {!authLoading && !user && currentStep === 1 && (
-              <button 
-                onClick={() => {
-                  setIsLoginMode(!isLoginMode);
-                  setAuthError(null);
-                }}
-                className="text-[10px] font-black text-primary uppercase hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 border border-primary/20"
-              >
-                {isLoginMode ? <ArrowRight size={14} weight="bold" /> : <User size={14} weight="bold" />}
-                {isLoginMode ? "Créer un compte" : "Déjà client ?"}
-              </button>
+              <div className="flex gap-1 bg-gray-50 p-1 rounded-xl border border-gray-100">
+                {[
+                  { id: 'guest', label: 'Invité', icon: <User size={12} /> },
+                  { id: 'login', label: 'Connexion', icon: <LockKey size={12} /> },
+                  { id: 'register', label: 'Créer un compte', icon: <PencilSimple size={12} /> }
+                ].map((mode) => (
+                  <button
+                    key={mode.id}
+                    onClick={() => {
+                      setAuthMode(mode.id as any);
+                      setAuthError(null);
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all ${
+                      authMode === mode.id 
+                        ? 'bg-white text-gray-900 shadow-sm border border-gray-100' 
+                        : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                  >
+                    {mode.icon}
+                    {mode.label}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
           
           {currentStep === 1 ? (
             <AnimatePresence mode="wait">
               <motion.div 
-                key={isLoginMode ? 'login' : 'signup'}
+                key={authMode}
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="space-y-2 lg:space-y-4 pt-1 pb-1 w-full">
+                <div className="space-y-4 pt-4 pb-1 w-full">
                   {authError && (
                     <div className="bg-red-50 text-red-600 p-3 rounded-xl text-[10px] font-bold uppercase tracking-tight border border-red-100 flex items-center gap-2">
                        <div className="w-1 h-1 bg-red-600 rounded-full" />
@@ -483,9 +733,9 @@ export function CheckoutPage() {
                         Continuer vers la livraison <ArrowRight size={16} weight="bold" />
                       </button>
                     </div>
-                  ) : isLoginMode ? (
+                  ) : authMode === 'login' ? (
                     /* ─── LOGIN FORM ─── */
-                    <form onSubmit={handleLogin} className="space-y-4">
+                    <form onSubmit={handleLogin} className="space-y-4 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
                       <div className="space-y-1">
                         <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Email</label>
                         <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-sm font-medium transition-all" placeholder="votre@email.com" required />
@@ -517,10 +767,29 @@ export function CheckoutPage() {
                       >
                         {isProcessing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Se connecter"}
                       </button>
+                      <button 
+                        type="button"
+                        onClick={() => setAuthMode('register')}
+                        className="w-full text-center text-[10px] font-bold text-gray-400 uppercase hover:text-gray-900 transition-colors mt-2"
+                      >
+                        Pas encore de compte ? Créer un profil
+                      </button>
                     </form>
                   ) : (
-                    /* ─── SIGNUP/GUEST FORM ─── */
-                    <>
+                    /* ─── SIGNUP / GUEST FORM ─── */
+                    <div className="space-y-6">
+                      {authMode === 'guest' && (
+                        <div className="bg-primary/5 border border-primary/10 p-4 rounded-xl flex items-start gap-3">
+                          <div className="bg-white p-2 rounded-lg shadow-sm text-primary">
+                            <Info size={16} weight="bold" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-tight text-gray-900">Achat en tant qu'invité</p>
+                            <p className="text-[10px] font-medium text-gray-500 leading-tight mt-0.5">Aucun compte ne sera créé. Vous recevrez vos informations de suivi par email.</p>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Prénom</label>
@@ -531,14 +800,41 @@ export function CheckoutPage() {
                           <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="Votre nom" />
                         </div>
                       </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Email</label>
-                          <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="votre@email.com" />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Téléphone</label>
-                          <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="+33 6 12 34 56 78" />
-                        </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Email</label>
+                        <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="votre@email.com" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Téléphone</label>
+                        <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="+33 6 12 34 56 78" />
+                      </div>
+
+                      {authMode === 'register' && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          className="space-y-1"
+                        >
+                          <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Mot de passe du compte</label>
+                          <div className="relative">
+                            <input 
+                              type={showPassword ? "text" : "password"} 
+                              value={registerPassword} 
+                              onChange={(e) => setRegisterPassword(e.target.value)} 
+                              className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-sm font-medium transition-all pr-12" 
+                              placeholder="Choisir un mot de passe" 
+                              required 
+                            />
+                            <button 
+                              type="button" 
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900 transition-colors"
+                            >
+                              {showPassword ? <EyeSlash size={16} weight="bold" /> : <Eye size={16} weight="bold" />}
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
 
                       <div className="pt-2 space-y-3">
                         <label className="flex items-start gap-3 cursor-pointer group">
@@ -554,11 +850,11 @@ export function CheckoutPage() {
                       </div>
 
                       <button 
-                        onClick={() => setCurrentStep(2)}
-                        disabled={!formData.firstName || !formData.email}
+                        onClick={handleIdentification}
+                        disabled={isProcessing || !formData.firstName || !formData.email || (authMode === 'register' && !registerPassword)}
                         className="w-full lg:block hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-black transition-all mt-4 text-xs disabled:opacity-50"
                       >
-                        Continuer vers la livraison
+                        {isProcessing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" /> : (authMode === 'register' ? "Créer mon compte & continuer" : "Continuer vers la livraison")}
                       </button>
 
                       <div className="flex justify-center mt-4">
@@ -571,7 +867,7 @@ export function CheckoutPage() {
                       <p className="text-[9px] text-gray-400 font-medium text-center px-4 mt-6 leading-relaxed uppercase tracking-tighter">
                         En continuant, vous acceptez nos <Link to="/cgv" className="underline hover:text-gray-900">Conditions Générales de Vente</Link> et notre <Link to="/confidentialite" className="underline hover:text-gray-900">Politique de Confidentialité</Link>.
                       </p>
-                    </>
+                    </div>
                   )}
                 </div>
               </motion.div>
@@ -819,131 +1115,7 @@ export function CheckoutPage() {
                           </div>
                         )}
 
-                        <button 
-                          onClick={async () => {
-                            if (user) {
-                              const baseProfile = profile || {
-                                firstName: formData.firstName,
-                                lastName: formData.lastName,
-                                email: user.email,
-                                phone: formData.phone,
-                                addresses: [],
-                                createdAt: new Date().toISOString()
-                              };
 
-                              let currentAddresses = [...(baseProfile.addresses || [])];
-                              // Migration on save if old structure exists
-                              if (currentAddresses.length === 0 && baseProfile.address) {
-                                currentAddresses = [{
-                                  id: 'root-default',
-                                  firstName: baseProfile.firstName,
-                                  lastName: baseProfile.lastName,
-                                  address: baseProfile.address,
-                                  city: baseProfile.city,
-                                  zipCode: baseProfile.zipCode,
-                                  country: baseProfile.country,
-                                  phone: baseProfile.phone,
-                                  isDefault: true
-                                }];
-                              }
-
-                              // VÉRIFICATION DE DOUBLON
-                              const normalizedNew = `${formData.address}${formData.city}${formData.zipCode}`.toLowerCase().replace(/\s/g, '');
-                              const duplicate = currentAddresses.find(a => 
-                                `${a.address}${a.city}${a.zipCode}`.toLowerCase().replace(/\s/g, '') === normalizedNew
-                              );
-
-                              if (duplicate) {
-                                // C'est un doublon ! On le sélectionne simplement
-                                setSelectedAddressId(duplicate.id);
-                                setIsAddressSaved(true); // Pour l'animation de succès
-                                setTimeout(() => {
-                                  setIsAddressSaved(false);
-                                  setShowManualAddress(false);
-                                  setFormData(prev => ({
-                                    ...prev,
-                                    address: '',
-                                    city: '',
-                                    zipCode: ''
-                                  }));
-                                }, 1000);
-                                return;
-                              }
-
-                              if (saveAddressToProfile) {
-                                try {
-                                  const newId = `addr-${Date.now()}`;
-                                  const newAddress = {
-                                    id: newId,
-                                    firstName: formData.firstName,
-                                    lastName: formData.lastName,
-                                    address: formData.address,
-                                    city: formData.city,
-                                    zipCode: formData.zipCode,
-                                    country: formData.country,
-                                    phone: formData.phone,
-                                    isDefault: currentAddresses.length === 0
-                                  };
-
-                                  await setDocument('users', user.uid, {
-                                    ...baseProfile,
-                                    addresses: [...currentAddresses, newAddress],
-                                    updatedAt: new Date().toISOString()
-                                  });
-                                  
-                                  setSelectedAddressId(newId);
-                                  setIsAddressSaved(true);
-                                  setTimeout(() => {
-                                    setIsAddressSaved(false);
-                                    setShowManualAddress(false);
-                                    setFormData(prev => ({
-                                      ...prev,
-                                      address: '',
-                                      city: '',
-                                      zipCode: ''
-                                    }));
-                                  }, 1500);
-                                } catch (err) {
-                                  setSelectedAddressId('manual-session');
-                                  setIsAddressSaved(true);
-                                  setTimeout(() => {
-                                    setIsAddressSaved(false);
-                                    if (user) setShowManualAddress(false);
-                                  }, 1500);
-                                }
-                              } else {
-                                // Cas où l'utilisateur ne veut pas sauvegarder dans le profil 
-                                // mais utilise l'adresse pour cette commande
-                                setSelectedAddressId('manual-session');
-                                setIsAddressSaved(true);
-                                setTimeout(() => {
-                                  setIsAddressSaved(false);
-                                  setShowManualAddress(false);
-                                }, 1500);
-                              }
-                            } else {
-                              setSelectedAddressId('manual-session');
-                              setIsAddressSaved(true);
-                              setTimeout(() => {
-                                setIsAddressSaved(false);
-                                // For guests, we keep the manual address form visible
-                              }, 1500);
-                            }
-                          }}
-                          disabled={!formData.address || !formData.city}
-                          className={`w-full font-black uppercase tracking-widest py-4 rounded-xl shadow-lg transition-all mt-4 text-xs disabled:opacity-50 flex items-center justify-center gap-2 ${
-                            isAddressSaved ? 'bg-success text-white' : 'bg-gray-900 text-white hover:bg-black'
-                          }`}
-                        >
-                          {isAddressSaved ? (
-                            <>
-                              <Check size={16} weight="bold" />
-                              Adresse Enregistrée
-                            </>
-                          ) : (
-                            'Valider cette adresse'
-                          )}
-                        </button>
                       </motion.div>
                     )}
 
@@ -963,12 +1135,15 @@ export function CheckoutPage() {
                     </div>
 
                     <button 
-                      onClick={() => setCurrentStep(3)}
-                      disabled={!selectedAddressId && (!showManualAddress || !formData.address || !formData.city)}
-                      className="w-full lg:block hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-black transition-all text-xs disabled:opacity-50"
+                      onClick={handleShippingSubmit}
+                      disabled={isProcessing || (!selectedAddressId && (!formData.address || !formData.city))}
+                      className="w-full lg:flex hidden items-center justify-center gap-3 bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-black transition-all text-xs disabled:opacity-50"
                     >
-                      {!selectedAddressId && showManualAddress && formData.address ? "Valider & Continuer" : 
-                       !selectedAddressId ? "Sélectionnez une adresse" : "Continuer vers le paiement"}
+                      {isProcessing ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>{(selectedAddressId || (formData.address && formData.city)) ? "Continuer vers le paiement" : "Saisissez une adresse"} <ArrowRight size={14} weight="bold" /></>
+                      )}
                     </button>
 
                     <div className="lg:flex hidden justify-center mt-4">
@@ -1047,7 +1222,13 @@ export function CheckoutPage() {
                           <div className="border-t border-gray-100 bg-[#F8F9FA] p-6">
                             {stripePromise ? (
                               <Elements stripe={stripePromise}>
-                                <StripePaymentInner isProcessing={isProcessing} setIsProcessing={setIsProcessing} nextStep={nextStep} totalPrice={totalPrice} />
+                                <StripePaymentInner 
+                                  isProcessing={isProcessing} 
+                                  setIsProcessing={setIsProcessing} 
+                                  nextStep={nextStep} 
+                                  totalPrice={totalPrice}
+                                  saveOrder={saveOrder}
+                                />
                               </Elements>
                             ) : (
                               <div className="p-8 text-center"><div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin mx-auto"></div></div>
@@ -1087,7 +1268,16 @@ export function CheckoutPage() {
                                 <PayPalButtons
                                   style={{ layout: "vertical", shape: "rect", label: "pay", height: 45 }}
                                   createOrder={(data, actions) => actions.order.create({ intent: "CAPTURE", purchase_units: [{ amount: { currency_code: "EUR", value: totalPrice.toFixed(2) } }]})}
-                                  onApprove={(data, actions) => { nextStep(); return Promise.resolve(); }}
+                                  onApprove={async (data, actions) => {
+                                    if (actions.order) {
+                                      const orderDetails = await actions.order.capture();
+                                      await saveOrder('paypal', orderDetails);
+                                    } else {
+                                      await saveOrder('paypal', data);
+                                    }
+                                    nextStep();
+                                    return Promise.resolve();
+                                  }}
                                 />
                               </PayPalScriptProvider>
                             </div>
@@ -1182,6 +1372,53 @@ export function CheckoutPage() {
                       </div>
                     )}
 
+                    {/* MODE TEST — SIMULATION */}
+                    <div className={`border-2 border-dashed rounded-2xl overflow-hidden transition-all ${selectedGateway === 'simulation' ? 'border-orange-400 bg-orange-50/50' : 'border-gray-200 bg-gray-50/30'}`}>
+                      <button
+                        onClick={() => setSelectedGateway(selectedGateway === 'simulation' ? null : 'simulation')}
+                        className="w-full flex items-center justify-between p-4 transition-all"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg ${selectedGateway === 'simulation' ? 'bg-orange-100' : 'bg-gray-100'}`}>
+                            🧪
+                          </div>
+                          <div className="text-left">
+                            <span className={`text-sm font-black block ${selectedGateway === 'simulation' ? 'text-orange-700' : 'text-gray-600'}`}>Mode Test (Simulation)</span>
+                            <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">Tester sans vraie carte</span>
+                          </div>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'simulation' ? 'border-orange-400' : 'border-gray-300'}`}>
+                          {selectedGateway === 'simulation' && <div className="w-2.5 h-2.5 bg-orange-400 rounded-full" />}
+                        </div>
+                      </button>
+                      {selectedGateway === 'simulation' && (
+                        <div className="border-t border-dashed border-orange-200 bg-orange-50 p-6 text-center">
+                          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mx-auto mb-3 border-2 border-orange-200 shadow-sm text-2xl">🧪</div>
+                          <h4 className="font-black text-orange-700 uppercase tracking-widest text-sm mb-1">Paiement Simulé</h4>
+                          <p className="text-xs font-medium text-gray-500 mb-5 max-w-xs mx-auto">
+                            Ce mode simule une transaction réussie. La commande sera enregistrée dans Firestore et visible dans le tableau de bord admin.
+                          </p>
+                          <button
+                            onClick={async () => {
+                              setIsProcessing(true);
+                              await new Promise(r => setTimeout(r, 1200));
+                              await saveOrder('simulation', { status: 'SIMULATED_SUCCESS', simulatedAt: new Date().toISOString() });
+                              setIsProcessing(false);
+                              nextStep();
+                            }}
+                            disabled={isProcessing}
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg shadow-orange-500/20 transition-all text-xs flex items-center justify-center gap-3 disabled:opacity-50"
+                          >
+                            {isProcessing ? (
+                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <>✅ Confirmer la Commande Test — {totalPrice.toFixed(2)}€</>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 </div>
               </motion.div>
@@ -1256,7 +1493,16 @@ export function CheckoutPage() {
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{item.category || 'Service Premium'}</p>
                             <span className="text-[9px] px-1.5 py-0.5 bg-success/10 text-success rounded font-bold uppercase tracking-widest mt-1 inline-block">En stock</span>
                           </div>
-                          <span className="font-black text-sm text-gray-900 tracking-tight shrink-0">{(item.price * item.quantity).toFixed(2)}€</span>
+                          <div className="flex flex-col items-end gap-2 shrink-0">
+                            <span className="font-black text-sm text-gray-900 tracking-tight">{(item.price * item.quantity).toFixed(2)}€</span>
+                            <button 
+                              onClick={() => removeItem(item.id)}
+                              className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                              title="Retirer l'article"
+                            >
+                              <Trash size={16} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1349,23 +1595,23 @@ export function CheckoutPage() {
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 p-3 z-[100] shadow-[0_-10px_30px_rgba(0,0,0,0.08)]">
           <button 
             onClick={() => {
-              if (currentStep === 1) setCurrentStep(2);
-              else if (currentStep === 2) setCurrentStep(3);
+              if (currentStep === 1) handleIdentification();
+              else if (currentStep === 2) handleShippingSubmit();
               else if (currentStep === 3) document.dispatchEvent(new CustomEvent('STRIPE_SUBMIT'));
             }}
-            disabled={isProcessing || (currentStep === 2 && !selectedAddressId && !formData.address)}
+            disabled={isProcessing || (currentStep === 1 && (!formData.firstName || !formData.email)) || (currentStep === 2 && !selectedAddressId && (!formData.address || !formData.city))}
             className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg active:scale-95 transition-all text-[11px] flex items-center justify-center gap-3 disabled:opacity-50"
           >
             {isProcessing ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                {currentStep === 1 && "Continuer vers la livraison"}
+                {currentStep === 1 && (authMode === 'register' ? "Créer mon compte & continuer" : "Continuer vers la livraison")}
                 {currentStep === 2 && (
                   (selectedAddressId || formData.address) ? "Passer au paiement sécurisé" : "Choisir une adresse"
                 )}
                 {currentStep === 3 && `Valider & Payer ${totalPrice.toFixed(2)}€`}
-                <ArrowRight size={16} weight="bold" />
+                {!isProcessing && <ArrowRight size={16} weight="bold" />}
               </>
             )}
           </button>

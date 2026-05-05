@@ -38,6 +38,25 @@ export const subscribeToCollection = <T = any>(collectionName: string, callback:
   );
 };
 
+export const subscribeToCollectionWithFilter = <T = any>(
+  collectionName: string, 
+  field: string, 
+  value: any, 
+  callback: (data: T[]) => void
+) => {
+  const q = query(collection(db, collectionName), where(field, "==", value));
+  return onSnapshot(q, 
+    (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as T);
+      callback(data);
+    },
+    (error) => {
+      console.error(`Snapshot collection filter error on ${collectionName}:`, error);
+      callback([]);
+    }
+  );
+};
+
 export const getDocument = async <T = any>(collectionName: string, id: string): Promise<T | null> => {
   const docRef = doc(db, collectionName, id);
   const docSnap = await getDoc(docRef);

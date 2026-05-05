@@ -135,6 +135,11 @@ const DEFAULT_SETTINGS = {
       primaryColor: '#F15A24',
       secondaryColor: '#1E3A5F',
       accentColor: '#F5A623',
+      sidebarColor: '#0F1115',
+      sidebarTextColor: '#9CA3AF',
+      sidebarActiveColor: '#FFFFFF',
+      cardBgColor: '#FFFFFF',
+      cardTextColor: '#111827',
     },
     admin: {
       primaryColor: '#F15A24',
@@ -795,6 +800,11 @@ function ThemeSection({ settings, setSettings }: any) {
     { key: 'primaryColor', label: 'Couleur Principale', desc: 'Boutons et accents boutique' },
     { key: 'secondaryColor', label: 'Couleur Secondaire', desc: 'Header et Footer boutique' },
     { key: 'accentColor', label: 'Couleur d\'Accent', desc: 'Badges et promos boutique' },
+    { key: 'sidebarColor', label: 'Sidebar Dashboard', desc: 'Fond du menu dashboard client' },
+    { key: 'sidebarTextColor', label: 'Texte Sidebar', desc: 'Menus inactifs dashboard' },
+    { key: 'sidebarActiveColor', label: 'Texte Actif', desc: 'Menu sélectionné dashboard' },
+    { key: 'cardBgColor', label: 'Cartes Dashboard', desc: 'Fond des blocs statistiques' },
+    { key: 'cardTextColor', label: 'Texte Cartes', desc: 'Titres et valeurs des blocs' },
   ];
 
   const adminFields = [
@@ -916,7 +926,21 @@ export function CMSView() {
       root.style.setProperty('--admin-card-bg', cardBgColor || 'rgba(128,128,128,0.08)');
       root.style.setProperty('--admin-card-text', cardTextColor || '#111827');
     }
-  }, [settings?.globalTheme?.admin]);
+
+    if (settings?.globalTheme?.client) {
+      const { 
+        sidebarColor, sidebarTextColor, sidebarActiveColor, 
+        cardBgColor, cardTextColor
+      } = settings.globalTheme.client;
+      const root = document.documentElement;
+      
+      root.style.setProperty('--client-sidebar-bg', sidebarColor);
+      root.style.setProperty('--client-sidebar-text', sidebarTextColor || '#9CA3AF');
+      root.style.setProperty('--client-sidebar-active-text', sidebarActiveColor || '#FFFFFF');
+      root.style.setProperty('--client-card-bg', cardBgColor || '#FFFFFF');
+      root.style.setProperty('--client-card-text', cardTextColor || '#111827');
+    }
+  }, [settings?.globalTheme?.admin, settings?.globalTheme?.client]);
 
   useEffect(() => {
     setLoading(true);
