@@ -7,6 +7,7 @@ interface PaymentConfig {
   payplug: { enabled: boolean; mode: 'test' | 'live' };
   square: { enabled: boolean; mode: 'test' | 'live'; applicationId: string; locationId: string };
   paypal: { enabled: boolean; mode: 'test' | 'live'; clientId: string };
+  bank_transfer: { enabled: boolean; iban: string; bic: string; beneficiary: string };
 }
 
 interface PaymentContextType {
@@ -23,6 +24,7 @@ const DEFAULT_CONFIG: PaymentConfig = {
   payplug: { enabled: false, mode: 'test' },
   square: { enabled: false, mode: 'test', applicationId: '', locationId: '' },
   paypal: { enabled: false, mode: 'test', clientId: '' },
+  bank_transfer: { enabled: false, iban: '', bic: '', beneficiary: '' },
 };
 
 export function PaymentProvider({ children }: { children: React.ReactNode }) {
@@ -55,7 +57,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
   const isDev = import.meta.env.DEV;
   const hasNoConfig = activeGateways.length === 0;
 
-  const finalGateways = (isDev && hasNoConfig) ? ['stripe', 'paypal', 'mollie', 'square', 'payplug'] : activeGateways;
+  const finalGateways = (isDev && hasNoConfig) ? ['stripe', 'paypal', 'mollie', 'square', 'payplug', 'bank_transfer'] : activeGateways;
   const finalConfig: PaymentConfig | null = (isDev && hasNoConfig) 
     ? {
         ...DEFAULT_CONFIG,
@@ -63,7 +65,8 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
         paypal: { enabled: true, mode: 'test' as const, clientId: 'sb' },
         mollie: { enabled: true, mode: 'test' as const, profileId: 'pfl_test_sample' },
         square: { enabled: true, mode: 'test' as const, applicationId: 'sq0idp-sample', locationId: 'L_sample' },
-        payplug: { enabled: true, mode: 'test' as const }
+        payplug: { enabled: true, mode: 'test' as const },
+        bank_transfer: { enabled: true, iban: 'FR76 3000 6000 0123 4567 8901 234', bic: 'IMEXFR2P', beneficiary: 'IMEXMERCADO SARL' }
       }
     : config;
 

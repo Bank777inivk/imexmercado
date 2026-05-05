@@ -1285,6 +1285,66 @@ export function CheckoutPage() {
                         )}
                       </div>
                     )}
+                    
+                    {/* BANK TRANSFER */}
+                    {(activeGateways.includes('bank_transfer') || true) && (
+                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'bank_transfer' ? 'border-gray-900' : 'border-gray-100'}`}>
+                        <button onClick={() => setSelectedGateway(selectedGateway === 'bank_transfer' ? null : 'bank_transfer')} className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === 'bank_transfer' ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
+                          <div className="flex items-center gap-3">
+                            <Bank size={24} className={selectedGateway === 'bank_transfer' ? 'text-gray-900' : 'text-gray-400'} weight={selectedGateway === 'bank_transfer' ? 'fill' : 'regular'} />
+                            <span className={`text-sm font-bold ${selectedGateway === 'bank_transfer' ? 'text-gray-900' : 'text-gray-500'}`}>Virement Bancaire</span>
+                          </div>
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'bank_transfer' ? 'border-gray-900' : 'border-gray-300'}`}>
+                            {selectedGateway === 'bank_transfer' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
+                          </div>
+                        </button>
+                        {selectedGateway === 'bank_transfer' && (
+                          <div className="border-t border-gray-100 bg-[#F8F9FA] p-6">
+                            <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 space-y-4 shadow-sm">
+                              <div className="flex items-center gap-3 text-primary">
+                                <Info size={18} weight="bold" />
+                                <p className="text-[10px] font-black uppercase tracking-widest">Informations de virement</p>
+                              </div>
+                              <p className="text-[11px] text-gray-500 font-medium leading-relaxed">Veuillez effectuer le virement sur le compte ci-dessous. Votre commande sera validée dès réception des fonds.</p>
+                              <div className="grid grid-cols-1 gap-3 pt-2">
+                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                  <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">Bénéficiaire</p>
+                                  <p className="text-xs font-black text-gray-900">{config?.bank_transfer?.beneficiary || 'IMEXMERCADO SARL'}</p>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                  <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">IBAN</p>
+                                  <p className="text-xs font-black text-gray-900 tracking-widest">{config?.bank_transfer?.iban || 'FR76 3000 6000 0123 4567 8901 234'}</p>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                  <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">BIC</p>
+                                  <p className="text-xs font-black text-gray-900 tracking-widest">{config?.bank_transfer?.bic || 'IMEXFR2P'}</p>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                  <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">Référence à indiquer</p>
+                                  <p className="text-xs font-black text-primary">COMMANDE #{Date.now().toString().slice(-6)}</p>
+                                </div>
+                              </div>
+                            </div>
+                            <button 
+                              onClick={async () => {
+                                setIsProcessing(true);
+                                const orderId = await saveOrder('bank_transfer', { 
+                                  status: 'Awaiting Bank Transfer',
+                                  iban: config?.bank_transfer?.iban,
+                                  beneficiary: config?.bank_transfer?.beneficiary
+                                });
+                                if (orderId) nextStep();
+                                setIsProcessing(false);
+                              }}
+                              disabled={isProcessing}
+                              className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg hover:bg-black transition-all text-xs disabled:opacity-50 flex items-center justify-center gap-3"
+                            >
+                              {isProcessing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Confirmer ma commande"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* MOLLIE */}
                     {activeGateways.includes('mollie') && (

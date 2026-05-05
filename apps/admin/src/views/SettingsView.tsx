@@ -12,6 +12,7 @@ const TABS = [
   { id: 'payplug', label: 'PayPlug', icon: Fingerprint, color: 'text-cyan-600', bg: 'bg-cyan-50' },
   { id: 'square', label: 'Square', icon: Globe, color: 'text-gray-900', bg: 'bg-gray-100' },
   { id: 'paypal', label: 'PayPal', icon: PaypalLogo, color: 'text-blue-800', bg: 'bg-blue-100' },
+  { id: 'bank_transfer', label: 'Virement', icon: Bank, color: 'text-orange-600', bg: 'bg-orange-50' },
 ];
 
 const DEFAULT_PAYMENT_CONFIG = {
@@ -20,6 +21,7 @@ const DEFAULT_PAYMENT_CONFIG = {
   payplug: { enabled: false, mode: 'test', test: { secretKey: '' }, live: { secretKey: '' } },
   square: { enabled: false, mode: 'test', test: { applicationId: '', accessToken: '', locationId: '' }, live: { applicationId: '', accessToken: '', locationId: '' } },
   paypal: { enabled: false, mode: 'test', test: { clientId: '', secret: '' }, live: { clientId: '', secret: '' } },
+  bank_transfer: { enabled: false, iban: '', bic: '', beneficiary: '' },
 };
 
 // ─── Shared UI Components ──────────────────────────────────────────────────────
@@ -139,6 +141,12 @@ export function SettingsView() {
           mode: config.paypal.mode, 
           clientId: config.paypal[config.paypal.mode].clientId 
         },
+        bank_transfer: {
+          enabled: config.bank_transfer.enabled,
+          iban: config.bank_transfer.iban,
+          bic: config.bank_transfer.bic,
+          beneficiary: config.bank_transfer.beneficiary
+        },
       };
       await setDocument('settings', 'payment_public', publicConfig);
 
@@ -187,6 +195,12 @@ export function SettingsView() {
           mode: 'test',
           test: { secretKey: 'sk_test_sample' },
           live: { secretKey: '' }
+        },
+        bank_transfer: {
+          enabled: true,
+          iban: 'FR76 3000 6000 0123 4567 8901 234',
+          bic: 'IMEXFR2P',
+          beneficiary: 'IMEXMERCADO SARL'
         }
       };
 
@@ -198,6 +212,7 @@ export function SettingsView() {
         mollie: { enabled: true, mode: 'test', profileId: 'pfl_sample' },
         payplug: { enabled: true, mode: 'test' },
         square: { enabled: true, mode: 'test', applicationId: 'sq0idp-sample', locationId: 'L_sample' },
+        bank_transfer: { enabled: true, iban: 'FR76 3000 6000 0123 4567 8901 234', bic: 'IMEXFR2P', beneficiary: 'IMEXMERCADO SARL' },
       };
       await setDocument('settings', 'payment_public', publicConfig);
 
@@ -308,7 +323,7 @@ export function SettingsView() {
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Activer le terminal</span>
               <Toggle value={terminalConfig.enabled} onChange={v => updateConfig(activeTab, 'enabled', v)} />
             </div>
-            <ModeSelector value={mode} onChange={v => updateConfig(activeTab, 'mode', v)} />
+            {activeTab !== 'bank_transfer' && <ModeSelector value={mode} onChange={v => updateConfig(activeTab, 'mode', v)} />}
           </div>
         </div>
 
@@ -372,6 +387,21 @@ export function SettingsView() {
               </Field>
               <Field label="Secret Key">
                 <Input type="password" value={terminalConfig[mode].secret} onChange={v => updateKeys('paypal', mode, 'secret', v)} placeholder="EM..." />
+              </Field>
+            </>
+          )}
+
+          {/* BANK TRANSFER */}
+          {activeTab === 'bank_transfer' && (
+            <>
+              <Field label="Bénéficiaire" hint="Nom de l'entreprise">
+                <Input value={terminalConfig.beneficiary} onChange={v => updateConfig('bank_transfer', 'beneficiary', v)} placeholder="IMEXMERCADO SARL" />
+              </Field>
+              <Field label="IBAN" hint="Identifiant compte">
+                <Input value={terminalConfig.iban} onChange={v => updateConfig('bank_transfer', 'iban', v)} placeholder="FR76..." />
+              </Field>
+              <Field label="BIC / SWIFT" hint="Code banque international">
+                <Input value={terminalConfig.bic} onChange={v => updateConfig('bank_transfer', 'bic', v)} placeholder="IMEX..." />
               </Field>
             </>
           )}

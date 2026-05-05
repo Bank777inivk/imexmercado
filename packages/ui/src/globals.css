@@ -71,4 +71,30 @@
     pointer-events: none;
     transition: all 0.5s ease;
   }
+
+  /* Custom Scrollbars */
+  .scrollbar-premium {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-premium::-webkit-scrollbar {
+    width: 4px;
+    display: none;
+  }
+  .scrollbar-premium:hover {
+    scrollbar-width: thin;
+  }
+  .scrollbar-premium:hover::-webkit-scrollbar {
+    display: block;
+  }
+  .scrollbar-premium::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-premium::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
+  .scrollbar-premium::-webkit-scrollbar-thumb:hover {
+    background: rgba(241, 90, 36, 0.4);
+  }
 }

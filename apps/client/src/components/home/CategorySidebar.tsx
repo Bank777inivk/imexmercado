@@ -38,8 +38,21 @@ export function CategorySidebar({ isOpen = true }: { isOpen?: boolean }) {
 
   useEffect(() => {
     const unsubCats = subscribeToCollection('categories', (data) => {
+      // 1. Trier par ordre
       const sorted = data.sort((a, b) => (a.order || 0) - (b.order || 0));
-      setCategories(sorted.filter(c => c.isActive !== false));
+      
+      // 2. Dédupliquer par nom (on garde la version avec submenu si elle existe)
+      const unique = sorted.reduce((acc: any[], current) => {
+        const x = acc.find(item => item.name === current.name);
+        if (!x) {
+          return acc.concat([current]);
+        } else if (current.hasSubmenu && !x.hasSubmenu) {
+          return acc.map(item => item.name === current.name ? current : item);
+        }
+        return acc;
+      }, []);
+
+      setCategories(unique.filter(c => c.isActive !== false));
     });
 
     const unsubSettings = subscribeToDocument('settings', 'homepage', (data) => {
@@ -80,8 +93,8 @@ export function CategorySidebar({ isOpen = true }: { isOpen?: boolean }) {
   const showAllLink = sidebarSettings.showAllLink || '/boutique';
 
   return (
-    <div className="w-[250px] bg-white border-x border-b border-gray-300 shadow-sm hidden lg:flex flex-col flex-shrink-0 relative z-40 h-[450px]">
-      <ul className="py-2 flex-1 flex flex-col">
+    <div className="w-[250px] bg-white border-x border-b border-gray-300 shadow-sm hidden lg:flex flex-col flex-shrink-0 relative z-40 h-full">
+      <ul className="pt-2 flex-1 flex flex-col h-full">
         {categories.map((cat, idx) => (
           <li key={idx} className="relative group/item">
             <div 
@@ -102,46 +115,43 @@ export function CategorySidebar({ isOpen = true }: { isOpen?: boolean }) {
                   onClick={(e) => toggleSubmenu(idx, e)}
                   className="p-1 hover:bg-gray-100 rounded-md transition-colors"
                 >
-                  <CaretRight size={14} className={`transition-transform ${activeSubmenu === idx ? 'rotate-90 text-primary' : 'text-gray-300 group-hover/item:text-primary'}`} />
+                  <CaretRight size={14} weight="bold" className={`transition-transform ${activeSubmenu === idx ? 'rotate-90 text-primary' : 'text-gray-400 group-hover/item:text-primary'}`} />
                 </button>
               )}
             </div>
 
-            {/* Submenu — Same as before */}
-            {cat.hasSubmenu && (
-              <div className="absolute left-[249px] top-0 w-[400px] min-h-[450px] bg-white border border-gray-300 shadow-2xl p-6 grid grid-cols-2 gap-8 z-50 invisible group-hover/item:visible opacity-0 group-hover/item:opacity-100 transition-all duration-200">
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-4 border-b pb-2 tracking-tight">Découvrir</h4>
-                  <ul className="space-y-2 text-[13px] text-gray-600">
-                    <li onClick={() => handleCategoryClick(cat.name)} className="hover:text-primary cursor-pointer transition-colors flex items-center gap-2">
-                       <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                       Derniers arrivages
-                    </li>
-                    <li onClick={() => handleCategoryClick(cat.name)} className="hover:text-primary cursor-pointer transition-colors flex items-center gap-2">
-                       <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                       Meilleures ventes
-                    </li>
-                    <li 
-                      onClick={() => navigate('/boutique?promo=true')}
-                      className="hover:text-primary cursor-pointer transition-colors flex items-center gap-2 text-primary font-bold"
-                    >
-                       <span className="w-1 h-1 bg-primary rounded-full"></span>
-                       Promotions flash
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-4 border-b pb-2 tracking-tight">Accessoires</h4>
-                  <ul className="space-y-2 text-[13px] text-gray-600">
-                    <li onClick={() => handleCategoryClick(cat.name)} className="hover:text-primary cursor-pointer transition-colors flex items-center gap-2">
-                       <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                       Nouveautés 2026
-                    </li>
-                    <li onClick={() => handleCategoryClick(cat.name)} className="hover:text-primary cursor-pointer transition-colors flex items-center gap-2">
-                       <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                       Sélection Premium
-                    </li>
-                  </ul>
+            {/* Dynamic Submenu */}
+            {cat.hasSubmenu && cat.subcategories?.length > 0 && (
+              <div className="absolute left-[249px] top-0 w-[400px] min-h-[400px] bg-white border border-gray-300 shadow-2xl p-8 z-50 invisible group-hover/item:visible opacity-0 group-hover/item:opacity-100 transition-all duration-200">
+                <div className="flex flex-col h-full">
+                  <h4 className="font-black text-gray-900 text-lg mb-6 border-b border-gray-100 pb-4 tracking-tight uppercase">
+                    {cat.name}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                    {cat.subcategories.map((sub: string, i: number) => (
+                      <div 
+                        key={i} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/boutique?category=${encodeURIComponent(cat.name)}&subcategory=${encodeURIComponent(sub)}`);
+                        }}
+                        className="group/sub flex items-center gap-3 py-1 cursor-pointer transition-all hover:translate-x-1"
+                      >
+                        <div className="w-1.5 h-1.5 rounded-full bg-gray-200 group-hover/sub:bg-primary transition-colors" />
+                        <span className="text-[13px] font-bold text-gray-600 group-hover/sub:text-primary transition-colors">
+                          {sub}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Special Offer / Featured for category */}
+                  <div className="mt-auto pt-8">
+                     <div className="bg-primary/5 rounded-2xl p-5 border border-primary/10">
+                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Offre Spéciale</p>
+                        <p className="text-xs font-bold text-gray-900 leading-tight">Profitez de -10% sur toute la gamme {cat.name} ce weekend !</p>
+                     </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -150,12 +160,12 @@ export function CategorySidebar({ isOpen = true }: { isOpen?: boolean }) {
         
         {/* Promotional Ad Slider — Now dynamic */}
         <li className="px-4 py-4 mt-auto">
-          <div className="relative h-40 w-full rounded-2xl overflow-hidden group/ad cursor-pointer border border-gray-100 shadow-sm">
+          <div className="relative h-32 w-full rounded-2xl overflow-hidden group/ad cursor-pointer border border-gray-100 shadow-sm">
             <AdSlider ads={categoryAds} />
           </div>
         </li>
 
-        <li className="border-t border-gray-100">
+        <li className="border-t border-gray-100 mt-0">
           <Link to={showAllLink} className="flex items-center px-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-primary transition-colors bg-gray-50/50">
             Voir tout le catalogue +
           </Link>
