@@ -62,6 +62,8 @@ export function ProductFormView() {
     isTrending: false,
     isSelection: false,
     published: true,
+    metaTitle: '',
+    metaDescription: '',
   });
 
   useEffect(() => {
@@ -101,6 +103,8 @@ export function ProductFormView() {
               isTrending: data.isTrending || false,
               isSelection: data.isSelection || false,
               published: data.published !== false,
+              metaTitle: data.metaTitle || '',
+              metaDescription: data.metaDescription || '',
             });
           }
         } catch (error) {
@@ -446,6 +450,34 @@ export function ProductFormView() {
                 placeholder="Décrivez les caractéristiques clés, avantages et usages du produit..."
                 value={formData.description}
                 onChange={e => set('description', e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* SEO & Métadonnées */}
+          <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm space-y-5 text-left">
+            <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Référencement (SEO)</h3>
+            <p className="text-[10px] text-gray-400 font-medium">Configurez les balises pour les moteurs de recherche et les réseaux sociaux.</p>
+            
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Meta Title</label>
+              <input
+                type="text"
+                className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
+                placeholder="Laisser vide pour utiliser le nom du produit par défaut"
+                value={formData.metaTitle}
+                onChange={e => set('metaTitle', e.target.value)}
+              />
+            </div>
+            
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Meta Description</label>
+              <textarea
+                rows={3}
+                className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none resize-none"
+                placeholder="Laisser vide pour utiliser un extrait de la description"
+                value={formData.metaDescription}
+                onChange={e => set('metaDescription', e.target.value)}
               />
             </div>
           </div>

@@ -5,7 +5,8 @@ import { ShopHeader } from '../components/shop/ShopHeader';
 import { ProductCard } from '../components/home/ProductCard';
 import { ProductModal } from '../components/shop/ProductModal';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { subscribeToCollection, seedProducts } from '@imexmercado/firebase';
+import { subscribeToCollection, seedProducts, subscribeToDocument } from '@imexmercado/firebase';
+import { useSEO } from '../hooks/useSEO';
 
 interface Filters {
   categories: string[];
@@ -39,6 +40,15 @@ export function ShopPage() {
   // State
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [inventoryConfig, setInventoryConfig] = useState<any>({ lowStockThreshold: 5, hideOutOfStock: false });
+
+  useEffect(() => {
+    const unsubscribe = subscribeToDocument('settings', 'inventory', (data) => {
+      if (data) setInventoryConfig(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const [activeFilters, setActiveFilters] = useState<Filters>({
     categories: activeCategory ? [activeCategory] : [],
     priceRange: { min: '', max: '' },
@@ -53,6 +63,20 @@ export function ShopPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const productParam = searchParams.get('product');
+
+  const manualSEO = useMemo(() => {
+    if (isModalOpen && selectedProduct) {
+      return {
+        title: selectedProduct.metaTitle || selectedProduct.name,
+        description: selectedProduct.metaDescription || selectedProduct.description?.substring(0, 160) || '',
+        image: selectedProduct.image,
+        type: 'product'
+      };
+    }
+    return undefined;
+  }, [isModalOpen, selectedProduct]);
+
+  useSEO('shop', manualSEO);
 
   // Listen to product query param to open modal
   useEffect(() => {
@@ -167,6 +191,10 @@ export function ShopPage() {
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
+    if (inventoryConfig?.hideOutOfStock) {
+      result = result.filter(p => p.stock > 0);
+    }
+
     if (promoFilter) {
       result = result.filter(p => p.oldPrice && p.oldPrice > p.price);
     }
@@ -198,7 +226,7 @@ export function ShopPage() {
     if (sortValue === 'newest') result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
 
     return result;
-  }, [products, activeFilters, sortValue, promoFilter]);
+  }, [products, activeFilters, sortValue, promoFilter, inventoryConfig]);
 
   // Pagination Logic
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);

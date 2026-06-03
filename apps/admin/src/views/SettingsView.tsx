@@ -16,6 +16,9 @@ const TABS = [
   { id: 'mbway', label: 'MB WAY', icon: CreditCard, color: 'text-pink-600', bg: 'bg-pink-50' },
   { id: 'multibanco', label: 'Multibanco', icon: Bank, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   { id: 'marketing', label: 'Marketing & Pixels', icon: Megaphone, color: 'text-purple-600', bg: 'bg-purple-50' },
+  { id: 'seo', label: 'SEO & Pages', icon: Globe, color: 'text-blue-600', bg: 'bg-blue-50' },
+  { id: 'inventory', label: 'Stocks', icon: Gear, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+  { id: 'shipping_zones', label: 'Zones de Livraison', icon: Globe, color: 'text-indigo-600', bg: 'bg-indigo-50' },
 ];
 
 const DEFAULT_PAYMENT_CONFIG = {
@@ -27,7 +30,27 @@ const DEFAULT_PAYMENT_CONFIG = {
   bank_transfer: { enabled: false, iban: '', bic: '', beneficiary: '' },
   mbway: { enabled: false, merchantId: '' },
   multibanco: { enabled: false, entity: '' },
-  marketing: { ga4Enabled: false, ga4Id: '', gtmEnabled: false, gtmId: '', metaEnabled: false, metaId: '', customScripts: '' }
+  marketing: { ga4Enabled: false, ga4Id: '', gtmEnabled: false, gtmId: '', metaEnabled: false, metaId: '', customScripts: '' },
+  seo: {
+    home: { title: '', description: '' },
+    shop: { title: '', description: '' },
+    contact: { title: '', description: '' },
+    about: { title: '', description: '' },
+    faq: { title: '', description: '' }
+  },
+  inventory: {
+    lowStockThreshold: 5,
+    hideOutOfStock: false
+  },
+  shipping_zones: {
+    zones: [
+      { countryCode: 'FR', name: 'France', price: 4.99 },
+      { countryCode: 'PT', name: 'Portugal', price: 4.99 },
+      { countryCode: 'ES', name: 'Espagne', price: 4.99 },
+      { countryCode: 'BE', name: 'Belgique', price: 5.99 },
+      { countryCode: 'CH', name: 'Suisse', price: 9.99 },
+    ]
+  }
 };
 
 // ─── Shared UI Components ──────────────────────────────────────────────────────
@@ -166,6 +189,9 @@ export function SettingsView() {
 
       // 3. Sauvegarder les configurations marketing pour la Boutique
       await setDocument('settings', 'marketing_tracking', config.marketing || DEFAULT_PAYMENT_CONFIG.marketing);
+      await setDocument('settings', 'seo', config.seo || DEFAULT_PAYMENT_CONFIG.seo);
+      await setDocument('settings', 'inventory', config.inventory || DEFAULT_PAYMENT_CONFIG.inventory);
+      await setDocument('settings', 'shipping_zones', config.shipping_zones || DEFAULT_PAYMENT_CONFIG.shipping_zones);
 
       alert('✅ Paramètres sauvegardés et synchronisés en temps réel !');
     } catch (err) {
@@ -522,6 +548,161 @@ export function SettingsView() {
                     className="w-full bg-white border border-gray-100 rounded-xl py-3 px-4 text-xs font-mono focus:ring-2 focus:ring-primary/10 outline-none resize-y"
                   />
                 </Field>
+              </div>
+            </div>
+          )}
+
+          {/* SEO & PAGES */}
+          {activeTab === 'seo' && (
+            <div className="col-span-full space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                {([
+                  { key: 'home', label: 'Page d\'Accueil' },
+                  { key: 'shop', label: 'Page de la Boutique' },
+                  { key: 'contact', label: 'Page de Contact' },
+                  { key: 'about', label: 'Page À Propos' },
+                  { key: 'faq', label: 'Page FAQ' },
+                ] as { key: string; label: string }[]).map(({ key, label }) => (
+                  <div key={key} className="p-5 bg-gray-50 rounded-2xl space-y-4 text-left">
+                    <span className="font-bold text-gray-900 text-sm">{label}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Field label="Meta Title">
+                        <Input
+                          value={terminalConfig?.[key]?.title || ''}
+                          onChange={v => {
+                            updateConfig('seo', key, {
+                              ...(terminalConfig?.[key] || {}),
+                              title: v
+                            });
+                          }}
+                          placeholder="Titre de la page..."
+                        />
+                      </Field>
+                      <Field label="Meta Description">
+                        <Input
+                          value={terminalConfig?.[key]?.description || ''}
+                          onChange={v => {
+                            updateConfig('seo', key, {
+                              ...(terminalConfig?.[key] || {}),
+                              description: v
+                            });
+                          }}
+                          placeholder="Description de la page..."
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* INVENTORY / STOCKS */}
+          {activeTab === 'inventory' && (
+            <div className="col-span-full space-y-6">
+              <div className="p-5 bg-gray-50 rounded-2xl space-y-4 text-left">
+                <span className="font-bold text-gray-900 text-sm">Alerte de Stock Bas</span>
+                <Field label="Seuil d'alerte de stock bas" hint="Nombre de produits restants">
+                  <Input
+                    type="number"
+                    value={(terminalConfig?.lowStockThreshold ?? 5).toString()}
+                    onChange={v => updateConfig('inventory', 'lowStockThreshold', parseInt(v) || 0)}
+                    placeholder="5"
+                  />
+                </Field>
+              </div>
+
+              <div className="p-5 bg-gray-50 rounded-2xl space-y-4 text-left flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-gray-900 text-sm block">Masquer les produits hors stock</span>
+                  <span className="text-xs text-gray-400 font-medium">Masque automatiquement les articles dont le stock est égal à 0</span>
+                </div>
+                <Toggle
+                  value={terminalConfig?.hideOutOfStock || false}
+                  onChange={v => updateConfig('inventory', 'hideOutOfStock', v)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* SHIPPING ZONES */}
+          {activeTab === 'shipping_zones' && (
+            <div className="col-span-full space-y-6">
+              <div className="p-5 bg-gray-50 rounded-2xl space-y-4 text-left">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-gray-900 text-sm">Zones de Livraison Européennes</span>
+                    <p className="text-xs text-gray-400 mt-1 font-medium">Configurez les pays de livraison et leurs tarifs correspondants.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentZones = terminalConfig?.zones || [];
+                      updateConfig('shipping_zones', 'zones', [
+                        ...currentZones,
+                        { countryCode: '', name: '', price: 0 }
+                      ]);
+                    }}
+                    className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
+                  >
+                    + Ajouter une zone
+                  </button>
+                </div>
+
+                <div className="space-y-3 mt-4">
+                  {(terminalConfig?.zones || []).map((zone: any, index: number) => (
+                    <div key={index} className="flex gap-3 items-center">
+                      <input
+                        type="text"
+                        placeholder="Code pays (ex: FR)"
+                        maxLength={2}
+                        className="w-24 bg-white border border-gray-100 rounded-xl py-3 px-4 text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none uppercase"
+                        value={zone.countryCode}
+                        onChange={e => {
+                          const updated = [...(terminalConfig?.zones || [])];
+                          updated[index] = { ...updated[index], countryCode: e.target.value.toUpperCase() };
+                          updateConfig('shipping_zones', 'zones', updated);
+                        }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Nom du pays (ex: France)"
+                        className="flex-1 bg-white border border-gray-100 rounded-xl py-3 px-4 text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none"
+                        value={zone.name}
+                        onChange={e => {
+                          const updated = [...(terminalConfig?.zones || [])];
+                          updated[index] = { ...updated[index], name: e.target.value };
+                          updateConfig('shipping_zones', 'zones', updated);
+                        }}
+                      />
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="Tarif (€)"
+                        className="w-32 bg-white border border-gray-100 rounded-xl py-3 px-4 text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none"
+                        value={zone.price}
+                        onChange={e => {
+                          const updated = [...(terminalConfig?.zones || [])];
+                          updated[index] = { ...updated[index], price: parseFloat(e.target.value) || 0 };
+                          updateConfig('shipping_zones', 'zones', updated);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = (terminalConfig?.zones || []).filter((_: any, i: number) => i !== index);
+                          updateConfig('shipping_zones', 'zones', updated);
+                        }}
+                        className="p-2.5 text-red-400 bg-red-50 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  {(terminalConfig?.zones || []).length === 0 && (
+                    <p className="text-xs text-gray-300 font-bold text-center py-4">Aucune zone configurée (Livraison gratuite par défaut)</p>
+                  )}
+                </div>
               </div>
             </div>
           )}

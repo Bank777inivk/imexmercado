@@ -2,8 +2,10 @@ import React from 'react';
 import { EnvelopeSimple, Phone, MapPin, PaperPlaneTilt } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useSEO } from '../hooks/useSEO';
 
 export function ContactPage() {
+  useSEO('contact');
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },

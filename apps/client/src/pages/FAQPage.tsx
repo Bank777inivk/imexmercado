@@ -100,7 +100,10 @@ function AccordionItem({ question, answer }: { question: string, answer: string 
   );
 }
 
+import { useSEO } from '../hooks/useSEO';
+
 export function FAQPage() {
+  useSEO('faq');
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },

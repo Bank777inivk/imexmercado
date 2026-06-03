@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { auth, setDocument, useAuth } from '@imexmercado/firebase';
+import { auth, setDocument, useAuth, subscribeToDocument } from '@imexmercado/firebase';
 console.log("CheckoutPage.tsx Module Loaded - setDocument exists:", !!setDocument);
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -77,6 +77,9 @@ export function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { config, isLoading: isPaymentLoading, activeGateways } = usePayment();
   const { items, totalItems, totalPrice, setDrawerOpen, clearCart, removeItem } = useCart();
+  const [shippingPrice, setShippingPrice] = useState(0);
+  const [shippingZones, setShippingZones] = useState<any[]>([]);
+
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const [authMode, setAuthMode] = useState<'guest' | 'login' | 'register'>('guest');
   const [registerPassword, setRegisterPassword] = useState('');
@@ -91,7 +94,7 @@ export function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const { user, profile, loading: authLoading } = useAuth();
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
-  const [completedOrderDetails, setCompletedOrderDetails] = useState<{ total: number; items: any[] } | null>(null);
+  const [completedOrderDetails, setCompletedOrderDetails] = useState<{ total: number; items: any[]; shippingPrice?: number } | null>(null);
 
   const isOrderConfirmed = React.useRef(false);
 
@@ -126,6 +129,34 @@ export function CheckoutPage() {
     zipCode: '',
     country: 'France' // Defaulting to typically expected country
   });
+
+  useEffect(() => {
+    const unsubscribe = subscribeToDocument('settings', 'shipping_zones', (data: any) => {
+      if (data && data.zones) {
+        setShippingZones(data.zones);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    let country = formData.country;
+    if (selectedAddressId && profile?.addresses) {
+      const addr = profile.addresses.find((a: any) => a.id === selectedAddressId);
+      if (addr) country = addr.country;
+    }
+    const match = shippingZones.find(z => 
+      z.countryCode?.toLowerCase() === country?.toLowerCase() ||
+      z.name?.toLowerCase() === country?.toLowerCase()
+    );
+    if (match) {
+      setShippingPrice(match.price);
+    } else {
+      setShippingPrice(country ? 4.99 : 0);
+    }
+  }, [formData.country, selectedAddressId, profile, shippingZones]);
+
+  const finalTotal = totalPrice + shippingPrice;
 
   useEffect(() => {
     if (profile && !authLoading) {
@@ -248,7 +279,8 @@ export function CheckoutPage() {
           quantity: item.quantity,
           image: item.image
         })),
-        total: totalPrice,
+        shippingPrice,
+        total: finalTotal,
         status: 'Processing',
         shippingAddress: {
           address: formData.address,
@@ -270,7 +302,8 @@ export function CheckoutPage() {
       
       // Sauvegarder les détails pour la page de succès avant vidage du panier
       setCompletedOrderDetails({
-        total: totalPrice,
+        total: finalTotal,
+        shippingPrice,
         items: [...items]
       });
 
@@ -511,11 +544,13 @@ export function CheckoutPage() {
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 space-y-2">
             <div className="flex justify-between text-xs font-medium text-gray-500">
               <span>Sous-total</span>
-              <span className="font-bold text-gray-900">{displayTotal.toFixed(2)}€</span>
+              <span className="font-bold text-gray-900">{(displayTotal - (completedOrderDetails?.shippingPrice ?? shippingPrice)).toFixed(2)}€</span>
             </div>
             <div className="flex justify-between text-xs font-medium text-gray-500">
               <span>Livraison</span>
-              <span className="font-black text-green-500">Gratuite</span>
+              <span className={(completedOrderDetails?.shippingPrice ?? shippingPrice) === 0 ? 'font-black text-green-500' : 'font-bold text-gray-900'}>
+                {(completedOrderDetails?.shippingPrice ?? shippingPrice) === 0 ? 'Gratuite' : `${(completedOrderDetails?.shippingPrice ?? shippingPrice).toFixed(2)}€`}
+              </span>
             </div>
             <div className="flex justify-between text-sm font-black text-gray-900 border-t border-gray-200 pt-2 mt-1">
               <span className="uppercase tracking-wide">Total payé</span>
@@ -679,8 +714,9 @@ export function CheckoutPage() {
           )}
         </div>
 
-        <p className="mt-6 text-[10px] text-gray-400 font-medium text-center">
-          Des questions ? Contactez-nous à <span className="font-black text-gray-600">support@imexmercado.com</span>
+        <p className="mt-6 text-[10px] text-gray-400 font-medium text-center leading-relaxed">
+          Des questions ? Contactez-nous à <span className="font-black text-gray-600">support@imexmercado.com</span><br />
+          IMEXSULTING Lda — NIF : PT 510 236 789 — Rua dos Girassóis, Nº 1 e 1A, Alhos Vedros, Portugal
         </p>
 
       </div>
@@ -1432,7 +1468,7 @@ export function CheckoutPage() {
                                   isProcessing={isProcessing} 
                                   setIsProcessing={setIsProcessing} 
                                   nextStep={nextStep} 
-                                  totalPrice={totalPrice}
+                                  totalPrice={finalTotal}
                                   saveOrder={saveOrder}
                                 />
                               </Elements>
@@ -1444,7 +1480,7 @@ export function CheckoutPage() {
                               disabled={isProcessing}
                               className="w-full lg:flex hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg hover:bg-black transition-all mt-6 text-xs disabled:opacity-50 items-center justify-center gap-3"
                             >
-                              {isProcessing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><LockKey size={16} weight="bold" /> Payer {totalPrice.toFixed(2)}€</>}
+                              {isProcessing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><LockKey size={16} weight="bold" /> Payer {finalTotal.toFixed(2)}€</>}
                             </button>
                           </div>
                         )}
@@ -1473,7 +1509,7 @@ export function CheckoutPage() {
                               <PayPalScriptProvider options={{ clientId: config?.paypal?.clientId || '', currency: "EUR" }}>
                                 <PayPalButtons
                                   style={{ layout: "vertical", shape: "rect", label: "pay", height: 45 }}
-                                  createOrder={(data, actions) => actions.order.create({ intent: "CAPTURE", purchase_units: [{ amount: { currency_code: "EUR", value: totalPrice.toFixed(2) } }]})}
+                                  createOrder={(data, actions) => actions.order.create({ intent: "CAPTURE", purchase_units: [{ amount: { currency_code: "EUR", value: finalTotal.toFixed(2) } }]})}
                                   onApprove={async (data, actions) => {
                                     if (actions.order) {
                                       const orderDetails = await actions.order.capture();
@@ -1673,7 +1709,7 @@ export function CheckoutPage() {
                             <h4 className="text-white font-black uppercase tracking-widest text-sm mb-2">Redirection Sécurisée</h4>
                             <p className="text-white/60 text-xs font-medium max-w-xs mx-auto mb-6">Vous serez redirigé vers le portail sécurisé de Mollie pour finaliser votre achat.</p>
                             <button onClick={() => handleCreatePayment('mollie')} disabled={isProcessing} className="w-full lg:flex hidden bg-white text-gray-900 font-black uppercase tracking-widest py-4 rounded-xl hover:bg-gray-100 transition-all text-xs disabled:opacity-50 items-center justify-center gap-3">
-                              {isProcessing ? <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" /> : <><LockKey size={16} weight="bold" /> Payer {totalPrice.toFixed(2)}€</>}
+                              {isProcessing ? <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" /> : <><LockKey size={16} weight="bold" /> Payer {finalTotal.toFixed(2)}€</>}
                             </button>
                           </div>
                         )}
@@ -1701,7 +1737,7 @@ export function CheckoutPage() {
                             <h4 className="text-white font-black uppercase tracking-widest text-sm mb-2">Redirection Sécurisée</h4>
                             <p className="text-white/60 text-xs font-medium max-w-xs mx-auto mb-6">Vous serez redirigé vers le portail sécurisé de PayPlug pour finaliser votre achat.</p>
                             <button onClick={() => handleCreatePayment('payplug')} disabled={isProcessing} className="w-full lg:flex hidden bg-white text-gray-900 font-black uppercase tracking-widest py-4 rounded-xl hover:bg-gray-100 transition-all text-xs disabled:opacity-50 items-center justify-center gap-3">
-                              {isProcessing ? <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" /> : <><LockKey size={16} weight="bold" /> Payer {totalPrice.toFixed(2)}€</>}
+                              {isProcessing ? <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" /> : <><LockKey size={16} weight="bold" /> Payer {finalTotal.toFixed(2)}€</>}
                             </button>
                           </div>
                         )}
@@ -1904,8 +1940,14 @@ export function CheckoutPage() {
                     <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                       <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Expédition</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-success">Gratuite</span>
-                        <div className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
+                        {shippingPrice === 0 ? (
+                          <>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-success">Gratuite</span>
+                            <div className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
+                          </>
+                        ) : (
+                          <span className="font-bold text-gray-900">{shippingPrice.toFixed(2)}€</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1921,7 +1963,7 @@ export function CheckoutPage() {
                     <div className="relative z-10 text-right">
                       <span className="text-[10px] font-black text-white/30 mb-1 block uppercase">EUR</span>
                       <span className="text-4xl font-black text-white tracking-tighter">
-                        {totalPrice.toFixed(2)}<span className="text-2xl ml-0.5">€</span>
+                        {finalTotal.toFixed(2)}<span className="text-2xl ml-0.5">€</span>
                       </span>
                     </div>
                   </div>
@@ -1992,7 +2034,7 @@ export function CheckoutPage() {
                   selectedGateway === 'bank_transfer' ? "Confirmer ma commande" :
                   selectedGateway === 'multibanco' ? "Générer la référence" :
                   selectedGateway === 'mbway' ? "Payer avec MB WAY" :
-                  `Valider & Payer ${totalPrice.toFixed(2)}€`
+                  `Valider & Payer ${finalTotal.toFixed(2)}€`
                 )}
                 {!isProcessing && <ArrowRight size={16} weight="bold" />}
               </>

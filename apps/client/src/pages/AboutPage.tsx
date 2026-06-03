@@ -3,8 +3,10 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Target, Globe, Lightbulb, Users, CheckCircle, ArrowRight, MapPin } from '@phosphor-icons/react';
 import { EuropePresenceMap } from '../components/about/EuropePresenceMap';
+import { useSEO } from '../hooks/useSEO';
 
 export function AboutPage() {
+  useSEO('about');
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },

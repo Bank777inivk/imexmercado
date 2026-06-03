@@ -14,7 +14,8 @@ import { TestimonialsSection } from '../components/home/TestimonialsSection';
 import { TabbedProductSection } from '../components/home/TabbedProductSection';
 import { Newsletter } from '../components/home/Newsletter';
 import { ProductModal } from '../components/shop/ProductModal';
-import { subscribeToCollection } from '@imexmercado/firebase';
+import { subscribeToCollection, subscribeToDocument } from '@imexmercado/firebase';
+import { useSEO } from '../hooks/useSEO';
 
 interface HomePageProps {
   isSidebarOpen: boolean;
@@ -26,8 +27,30 @@ export function HomePage({ isSidebarOpen }: HomePageProps) {
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [inventoryConfig, setInventoryConfig] = useState<any>({ lowStockThreshold: 5, hideOutOfStock: false });
+
+  useEffect(() => {
+    const unsubscribe = subscribeToDocument('settings', 'inventory', (data) => {
+      if (data) setInventoryConfig(data);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const productParam = searchParams.get('product');
+
+  const manualSEO = useMemo(() => {
+    if (isModalOpen && selectedProduct) {
+      return {
+        title: selectedProduct.metaTitle || selectedProduct.name,
+        description: selectedProduct.metaDescription || selectedProduct.description?.substring(0, 160) || '',
+        image: selectedProduct.image,
+        type: 'product'
+      };
+    }
+    return undefined;
+  }, [isModalOpen, selectedProduct]);
+
+  useSEO('home', manualSEO);
 
   useEffect(() => {
     setLoading(true);
@@ -59,16 +82,20 @@ export function HomePage({ isSidebarOpen }: HomePageProps) {
 
   // Filtered lists for sections
   const sections = useMemo(() => {
+    let list = allProducts;
+    if (inventoryConfig?.hideOutOfStock) {
+      list = list.filter(p => p.stock > 0);
+    }
     return {
-      flashSales: allProducts.filter(p => p.isFlashSale).slice(0, 8),
-      trending: allProducts.filter(p => p.isTrending).slice(0, 16),
-      selections: allProducts.filter(p => p.isSelection || p.featured).slice(0, 12),
-      newArrivals: allProducts.filter(p => p.isNew).sort((a, b) => 
+      flashSales: list.filter(p => p.isFlashSale).slice(0, 8),
+      trending: list.filter(p => p.isTrending).slice(0, 16),
+      selections: list.filter(p => p.isSelection || p.featured).slice(0, 12),
+      newArrivals: list.filter(p => p.isNew).sort((a, b) => 
         new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
       ).slice(0, 12),
-      promotions: allProducts.filter(p => p.oldPrice > p.price).slice(0, 12),
+      promotions: list.filter(p => p.oldPrice > p.price).slice(0, 12),
     };
-  }, [allProducts]);
+  }, [allProducts, inventoryConfig]);
 
   const handleViewDetails = (product: any) => {
     setSelectedProduct(product);

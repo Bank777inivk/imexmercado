@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { subscribeToCollection, deleteDocument } from '@imexmercado/firebase';
+import { subscribeToCollection, deleteDocument, subscribeToDocument } from '@imexmercado/firebase';
 import { 
   Package, Plus, MagnifyingGlass, 
   Trash, PencilSimple, DotsThreeVertical,
@@ -19,6 +19,14 @@ export function ProductsView() {
   const [itemsPerPage, setItemsPerPage] = useState(window.innerWidth < 768 ? 10 : 20);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const [inventoryConfig, setInventoryConfig] = useState<any>({ lowStockThreshold: 5, hideOutOfStock: false });
+
+  useEffect(() => {
+    const unsubscribe = subscribeToDocument('settings', 'inventory', (data) => {
+      if (data) setInventoryConfig(data);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Extract unique categories for the filter
   const categories = useMemo(() => {
@@ -108,7 +116,7 @@ export function ProductsView() {
     let matchesStock = true;
     if (stockFilter === 'IN_STOCK') matchesStock = p.stock > 0;
     if (stockFilter === 'OUT_OF_STOCK') matchesStock = p.stock === 0;
-    if (stockFilter === 'LOW_STOCK') matchesStock = p.stock > 0 && p.stock < 5;
+    if (stockFilter === 'LOW_STOCK') matchesStock = p.stock > 0 && p.stock <= (inventoryConfig?.lowStockThreshold ?? 5);
 
     // 4. Option Filter
     let matchesOption = true;
@@ -292,9 +300,25 @@ export function ProductsView() {
                     </td>
                     <td className="px-8 py-6 text-left">
                       <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${product.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
-                        <span className="text-xs font-bold text-gray-600">
-                          {product.stock > 0 ? `En stock (${product.stock})` : 'Rupture'}
+                        <div className={`w-1.5 h-1.5 rounded-full ${
+                          product.stock === 0 
+                            ? 'bg-red-500' 
+                            : product.stock <= (inventoryConfig?.lowStockThreshold ?? 5) 
+                              ? 'bg-yellow-500 animate-pulse' 
+                              : 'bg-green-500'
+                        }`} />
+                        <span className={`text-xs font-bold ${
+                          product.stock === 0 
+                            ? 'text-red-500' 
+                            : product.stock <= (inventoryConfig?.lowStockThreshold ?? 5) 
+                              ? 'text-yellow-600 font-extrabold' 
+                              : 'text-gray-600'
+                        }`}>
+                          {product.stock === 0 
+                            ? 'Rupture' 
+                            : product.stock <= (inventoryConfig?.lowStockThreshold ?? 5) 
+                              ? `Stock faible (${product.stock})` 
+                              : `En stock (${product.stock})`}
                         </span>
                       </div>
                     </td>
@@ -356,7 +380,19 @@ export function ProductsView() {
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-3 py-1 rounded-lg">Stock: {product.stock}</span>
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${
+                        product.stock === 0 
+                          ? 'bg-red-50 text-red-500 border border-red-100' 
+                          : product.stock <= (inventoryConfig?.lowStockThreshold ?? 5) 
+                            ? 'bg-yellow-50 text-yellow-600 border border-yellow-100 animate-pulse' 
+                            : 'bg-gray-50 text-gray-500'
+                      }`}>
+                        {product.stock === 0 
+                          ? 'Rupture' 
+                          : product.stock <= (inventoryConfig?.lowStockThreshold ?? 5) 
+                            ? `Faible: ${product.stock}` 
+                            : `Stock: ${product.stock}`}
+                      </span>
                     </div>
                   </div>
                 </div>
