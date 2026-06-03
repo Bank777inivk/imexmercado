@@ -3,7 +3,7 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { 
   Package, MapPin, Heart, PencilSimple, Check, FloppyDisk, X, User as UserIcon, Phone, Globe, NavigationArrow, Trash, Plus
 } from '@phosphor-icons/react';
-import { setDocument } from '@imexmercado/firebase';
+import { setDocument, deleteDocument } from '@imexmercado/firebase';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { motion } from 'framer-motion';
@@ -261,6 +261,85 @@ const InfoItem = ({ label, value, icon }: any) => (
   </div>
 );
 
+const GdprTools = ({ profile, user }: any) => {
+  const [loading, setLoading] = React.useState(false);
+
+  const handleExport = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+      uid: user?.uid,
+      email: user?.email,
+      firstName: profile?.firstName || '',
+      lastName: profile?.lastName || '',
+      phone: profile?.phone || '',
+      addresses: profile?.addresses || [],
+      metadata: {
+        creationTime: user?.metadata?.creationTime,
+        lastSignInTime: user?.metadata?.lastSignInTime
+      }
+    }, null, 2));
+    
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `imex_donnees_${user?.uid || 'client'}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer définitivement votre compte et toutes vos données personnelles ? Cette action est irréversible et conforme au RGPD (Droit à l'oubli).")) return;
+    if (!window.confirm("Confirmez une seconde fois pour valider la suppression définitive de votre compte.")) return;
+
+    setLoading(true);
+    try {
+      // 1. Supprimer le document profil dans Firestore
+      await deleteDocument('users', user.uid);
+      
+      // 2. Supprimer le compte dans Firebase Authentication
+      if (user && typeof user.delete === 'function') {
+        await user.delete();
+      }
+      
+      alert("Votre compte et toutes vos données ont été définitivement supprimés.");
+      window.location.href = '/';
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/requires-recent-login') {
+        alert("Pour des raisons de sécurité, cette action sensible nécessite de vous reconnecter avant de pouvoir supprimer votre compte.");
+      } else {
+        alert("Une erreur est survenue lors de la suppression de votre compte.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="pt-8 border-t border-gray-100 text-left">
+      <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">Sécurité & Données (RGPD)</h2>
+      <p className="text-xs text-gray-400 font-medium mb-6">
+        Conformément au Règlement Général sur la Protection des Données (RGPD), vous pouvez exporter vos données personnelles ou demander la suppression définitive de votre compte (droit à l'oubli).
+      </p>
+
+      <div className="flex flex-col sm:flex-row gap-4">
+        <button
+          onClick={handleExport}
+          className="flex-1 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-[10px] font-black uppercase tracking-widest py-4 px-6 rounded-2xl transition-all text-center flex items-center justify-center gap-2"
+        >
+          Exporter mes données (JSON)
+        </button>
+        <button
+          onClick={handleDeleteAccount}
+          disabled={loading}
+          className="flex-1 bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest py-4 px-6 rounded-2xl transition-all text-center flex items-center justify-center gap-2 shadow-lg shadow-red-500/10 disabled:opacity-50"
+        >
+          {loading ? 'Suppression en cours...' : "Supprimer mon compte (Droit à l'oubli)"}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const Settings = () => {
   const { user, profile } = useOutletContext<any>();
   return (
@@ -273,6 +352,10 @@ export const Settings = () => {
       
       <div className="pt-8 border-t border-gray-100">
         <Addresses />
+      </div>
+
+      <div className="pt-8 border-t border-gray-100">
+        <GdprTools profile={profile} user={user} />
       </div>
     </div>
   );

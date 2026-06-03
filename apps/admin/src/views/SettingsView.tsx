@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   CreditCard, Globe, ShieldCheck, Check, ArrowClockwise, 
-  Eye, EyeSlash, Fingerprint, Bank, PaypalLogo, Gear
+  Eye, EyeSlash, Fingerprint, Bank, PaypalLogo, Gear, Megaphone
 } from '@phosphor-icons/react';
 import { subscribeToDocument, setDocument, seedReviewsForExistingProducts } from '@imexmercado/firebase';
 
@@ -15,6 +15,7 @@ const TABS = [
   { id: 'bank_transfer', label: 'Virement', icon: Bank, color: 'text-orange-600', bg: 'bg-orange-50' },
   { id: 'mbway', label: 'MB WAY', icon: CreditCard, color: 'text-pink-600', bg: 'bg-pink-50' },
   { id: 'multibanco', label: 'Multibanco', icon: Bank, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  { id: 'marketing', label: 'Marketing & Pixels', icon: Megaphone, color: 'text-purple-600', bg: 'bg-purple-50' },
 ];
 
 const DEFAULT_PAYMENT_CONFIG = {
@@ -26,6 +27,7 @@ const DEFAULT_PAYMENT_CONFIG = {
   bank_transfer: { enabled: false, iban: '', bic: '', beneficiary: '' },
   mbway: { enabled: false, merchantId: '' },
   multibanco: { enabled: false, entity: '' },
+  marketing: { ga4Enabled: false, ga4Id: '', gtmEnabled: false, gtmId: '', metaEnabled: false, metaId: '', customScripts: '' }
 };
 
 // ─── Shared UI Components ──────────────────────────────────────────────────────
@@ -162,7 +164,10 @@ export function SettingsView() {
       };
       await setDocument('settings', 'payment_public', publicConfig);
 
-      alert('✅ Paramètres de paiement synchronisés en temps réel !');
+      // 3. Sauvegarder les configurations marketing pour la Boutique
+      await setDocument('settings', 'marketing_tracking', config.marketing || DEFAULT_PAYMENT_CONFIG.marketing);
+
+      alert('✅ Paramètres sauvegardés et synchronisés en temps réel !');
     } catch (err) {
       console.error(err);
       alert('Erreur lors de la sauvegarde.');
@@ -361,11 +366,13 @@ export function SettingsView() {
             </div>
           </div>
           <div className="flex flex-col items-end gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Activer le terminal</span>
-              <Toggle value={terminalConfig.enabled} onChange={v => updateConfig(activeTab, 'enabled', v)} />
-            </div>
-            {activeTab !== 'bank_transfer' && <ModeSelector value={mode} onChange={v => updateConfig(activeTab, 'mode', v)} />}
+            {activeTab !== 'marketing' && (
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Activer le terminal</span>
+                <Toggle value={terminalConfig.enabled} onChange={v => updateConfig(activeTab, 'enabled', v)} />
+              </div>
+            )}
+            {['stripe', 'mollie', 'payplug', 'square', 'paypal'].includes(activeTab) && <ModeSelector value={mode} onChange={v => updateConfig(activeTab, 'mode', v)} />}
           </div>
         </div>
 
@@ -460,6 +467,63 @@ export function SettingsView() {
             <Field label="Entité Multibanco (Entity)" hint="Entité à 5 chiffres">
               <Input value={terminalConfig.entity} onChange={v => updateConfig('multibanco', 'entity', v)} placeholder="12345" />
             </Field>
+          )}
+
+          {/* MARKETING & TRACKING */}
+          {activeTab === 'marketing' && (
+            <div className="col-span-full space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Google Analytics GA4 */}
+                <div className="p-5 bg-gray-50 rounded-2xl space-y-4 text-left">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-gray-900 text-sm">Google Analytics GA4</span>
+                    <Toggle value={terminalConfig.ga4Enabled || false} onChange={v => updateConfig('marketing', 'ga4Enabled', v)} />
+                  </div>
+                  <Field label="ID de mesure GA4" hint="ex: G-XXXXXXXXXX">
+                    <Input value={terminalConfig.ga4Id || ''} onChange={v => updateConfig('marketing', 'ga4Id', v)} placeholder="G-XXXXXXXXXX" />
+                  </Field>
+                </div>
+
+                {/* Google Tag Manager */}
+                <div className="p-5 bg-gray-50 rounded-2xl space-y-4 text-left">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-gray-900 text-sm">Google Tag Manager (GTM)</span>
+                    <Toggle value={terminalConfig.gtmEnabled || false} onChange={v => updateConfig('marketing', 'gtmEnabled', v)} />
+                  </div>
+                  <Field label="ID de conteneur GTM" hint="ex: GTM-XXXXXXX">
+                    <Input value={terminalConfig.gtmId || ''} onChange={v => updateConfig('marketing', 'gtmId', v)} placeholder="GTM-XXXXXXX" />
+                  </Field>
+                </div>
+
+                {/* Meta Pixel */}
+                <div className="p-5 bg-gray-50 rounded-2xl space-y-4 text-left">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-gray-900 text-sm">Meta Pixel (Facebook Ads)</span>
+                    <Toggle value={terminalConfig.metaEnabled || false} onChange={v => updateConfig('marketing', 'metaEnabled', v)} />
+                  </div>
+                  <Field label="ID du Pixel" hint="ex: 1234567890">
+                    <Input value={terminalConfig.metaId || ''} onChange={v => updateConfig('marketing', 'metaId', v)} placeholder="1234567890" />
+                  </Field>
+                </div>
+              </div>
+
+              {/* Custom Scripts */}
+              <div className="p-5 bg-gray-50 rounded-2xl space-y-4 text-left">
+                <div>
+                  <h4 className="font-bold text-gray-900 text-sm">Scripts tiers personnalisés</h4>
+                  <p className="text-xs text-gray-400 mt-1">Collez ici n'importe quel code script complet ou widget (Pixel TikTok, script d'intégration complet Meta Facebook/Instagram, balise Google Ads, Live Chat, etc.). Ils seront exécutés automatiquement sur toutes les pages.</p>
+                </div>
+                <Field label="Code HTML / JS Personnalisé">
+                  <textarea
+                    rows={6}
+                    value={terminalConfig.customScripts || ''}
+                    onChange={e => updateConfig('marketing', 'customScripts', e.target.value)}
+                    placeholder="<!-- Ex: Tiktok Pixel Script -->&#10;<script>...</script>"
+                    className="w-full bg-white border border-gray-100 rounded-xl py-3 px-4 text-xs font-mono focus:ring-2 focus:ring-primary/10 outline-none resize-y"
+                  />
+                </Field>
+              </div>
+            </div>
           )}
         </div>
 

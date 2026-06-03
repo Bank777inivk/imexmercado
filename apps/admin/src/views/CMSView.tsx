@@ -23,6 +23,7 @@ const TABS = [
   { id: 'sidebar', label: 'Barre Latérale', icon: List, color: 'text-cyan-500', bg: 'bg-cyan-50' },
   { id: 'carte', label: 'Carte Paiement', icon: CreditCard, color: 'text-yellow-600', bg: 'bg-yellow-50' },
   { id: 'theme', label: 'Thème Global', icon: Palette, color: 'text-pink-500', bg: 'bg-pink-50' },
+  { id: 'legal', label: 'Pages Légales', icon: Lock, color: 'text-red-600', bg: 'bg-red-50' },
 ];
 
 // ─── Default settings ──────────────────────────────────────────────────────────
@@ -942,21 +943,41 @@ export function CMSView() {
     }
   }, [settings?.globalTheme?.admin, settings?.globalTheme?.client]);
 
+  const [legalPages, setLegalPages] = useState<any>({
+    cgv: { title: "Conditions Générales de Vente", lastUpdated: "01 Juin 2026", content: "<p>Conditions Générales de Vente...</p>" },
+    mentions: { title: "Mentions Légales", lastUpdated: "01 Juin 2026", content: "<p>Mentions Légales...</p>" },
+    confidentialite: { title: "Politique de Confidentialité", lastUpdated: "01 Juin 2026", content: "<p>Politique de Confidentialité...</p>" },
+    retours: { title: "Politique de Retours", lastUpdated: "01 Juin 2026", content: "<p>Politique de Retours...</p>" },
+    livraison: { title: "Livraison & Expéditions", lastUpdated: "01 Juin 2026", content: "<p>Livraison & Expéditions...</p>" },
+    cookies: { title: "Politique des Cookies", lastUpdated: "01 Juin 2026", content: "<p>Politique des Cookies...</p>" }
+  });
+
   useEffect(() => {
     setLoading(true);
-    const unsubscribe = subscribeToDocument('settings', 'homepage', (data) => {
+    const unsubHome = subscribeToDocument('settings', 'homepage', (data) => {
       if (data) {
         setSettings({ ...DEFAULT_SETTINGS, ...data });
       }
+    });
+
+    const unsubLegal = subscribeToDocument('settings', 'legal_pages', (data) => {
+      if (data) {
+        setLegalPages((prev: any) => ({ ...prev, ...data }));
+      }
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubHome();
+      unsubLegal();
+    };
   }, []);
 
   const handleSave = async () => {
     setSaving(true);
     try {
       await setDocument('settings', 'homepage', settings);
+      await setDocument('settings', 'legal_pages', legalPages);
       alert('✅ Modifications enregistrées avec succès !');
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -1036,6 +1057,7 @@ export function CMSView() {
         {activeTab === 'sidebar' && <SidebarSection settings={settings} setSettings={setSettings} />}
         {activeTab === 'carte' && <CardThemeSection settings={settings} setSettings={setSettings} />}
         {activeTab === 'theme' && <ThemeSection settings={settings} setSettings={setSettings} />}
+        {activeTab === 'legal' && <LegalPagesSection legalPages={legalPages} setLegalPages={setLegalPages} />}
       </div>
 
       {/* ── Info card ── */}
@@ -1057,6 +1079,68 @@ export function CMSView() {
           {saving ? <ArrowClockwise size={18} className="animate-spin" /> : <Check size={18} weight="bold" />}
           Enregistrer les modifications
         </button>
+      </div>
+    </div>
+  );
+}
+
+function LegalPagesSection({ legalPages, setLegalPages }: any) {
+  const [selectedPage, setSelectedPage] = useState('cgv');
+
+  const page = legalPages[selectedPage] || { title: '', lastUpdated: '', content: '' };
+  
+  const updatePage = (k: string, v: string) => {
+    setLegalPages((prev: any) => ({
+      ...prev,
+      [selectedPage]: {
+        ...prev[selectedPage],
+        [k]: v
+      }
+    }));
+  };
+
+  const pagesOptions = [
+    { value: 'cgv', label: 'Conditions Générales de Vente (CGV)' },
+    { value: 'mentions', label: 'Mentions Légales' },
+    { value: 'confidentialite', label: 'Politique de Confidentialité' },
+    { value: 'retours', label: 'Politique de Retours' },
+    { value: 'livraison', label: 'Livraison & Expéditions' },
+    { value: 'cookies', label: 'Politique des Cookies' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <SectionTitle title="Pages Légales" subtitle="Éditeur de texte pour vos mentions, CGV, confidentialité et cookies." />
+
+      <div className="p-6 bg-gray-50 rounded-3xl space-y-6 border border-gray-100 shadow-sm text-left">
+        <Field label="Choisir la page à éditer">
+          <select 
+            className="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 text-sm font-bold focus:ring-2 focus:ring-primary/10 outline-none cursor-pointer"
+            value={selectedPage}
+            onChange={e => setSelectedPage(e.target.value)}
+          >
+            {pagesOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+          </select>
+        </Field>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label="Titre de la page">
+            <Input value={page.title || ''} onChange={v => updatePage('title', v)} placeholder="Titre affiché" />
+          </Field>
+          <Field label="Dernière mise à jour (Date)">
+            <Input value={page.lastUpdated || ''} onChange={v => updatePage('lastUpdated', v)} placeholder="ex: 04 Juin 2026" />
+          </Field>
+        </div>
+
+        <Field label="Contenu HTML / Paragraphes de la page">
+          <textarea
+            className="w-full bg-white border border-gray-200 rounded-2xl py-3 px-4 text-xs font-medium focus:ring-2 focus:ring-primary/10 outline-none font-mono resize-y"
+            rows={15}
+            value={page.content || ''}
+            onChange={e => updatePage('content', e.target.value)}
+            placeholder="Écrivez le contenu ici. Le code HTML comme <p>, <strong>, <ul>, <li> est supporté pour mettre en forme vos paragraphes."
+          />
+        </Field>
       </div>
     </div>
   );

@@ -27,7 +27,18 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   React.useEffect(() => {
     const unsubscribe = subscribeToCollection('categories', (data) => {
-      setCategories(data.sort((a, b) => (a.order || 0) - (b.order || 0)));
+      const uniqueCats: any[] = [];
+      const seenNames = new Set<string>();
+      data.forEach(cat => {
+        if (cat.name) {
+          const cleanName = cat.name.trim();
+          if (!seenNames.has(cleanName.toLowerCase())) {
+            seenNames.add(cleanName.toLowerCase());
+            uniqueCats.push(cat);
+          }
+        }
+      });
+      setCategories(uniqueCats.sort((a, b) => (a.order || 0) - (b.order || 0)));
     });
     return () => unsubscribe();
   }, []);
@@ -255,6 +266,22 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   return (
     <header className="bg-[#1A1A1A] text-white">
+      <style>{`
+        .search-suggestions-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .search-suggestions-scrollbar::-webkit-scrollbar-track {
+          background: #1F222A;
+          border-radius: 4px;
+        }
+        .search-suggestions-scrollbar::-webkit-scrollbar-thumb {
+          background: #3E424B;
+          border-radius: 4px;
+        }
+        .search-suggestions-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #FF6B00;
+        }
+      `}</style>
       
       {/* 
         ========================================
@@ -305,7 +332,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
           {/* Suggestions Dropdown Desktop */}
           {isOpen && searchQuery.trim().length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-[#1F222A] border border-[#2D3039] rounded-md shadow-2xl z-50 max-h-[380px] overflow-y-auto overflow-x-hidden text-sm">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-[#1F222A] border border-[#2D3039] rounded-md shadow-2xl z-50 max-h-[380px] overflow-y-auto overflow-x-hidden text-sm search-suggestions-scrollbar">
               {renderDropdownContent()}
             </div>
           )}
@@ -441,7 +468,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
             {/* Suggestions Dropdown Mobile */}
             {isOpen && searchQuery.trim().length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-[#1F222A] border border-[#2D3039] rounded-xl shadow-2xl z-50 max-h-[320px] overflow-y-auto overflow-x-hidden text-sm">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-[#1F222A] border border-[#2D3039] rounded-xl shadow-2xl z-50 max-h-[320px] overflow-y-auto overflow-x-hidden text-sm search-suggestions-scrollbar">
                 {renderDropdownContent()}
               </div>
             )}

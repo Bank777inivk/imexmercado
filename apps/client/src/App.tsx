@@ -3,6 +3,8 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { StoreLayout } from './components/layout/StoreLayout';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { CheckoutLayout } from './components/layout/CheckoutLayout';
+import { TrackingManager } from './components/layout/TrackingManager';
+import { CookieBanner } from './components/layout/CookieBanner';
 
 import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
@@ -65,12 +67,23 @@ const ProductRedirect = () => {
   return <Navigate to={`/?product=${id}`} replace />;
 };
 
+
 function App() {
   useDynamicTheme();
+
+  React.useEffect(() => {
+    if (window.location.protocol === 'http:' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+      window.location.href = window.location.href.replace('http:', 'https:');
+    }
+  }, []);
+
   return (
-    <Routes>
-      {/* ─── Special Isolated Checkout ─── */}
-      <Route element={<CheckoutLayout />}>
+    <>
+      <TrackingManager />
+      <CookieBanner />
+      <Routes>
+        {/* ─── Special Isolated Checkout ─── */}
+        <Route element={<CheckoutLayout />}>
         <Route path="/commande" element={<CheckoutPage />} />
       </Route>
 
@@ -111,6 +124,7 @@ function App() {
         <Route path="favoris" element={<Favorites />} />
       </Route>
     </Routes>
+    </>
   );
 }
 
