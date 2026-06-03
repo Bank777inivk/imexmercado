@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   Layout, Package, ShoppingCart, 
   Users, Gear, CaretRight, X,
-  Megaphone, CreditCard
+  Megaphone, CreditCard, ChatText, List
 } from '@phosphor-icons/react';
 
 const adminMenu = [
@@ -12,6 +12,7 @@ const adminMenu = [
   { label: 'Gestion des Produits', path: '/produits', icon: Package },
   { label: 'Gestion des Catégories', path: '/categories', icon: List },
   { label: 'Mes Commandes', path: '/commandes', icon: ShoppingCart },
+  { label: 'Avis Clients', path: '/avis', icon: ChatText },
   { label: 'Gestion technique du site', path: '/cms', icon: Gear },
   { label: 'Gestion des API', path: '/parametres', icon: CreditCard },
 ];

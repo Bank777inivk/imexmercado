@@ -25,7 +25,7 @@ const CATEGORY_MAP: Record<string, string> = {
 
 export function ShopPage() {
   const { categorySlug } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const promoFilter = searchParams.get('filter') === 'promo';
 
   // Resolve actual category name from slug or query param
@@ -51,6 +51,27 @@ export function ShopPage() {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const productParam = searchParams.get('product');
+
+  // Listen to product query param to open modal
+  useEffect(() => {
+    if (!productParam || products.length === 0) return;
+    const prod = products.find(p => p.id === productParam);
+    if (prod) {
+      setSelectedProduct(prod);
+      setIsModalOpen(true);
+    }
+  }, [productParam, products]);
+
+  // Handle URL cleanup on close
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('product');
+    setSearchParams(newParams, { replace: true });
+  };
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -76,6 +97,9 @@ export function ShopPage() {
   const handleViewDetails = (product: any) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('product', product.id);
+    setSearchParams(newParams, { replace: true });
   };
 
   // Derive active filters count
@@ -314,7 +338,7 @@ export function ShopPage() {
       <ProductModal
         product={selectedProduct}
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
       />
     </div>
   );

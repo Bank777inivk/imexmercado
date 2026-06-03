@@ -138,7 +138,7 @@ export function HeroSlider({ isSidebarOpen = true }: { isSidebarOpen?: boolean }
                     <img
                       src={b.image}
                       alt={b.label}
-                      className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   )}
                   <div className="absolute inset-0 p-5 flex flex-col justify-center text-white">

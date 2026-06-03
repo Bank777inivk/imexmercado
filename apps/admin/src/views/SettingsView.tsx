@@ -3,7 +3,7 @@ import {
   CreditCard, Globe, ShieldCheck, Check, ArrowClockwise, 
   Eye, EyeSlash, Fingerprint, Bank, PaypalLogo, Gear
 } from '@phosphor-icons/react';
-import { subscribeToDocument, setDocument } from '@imexmercado/firebase';
+import { subscribeToDocument, setDocument, seedReviewsForExistingProducts } from '@imexmercado/firebase';
 
 // ─── Types & Defaults ──────────────────────────────────────────────────────────
 const TABS = [
@@ -13,6 +13,8 @@ const TABS = [
   { id: 'square', label: 'Square', icon: Globe, color: 'text-gray-900', bg: 'bg-gray-100' },
   { id: 'paypal', label: 'PayPal', icon: PaypalLogo, color: 'text-blue-800', bg: 'bg-blue-100' },
   { id: 'bank_transfer', label: 'Virement', icon: Bank, color: 'text-orange-600', bg: 'bg-orange-50' },
+  { id: 'mbway', label: 'MB WAY', icon: CreditCard, color: 'text-pink-600', bg: 'bg-pink-50' },
+  { id: 'multibanco', label: 'Multibanco', icon: Bank, color: 'text-emerald-600', bg: 'bg-emerald-50' },
 ];
 
 const DEFAULT_PAYMENT_CONFIG = {
@@ -22,6 +24,8 @@ const DEFAULT_PAYMENT_CONFIG = {
   square: { enabled: false, mode: 'test', test: { applicationId: '', accessToken: '', locationId: '' }, live: { applicationId: '', accessToken: '', locationId: '' } },
   paypal: { enabled: false, mode: 'test', test: { clientId: '', secret: '' }, live: { clientId: '', secret: '' } },
   bank_transfer: { enabled: false, iban: '', bic: '', beneficiary: '' },
+  mbway: { enabled: false, merchantId: '' },
+  multibanco: { enabled: false, entity: '' },
 };
 
 // ─── Shared UI Components ──────────────────────────────────────────────────────
@@ -147,6 +151,14 @@ export function SettingsView() {
           bic: config.bank_transfer.bic,
           beneficiary: config.bank_transfer.beneficiary
         },
+        mbway: {
+          enabled: config.mbway.enabled,
+          merchantId: config.mbway.merchantId
+        },
+        multibanco: {
+          enabled: config.multibanco.enabled,
+          entity: config.multibanco.entity
+        },
       };
       await setDocument('settings', 'payment_public', publicConfig);
 
@@ -198,9 +210,17 @@ export function SettingsView() {
         },
         bank_transfer: {
           enabled: true,
-          iban: 'FR76 3000 6000 0123 4567 8901 234',
-          bic: 'IMEXFR2P',
-          beneficiary: 'IMEXMERCADO SARL'
+          iban: 'PT50 0003 1234 5678 9012 345',
+          bic: 'MBWAYPT',
+          beneficiary: 'IMEXMERCADO PORTUGAL'
+        },
+        mbway: {
+          enabled: true,
+          merchantId: 'MBW-PT-12345'
+        },
+        multibanco: {
+          enabled: true,
+          entity: '12345'
         }
       };
 
@@ -212,7 +232,9 @@ export function SettingsView() {
         mollie: { enabled: true, mode: 'test', profileId: 'pfl_sample' },
         payplug: { enabled: true, mode: 'test' },
         square: { enabled: true, mode: 'test', applicationId: 'sq0idp-sample', locationId: 'L_sample' },
-        bank_transfer: { enabled: true, iban: 'FR76 3000 6000 0123 4567 8901 234', bic: 'IMEXFR2P', beneficiary: 'IMEXMERCADO SARL' },
+        bank_transfer: { enabled: true, iban: 'PT50 0003 1234 5678 9012 345', bic: 'MBWAYPT', beneficiary: 'IMEXMERCADO PORTUGAL' },
+        mbway: { enabled: true, merchantId: 'MBW-PT-12345' },
+        multibanco: { enabled: true, entity: '12345' },
       };
       await setDocument('settings', 'payment_public', publicConfig);
 
@@ -263,6 +285,26 @@ export function SettingsView() {
           <p className="text-sm font-medium text-gray-400 mt-1">Configurez et activez vos passerelles de paiement en un clic.</p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={async () => {
+              if (!confirm('Générer 20 avis pour chaque produit dans la base ?')) return;
+              setSaving(true);
+              try {
+                await seedReviewsForExistingProducts();
+                alert('✅ 20 avis par produit générés avec succès !');
+              } catch (err) {
+                console.error(err);
+                alert('Erreur lors de la génération.');
+              } finally {
+                setSaving(false);
+              }
+            }}
+            disabled={saving}
+            className="flex items-center gap-2 bg-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-gray-200 transition-all disabled:opacity-50"
+          >
+            <Gear size={18} weight="bold" />
+            Générer Avis
+          </button>
           <button
             onClick={handleSeed}
             disabled={saving}
@@ -404,6 +446,20 @@ export function SettingsView() {
                 <Input value={terminalConfig.bic} onChange={v => updateConfig('bank_transfer', 'bic', v)} placeholder="IMEX..." />
               </Field>
             </>
+          )}
+
+          {/* MB WAY */}
+          {activeTab === 'mbway' && (
+            <Field label="Identifiant Marchand MB WAY (Merchant ID)" hint="Requis pour MB WAY Portugal">
+              <Input value={terminalConfig.merchantId} onChange={v => updateConfig('mbway', 'merchantId', v)} placeholder="MBW-PT-..." />
+            </Field>
+          )}
+
+          {/* MULTIBANCO */}
+          {activeTab === 'multibanco' && (
+            <Field label="Entité Multibanco (Entity)" hint="Entité à 5 chiffres">
+              <Input value={terminalConfig.entity} onChange={v => updateConfig('multibanco', 'entity', v)} placeholder="12345" />
+            </Field>
           )}
         </div>
 

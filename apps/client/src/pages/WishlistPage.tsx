@@ -49,7 +49,7 @@ export function WishlistPage() {
                   <div className="flex items-center justify-between mt-auto">
                     <p className="font-black text-gray-900 text-sm md:text-base">{product.price?.toFixed(2)}€</p>
                     <Link 
-                      to={`/p/${product.id}`}
+                      to={`/?product=${product.id}`}
                       className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
                     >
                       Voir

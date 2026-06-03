@@ -72,6 +72,7 @@ export function CheckoutPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedGateway, setSelectedGateway] = useState<string | null>(null);
+  const [mbWayPhone, setMbWayPhone] = useState('');
   const [stripePromise, setStripePromise] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { config, isLoading: isPaymentLoading, activeGateways } = usePayment();
@@ -90,6 +91,7 @@ export function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const { user, profile, loading: authLoading } = useAuth();
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
+  const [completedOrderDetails, setCompletedOrderDetails] = useState<{ total: number; items: any[] } | null>(null);
 
   const isOrderConfirmed = React.useRef(false);
 
@@ -266,6 +268,12 @@ export function CheckoutPage() {
       // Prevent redirect when cart clears
       isOrderConfirmed.current = true;
       
+      // Sauvegarder les détails pour la page de succès avant vidage du panier
+      setCompletedOrderDetails({
+        total: totalPrice,
+        items: [...items]
+      });
+
       // Nettoyer le panier après commande réussie
       clearCart();
       
@@ -356,28 +364,113 @@ export function CheckoutPage() {
     }
   };
 
+  const handlePaymentSubmit = async () => {
+    if (!selectedGateway) return;
+    
+    if (selectedGateway === 'stripe') {
+      document.dispatchEvent(new CustomEvent('STRIPE_SUBMIT'));
+    } else if (selectedGateway === 'bank_transfer') {
+      setIsProcessing(true);
+      const orderId = await saveOrder('bank_transfer', { 
+        status: 'Awaiting Bank Transfer',
+        iban: config?.bank_transfer?.iban,
+        beneficiary: config?.bank_transfer?.beneficiary
+      });
+      if (orderId) nextStep();
+      setIsProcessing(false);
+    } else if (selectedGateway === 'mbway') {
+      if (mbWayPhone.length < 9) {
+        alert('Veuillez saisir un numéro de téléphone valide à 9 chiffres.');
+        return;
+      }
+      setIsProcessing(true);
+      await new Promise(r => setTimeout(r, 1500));
+      const orderId = await saveOrder('mbway', {
+        phone: `+351${mbWayPhone}`,
+        merchantId: config?.mbway?.merchantId,
+        status: 'Awaiting MB WAY Confirmation'
+      });
+      if (orderId) nextStep();
+      setIsProcessing(false);
+    } else if (selectedGateway === 'multibanco') {
+      setIsProcessing(true);
+      await new Promise(r => setTimeout(r, 1000));
+      const refPart1 = Math.floor(100 + Math.random() * 900).toString();
+      const refPart2 = Math.floor(100 + Math.random() * 900).toString();
+      const refPart3 = Math.floor(100 + Math.random() * 900).toString();
+      const mockRef = `${refPart1} ${refPart2} ${refPart3}`;
+      const orderId = await saveOrder('multibanco', {
+        entity: config?.multibanco?.entity || '12345',
+        reference: mockRef,
+        status: 'Awaiting Multibanco Payment'
+      });
+      if (orderId) nextStep();
+      setIsProcessing(false);
+    } else if (selectedGateway === 'mollie') {
+      await handleCreatePayment('mollie');
+    } else if (selectedGateway === 'payplug') {
+      await handleCreatePayment('payplug');
+    } else if (selectedGateway === 'simulation') {
+      setIsProcessing(true);
+      await new Promise(r => setTimeout(r, 1200));
+      await saveOrder('simulation', { status: 'SIMULATED_SUCCESS', simulatedAt: new Date().toISOString() });
+      setIsProcessing(false);
+      nextStep();
+    }
+  };
+
   if (currentStep === 4) {
     const displayOrderId = confirmedOrderId || `ORD-${Date.now().toString().slice(-8)}`;
+    const isPendingPayment = selectedGateway === 'bank_transfer' || selectedGateway === 'multibanco' || selectedGateway === 'mbway';
+    const displayTotal = completedOrderDetails?.total ?? totalPrice;
+    const displayItems = completedOrderDetails?.items ?? items;
+    
+    let topLabel = "Paiement accepté";
+    let mainTitle = <>Commande <span className="text-green-500">Confirmée !</span></>;
+    let topDesc = `Merci ${formData.firstName}, votre commande a bien été enregistrée et est en cours de préparation.`;
+    let badgeLabel = "Processing";
+    let badgeStyle = "bg-green-500/20 border border-green-500/30 text-green-400";
+    
+    if (selectedGateway === 'bank_transfer') {
+      topLabel = "En attente de virement";
+      mainTitle = <>Commande <span className="text-amber-500">Enregistrée</span></>;
+      topDesc = `Merci ${formData.firstName}, votre commande a bien été enregistrée. Elle sera expédiée dès réception de votre virement bancaire.`;
+      badgeLabel = "Awaiting Payment";
+      badgeStyle = "bg-amber-500/20 border border-amber-500/30 text-amber-600";
+    } else if (selectedGateway === 'multibanco') {
+      topLabel = "En attente de règlement";
+      mainTitle = <>Commande <span className="text-blue-500">Enregistrée</span></>;
+      topDesc = `Merci ${formData.firstName}, votre commande a bien été enregistrée. Elle sera validée dès règlement de votre référence Multibanco.`;
+      badgeLabel = "Awaiting Payment";
+      badgeStyle = "bg-blue-500/20 border border-blue-500/30 text-blue-600";
+    } else if (selectedGateway === 'mbway') {
+      topLabel = "Attente de confirmation MB WAY";
+      mainTitle = <>Commande <span className="text-pink-500">Enregistrée</span></>;
+      topDesc = `Merci ${formData.firstName}, votre commande a bien été enregistrée. Elle sera validée dès confirmation sur votre application MB WAY.`;
+      badgeLabel = "Awaiting Payment";
+      badgeStyle = "bg-pink-500/20 border border-pink-500/30 text-pink-600";
+    }
+
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50/60 via-white to-white flex flex-col items-center justify-center p-4 sm:p-8">
+      <div className={`min-h-screen bg-gradient-to-b ${isPendingPayment ? 'from-amber-50/60' : 'from-green-50/60'} via-white to-white flex flex-col items-center justify-center p-4 sm:p-8`}>
         
         {/* Success Animation */}
         <div className="relative mb-8 flex items-center justify-center">
-          <div className="absolute w-40 h-40 bg-green-400/10 rounded-full animate-ping" />
-          <div className="absolute w-32 h-32 bg-green-400/15 rounded-full animate-pulse" />
-          <div className="relative z-10 w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-full flex items-center justify-center shadow-2xl shadow-green-500/30 border-4 border-white">
-            <CheckCircle size={48} weight="bold" />
+          <div className={`absolute w-40 h-40 rounded-full animate-ping ${isPendingPayment ? 'bg-amber-400/10' : 'bg-green-400/10'}`} />
+          <div className={`absolute w-32 h-32 rounded-full animate-pulse ${isPendingPayment ? 'bg-amber-400/15' : 'bg-green-400/15'}`} />
+          <div className={`relative z-10 w-24 h-24 bg-gradient-to-br ${isPendingPayment ? 'from-amber-400 to-amber-600 shadow-amber-500/30' : 'from-green-400 to-green-600 shadow-green-500/30'} text-white rounded-full flex items-center justify-center shadow-2xl border-4 border-white`}>
+            {isPendingPayment ? <Info size={48} weight="bold" /> : <CheckCircle size={48} weight="bold" />}
           </div>
         </div>
 
         {/* Title */}
         <div className="text-center mb-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-green-500 mb-3">Paiement accepté</p>
+          <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${isPendingPayment ? 'text-amber-500' : 'text-green-500'}`}>{topLabel}</p>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tighter mb-3">
-            Commande <span className="text-green-500">Confirmée !</span>
+            {mainTitle}
           </h1>
           <p className="text-gray-500 font-medium max-w-md mx-auto leading-relaxed">
-            Merci <span className="font-black text-gray-900">{formData.firstName}</span>, votre commande a bien été enregistrée et est en cours de préparation.
+            {topDesc}
           </p>
         </div>
 
@@ -390,14 +483,14 @@ export function CheckoutPage() {
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 mb-0.5">Référence commande</p>
               <p className="text-sm font-black text-white tracking-widest"># {displayOrderId.toUpperCase()}</p>
             </div>
-            <div className="bg-green-500/20 border border-green-500/30 px-3 py-1.5 rounded-xl">
-              <span className="text-[10px] font-black text-green-400 uppercase tracking-widest">Processing</span>
+            <div className={`px-3 py-1.5 rounded-xl ${badgeStyle}`}>
+              <span className="text-[10px] font-black uppercase tracking-widest">{badgeLabel}</span>
             </div>
           </div>
 
           {/* Items List */}
           <div className="divide-y divide-gray-50">
-            {items.map((item) => (
+            {displayItems.map((item) => (
               <div key={item.id} className="flex items-center gap-4 px-6 py-4">
                 <div className="w-12 h-12 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                   {item.image
@@ -418,7 +511,7 @@ export function CheckoutPage() {
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 space-y-2">
             <div className="flex justify-between text-xs font-medium text-gray-500">
               <span>Sous-total</span>
-              <span className="font-bold text-gray-900">{totalPrice.toFixed(2)}€</span>
+              <span className="font-bold text-gray-900">{displayTotal.toFixed(2)}€</span>
             </div>
             <div className="flex justify-between text-xs font-medium text-gray-500">
               <span>Livraison</span>
@@ -426,9 +519,111 @@ export function CheckoutPage() {
             </div>
             <div className="flex justify-between text-sm font-black text-gray-900 border-t border-gray-200 pt-2 mt-1">
               <span className="uppercase tracking-wide">Total payé</span>
-              <span>{totalPrice.toFixed(2)}€</span>
+              <span>{displayTotal.toFixed(2)}€</span>
             </div>
           </div>
+
+          {/* Payment instructions details based on selected gateway */}
+          {selectedGateway === 'bank_transfer' && (
+            <div className="px-6 py-5 border-t border-gray-100 bg-amber-50/40 space-y-3">
+              <div className="flex items-center gap-2 text-amber-600">
+                <Bank size={18} weight="bold" />
+                <p className="text-[10px] font-black uppercase tracking-widest">Action requise : Virement Bancaire</p>
+              </div>
+              <p className="text-xs text-gray-500 font-medium leading-relaxed">
+                Veuillez effectuer le virement de <span className="font-bold text-gray-900">{displayTotal.toFixed(2)}€</span> en utilisant les coordonnées ci-dessous :
+              </p>
+              <div className="bg-white border border-amber-100 rounded-xl p-3.5 space-y-3 text-xs">
+                <div className="flex justify-between items-center gap-2">
+                  <div>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase block">IBAN</span>
+                    <span className="font-black text-gray-900 tracking-wider">{config?.bank_transfer?.iban || 'PT50 0003 1234 5678 9012 345'}</span>
+                  </div>
+                  <button 
+                    onClick={(e) => {
+                      navigator.clipboard.writeText(config?.bank_transfer?.iban || 'PT50 0003 1234 5678 9012 345');
+                      const btn = e.currentTarget;
+                      btn.innerText = 'Copié !';
+                      setTimeout(() => btn.innerText = 'Copier', 2000);
+                    }}
+                    className="text-[9px] font-black uppercase text-primary bg-primary/5 hover:bg-primary/10 px-2.5 py-1.5 rounded-lg transition-colors shrink-0"
+                  >
+                    Copier
+                  </button>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase block">BIC</span>
+                  <span className="font-black text-gray-900">{config?.bank_transfer?.bic || 'MBWAYPT'}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase block">Bénéficiaire</span>
+                  <span className="font-black text-gray-900">{config?.bank_transfer?.beneficiary || 'IMEXMERCADO PORTUGAL'}</span>
+                </div>
+                <div className="flex justify-between items-center gap-2 pt-1 border-t border-gray-100">
+                  <div>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase block">Référence à indiquer</span>
+                    <span className="font-black text-primary">COMMANDE #{displayOrderId.toUpperCase().slice(-6)}</span>
+                  </div>
+                  <button 
+                    onClick={(e) => {
+                      navigator.clipboard.writeText(`COMMANDE #${displayOrderId.toUpperCase().slice(-6)}`);
+                      const btn = e.currentTarget;
+                      btn.innerText = 'Copié !';
+                      setTimeout(() => btn.innerText = 'Copier', 2000);
+                    }}
+                    className="text-[9px] font-black uppercase text-primary bg-primary/5 hover:bg-primary/10 px-2.5 py-1.5 rounded-lg transition-colors shrink-0"
+                  >
+                    Copier
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {selectedGateway === 'mbway' && (
+            <div className="px-6 py-5 border-t border-gray-100 bg-pink-50/30 space-y-3">
+              <div className="flex items-center gap-2 text-pink-600">
+                <span className="text-lg">📱</span>
+                <p className="text-[10px] font-black uppercase tracking-widest">Notification push envoyée</p>
+              </div>
+              <p className="text-xs text-gray-600 font-medium leading-relaxed">
+                Une notification de paiement de <span className="font-black text-gray-900">{displayTotal.toFixed(2)}€</span> a été envoyée sur votre numéro associé à l'application MB WAY (<span className="font-bold text-gray-900">+351 {mbWayPhone}</span>). Veuillez confirmer la transaction sur votre smartphone sous 5 minutes.
+              </p>
+            </div>
+          )}
+
+          {selectedGateway === 'multibanco' && (
+            <div className="px-6 py-5 border-t border-gray-100 bg-blue-50/30 space-y-3">
+              <div className="flex items-center gap-2 text-blue-600">
+                <span className="text-lg">🏦</span>
+                <p className="text-[10px] font-black uppercase tracking-widest">Informations de Paiement Multibanco</p>
+              </div>
+              <p className="text-xs text-gray-500 font-medium leading-relaxed">
+                Utilisez les détails suivants pour effectuer votre paiement dans n'importe quel distributeur de billets (ATM) ou via votre service Homebanking (Paiement de Services).
+              </p>
+              <div className="bg-white border border-blue-100 rounded-xl p-4 flex flex-col gap-3 shadow-sm max-w-sm mx-auto">
+                <div className="bg-blue-600 text-white font-black text-center py-2 rounded-lg text-xs uppercase tracking-widest">
+                  PAGAMENTO DE SERVIÇOS
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase block">Entidade (Entity)</span>
+                    <span className="font-black text-gray-900 text-base">{config?.multibanco?.entity || '12345'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase block">Referência (Ref.)</span>
+                    <span className="font-black text-gray-900 text-base tracking-widest">
+                      {Math.floor(100 + Math.random() * 900)} {Math.floor(100 + Math.random() * 900)} {Math.floor(100 + Math.random() * 900)}
+                    </span>
+                  </div>
+                  <div className="col-span-2 border-t border-gray-100 pt-2">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase block">Montante (Amount)</span>
+                    <span className="font-black text-primary text-base">{displayTotal.toFixed(2)}€</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Delivery Info */}
           {(formData.address || formData.city) && (
@@ -460,18 +655,28 @@ export function CheckoutPage() {
         <div className="flex flex-col sm:flex-row gap-3 mt-8 w-full max-w-lg">
           <Link
             to="/boutique"
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border-2 border-gray-200 text-gray-700 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:border-gray-900 hover:text-gray-900 transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border-2 border-gray-200 text-gray-700 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:border-gray-900 hover:text-gray-900 transition-all whitespace-nowrap"
           >
             <ShoppingCart size={16} weight="bold" />
             Continuer mes achats
           </Link>
-          <Link
-            to="/"
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gray-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-900/20"
-          >
-            <House size={16} weight="bold" />
-            Retour à l'accueil
-          </Link>
+          {user ? (
+            <Link
+              to="/compte"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gray-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-900/20 whitespace-nowrap"
+            >
+              <User size={16} weight="bold" />
+              Mon Espace / Commandes
+            </Link>
+          ) : (
+            <Link
+              to="/"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gray-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-900/20 whitespace-nowrap"
+            >
+              <House size={16} weight="bold" />
+              Retour à l'accueil
+            </Link>
+          )}
         </div>
 
         <p className="mt-6 text-[10px] text-gray-400 font-medium text-center">
@@ -602,16 +807,16 @@ export function CheckoutPage() {
 
         {/* ACCORDION 1: Contact */}
         <div className={`mb-2 lg:mb-6 transition-all duration-300 ${currentStep > 1 ? 'opacity-80' : 'opacity-100'}`}>
-          <div id="step-content-1" className="flex items-center justify-between mb-2 lg:mb-4 h-8 scroll-mt-24">
-            <h2 className="font-black text-lg uppercase tracking-tight text-gray-900 border-b-2 border-primary pb-1">
+          <div id="step-content-1" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 lg:mb-4 h-auto md:h-8 scroll-mt-24">
+            <h2 className="font-black text-lg uppercase tracking-tight text-gray-900 border-b-2 border-primary pb-1 self-start">
               Vos Coordonnées
             </h2>
             {!authLoading && !user && currentStep === 1 && (
-              <div className="flex gap-1 bg-gray-50 p-1 rounded-xl border border-gray-100">
+              <div className="flex gap-1 bg-gray-50 p-1 rounded-xl border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap shrink-0 max-w-full">
                 {[
-                  { id: 'guest', label: 'Invité', icon: <User size={12} /> },
+                  { id: 'guest', label: 'Achat Rapide', icon: <User size={12} /> },
                   { id: 'login', label: 'Connexion', icon: <LockKey size={12} /> },
-                  { id: 'register', label: 'Créer un compte', icon: <PencilSimple size={12} /> }
+                  { id: 'register', label: 'S\'inscrire', labelDesktop: 'Créer un compte', icon: <PencilSimple size={12} /> }
                 ].map((mode) => (
                   <button
                     key={mode.id}
@@ -619,14 +824,15 @@ export function CheckoutPage() {
                       setAuthMode(mode.id as any);
                       setAuthError(null);
                     }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all shrink-0 ${
                       authMode === mode.id 
                         ? 'bg-white text-gray-900 shadow-sm border border-gray-100' 
                         : 'text-gray-400 hover:text-gray-600'
                     }`}
                   >
                     {mode.icon}
-                    {mode.label}
+                    <span className="inline sm:hidden">{mode.label}</span>
+                    <span className="hidden sm:inline">{mode.labelDesktop || mode.label}</span>
                   </button>
                 ))}
               </div>
@@ -779,13 +985,13 @@ export function CheckoutPage() {
                     /* ─── SIGNUP / GUEST FORM ─── */
                     <div className="space-y-6">
                       {authMode === 'guest' && (
-                        <div className="bg-primary/5 border border-primary/10 p-4 rounded-xl flex items-start gap-3">
-                          <div className="bg-white p-2 rounded-lg shadow-sm text-primary">
+                        <div className="bg-amber-500/5 border border-amber-500/10 p-4 rounded-2xl flex items-start gap-3">
+                          <div className="bg-white p-2 rounded-xl shadow-sm text-amber-600 border border-amber-500/10">
                             <Info size={16} weight="bold" />
                           </div>
                           <div>
-                            <p className="text-[10px] font-black uppercase tracking-tight text-gray-900">Achat en tant qu'invité</p>
-                            <p className="text-[10px] font-medium text-gray-500 leading-tight mt-0.5">Aucun compte ne sera créé. Vous recevrez vos informations de suivi par email.</p>
+                            <p className="text-[10px] font-black uppercase tracking-tight text-gray-900">Achat Express (Sans Compte)</p>
+                            <p className="text-[10px] font-medium text-gray-500 leading-tight mt-0.5">Aucun mot de passe requis. Vous recevrez vos informations de suivi directement par e-mail.</p>
                           </div>
                         </div>
                       )}
@@ -793,20 +999,20 @@ export function CheckoutPage() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Prénom</label>
-                          <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="Votre prénom" />
+                          <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full bg-gray-50/50 hover:bg-gray-50/80 border border-[#1F222A] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 px-4 py-3 rounded-xl outline-none text-sm font-bold transition-all shadow-sm duration-200" placeholder="Votre prénom" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Nom</label>
-                          <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="Votre nom" />
+                          <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full bg-gray-50/50 hover:bg-gray-50/80 border border-[#1F222A] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 px-4 py-3 rounded-xl outline-none text-sm font-bold transition-all shadow-sm duration-200" placeholder="Votre nom" />
                         </div>
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Email</label>
-                        <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="votre@email.com" />
+                        <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-gray-50/50 hover:bg-gray-50/80 border border-[#1F222A] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 px-4 py-3 rounded-xl outline-none text-sm font-bold transition-all shadow-sm duration-200" placeholder="votre@email.com" />
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Téléphone</label>
-                        <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="+33 6 12 34 56 78" />
+                        <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full bg-gray-50/50 hover:bg-gray-50/80 border border-[#1F222A] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 px-4 py-3 rounded-xl outline-none text-sm font-bold transition-all shadow-sm duration-200" placeholder="+33 6 12 34 56 78" />
                       </div>
 
                       {authMode === 'register' && (
@@ -1072,7 +1278,7 @@ export function CheckoutPage() {
                         )}
                         <div className="space-y-1">
                           <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Pays / Région</label>
-                          <select name="country" value={formData.country} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-sm font-medium transition-all appearance-none">
+                          <select name="country" value={formData.country} onChange={handleInputChange} className="w-full bg-gray-50/50 hover:bg-gray-50/80 border border-[#1F222A] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 px-4 py-3 rounded-xl outline-none text-sm font-bold transition-all shadow-sm duration-200 appearance-none">
                             <option value="France">France métropolitaine</option>
                             <option value="Suisse">Suisse</option>
                             <option value="Portugal">Portugal</option>
@@ -1081,16 +1287,16 @@ export function CheckoutPage() {
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">Adresse complète</label>
-                          <input type="text" name="address" value={formData.address} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-sm font-medium transition-all" placeholder="Numéro, rue, appartement..." />
+                          <input type="text" name="address" value={formData.address} onChange={handleInputChange} className="w-full bg-gray-50/50 hover:bg-gray-50/80 border border-[#1F222A] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 px-4 py-3 rounded-xl outline-none text-sm font-bold transition-all shadow-sm duration-200" placeholder="Numéro, rue, appartement..." />
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1">
                             <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Code Postal</label>
-                            <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="75001" />
+                            <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} className="w-full bg-gray-50/50 hover:bg-gray-50/80 border border-[#1F222A] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 px-4 py-3 rounded-xl outline-none text-sm font-bold transition-all shadow-sm duration-200" placeholder="75001" />
                           </div>
                           <div className="space-y-1">
                             <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Ville</label>
-                            <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="w-full bg-white border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3.5 rounded-xl outline-none text-base sm:text-sm font-medium transition-all" placeholder="Paris" />
+                            <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="w-full bg-gray-50/50 hover:bg-gray-50/80 border border-[#1F222A] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 px-4 py-3 rounded-xl outline-none text-sm font-bold transition-all shadow-sm duration-200" placeholder="Paris" />
                           </div>
                         </div>
 
@@ -1307,19 +1513,19 @@ export function CheckoutPage() {
                               </div>
                               <p className="text-[11px] text-gray-500 font-medium leading-relaxed">Veuillez effectuer le virement sur le compte ci-dessous. Votre commande sera validée dès réception des fonds.</p>
                               <div className="grid grid-cols-1 gap-3 pt-2">
-                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                <div className="p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
                                   <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">Bénéficiaire</p>
                                   <p className="text-xs font-black text-gray-900">{config?.bank_transfer?.beneficiary || 'IMEXMERCADO SARL'}</p>
                                 </div>
-                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                <div className="p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
                                   <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">IBAN</p>
                                   <p className="text-xs font-black text-gray-900 tracking-widest">{config?.bank_transfer?.iban || 'FR76 3000 6000 0123 4567 8901 234'}</p>
                                 </div>
-                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                <div className="p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
                                   <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">BIC</p>
                                   <p className="text-xs font-black text-gray-900 tracking-widest">{config?.bank_transfer?.bic || 'IMEXFR2P'}</p>
                                 </div>
-                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                <div className="p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
                                   <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">Référence à indiquer</p>
                                   <p className="text-xs font-black text-primary">COMMANDE #{Date.now().toString().slice(-6)}</p>
                                 </div>
@@ -1337,9 +1543,109 @@ export function CheckoutPage() {
                                 setIsProcessing(false);
                               }}
                               disabled={isProcessing}
-                              className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg hover:bg-black transition-all text-xs disabled:opacity-50 flex items-center justify-center gap-3"
+                              className="w-full lg:flex hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg hover:bg-black transition-all text-xs disabled:opacity-50 items-center justify-center gap-3"
                             >
                               {isProcessing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Confirmer ma commande"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* MB WAY */}
+                    {activeGateways.includes('mbway') && (
+                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'mbway' ? 'border-gray-900' : 'border-gray-100'}`}>
+                        <button onClick={() => setSelectedGateway(selectedGateway === 'mbway' ? null : 'mbway')} className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === 'mbway' ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl">📱</span>
+                            <span className={`text-sm font-bold ${selectedGateway === 'mbway' ? 'text-gray-900' : 'text-gray-500'}`}>MB WAY</span>
+                          </div>
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'mbway' ? 'border-gray-900' : 'border-gray-300'}`}>
+                            {selectedGateway === 'mbway' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
+                          </div>
+                        </button>
+                        {selectedGateway === 'mbway' && (
+                          <div className="border-t border-gray-100 bg-[#F8F9FA] p-6">
+                            <div className="space-y-4 mb-6">
+                              <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">Numéro de téléphone MB WAY</label>
+                              <div className="flex gap-2">
+                                <span className="bg-white border border-[#1F222A] px-3 py-3 rounded-xl text-sm font-bold flex items-center justify-center text-gray-500 shrink-0">+351</span>
+                                <input
+                                  type="tel"
+                                  placeholder="912 345 678"
+                                  value={mbWayPhone}
+                                  onChange={(e) => setMbWayPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                                  className="w-full bg-white border border-[#1F222A] focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3 rounded-xl outline-none text-sm font-bold transition-all shadow-sm"
+                                  required
+                                />
+                              </div>
+                              <p className="text-[10px] text-gray-400 font-medium">Saisissez le numéro de téléphone associé à votre application MB WAY.</p>
+                            </div>
+                            <button
+                              onClick={async () => {
+                                if (mbWayPhone.length < 9) {
+                                  alert('Veuillez saisir un numéro de téléphone valide à 9 chiffres.');
+                                  return;
+                                }
+                                setIsProcessing(true);
+                                await new Promise(r => setTimeout(r, 1500));
+                                const orderId = await saveOrder('mbway', {
+                                  phone: `+351${mbWayPhone}`,
+                                  merchantId: config?.mbway?.merchantId,
+                                  status: 'Awaiting MB WAY Confirmation'
+                                });
+                                if (orderId) nextStep();
+                                setIsProcessing(false);
+                              }}
+                              disabled={isProcessing || mbWayPhone.length < 9}
+                              className="w-full lg:flex hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg hover:bg-black transition-all text-xs disabled:opacity-50 items-center justify-center gap-3"
+                            >
+                              {isProcessing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Payer avec MB WAY"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* MULTIBANCO */}
+                    {activeGateways.includes('multibanco') && (
+                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'multibanco' ? 'border-gray-900' : 'border-gray-100'}`}>
+                        <button onClick={() => setSelectedGateway(selectedGateway === 'multibanco' ? null : 'multibanco')} className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === 'multibanco' ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl">🏦</span>
+                            <span className={`text-sm font-bold ${selectedGateway === 'multibanco' ? 'text-gray-900' : 'text-gray-500'}`}>Multibanco</span>
+                          </div>
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'multibanco' ? 'border-gray-900' : 'border-gray-300'}`}>
+                            {selectedGateway === 'multibanco' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
+                          </div>
+                        </button>
+                        {selectedGateway === 'multibanco' && (
+                          <div className="border-t border-gray-100 bg-[#F8F9FA] p-6 text-center">
+                            <p className="text-xs font-medium text-gray-500 mb-6 max-w-xs mx-auto">
+                              Une référence de paiement Multibanco sera générée pour votre commande. Vous pourrez payer dans n'importe quel distributeur de billets (ATM) ou via votre application bancaire.
+                            </p>
+                            <button
+                              onClick={async () => {
+                                setIsProcessing(true);
+                                await new Promise(r => setTimeout(r, 1000));
+                                
+                                const refPart1 = Math.floor(100 + Math.random() * 900).toString();
+                                const refPart2 = Math.floor(100 + Math.random() * 900).toString();
+                                const refPart3 = Math.floor(100 + Math.random() * 900).toString();
+                                const mockRef = `${refPart1} ${refPart2} ${refPart3}`;
+                                
+                                const orderId = await saveOrder('multibanco', {
+                                  entity: config?.multibanco?.entity || '12345',
+                                  reference: mockRef,
+                                  status: 'Awaiting Multibanco Payment'
+                                });
+                                if (orderId) nextStep();
+                                setIsProcessing(false);
+                              }}
+                              disabled={isProcessing}
+                              className="w-full lg:flex hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg hover:bg-black transition-all text-xs disabled:opacity-50 items-center justify-center gap-3"
+                            >
+                              {isProcessing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Générer la Référence"}
                             </button>
                           </div>
                         )}
@@ -1366,7 +1672,7 @@ export function CheckoutPage() {
                             </div>
                             <h4 className="text-white font-black uppercase tracking-widest text-sm mb-2">Redirection Sécurisée</h4>
                             <p className="text-white/60 text-xs font-medium max-w-xs mx-auto mb-6">Vous serez redirigé vers le portail sécurisé de Mollie pour finaliser votre achat.</p>
-                            <button onClick={() => handleCreatePayment('mollie')} disabled={isProcessing} className="w-full bg-white text-gray-900 font-black uppercase tracking-widest py-4 rounded-xl hover:bg-gray-100 transition-all text-xs disabled:opacity-50 flex items-center justify-center gap-3">
+                            <button onClick={() => handleCreatePayment('mollie')} disabled={isProcessing} className="w-full lg:flex hidden bg-white text-gray-900 font-black uppercase tracking-widest py-4 rounded-xl hover:bg-gray-100 transition-all text-xs disabled:opacity-50 items-center justify-center gap-3">
                               {isProcessing ? <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" /> : <><LockKey size={16} weight="bold" /> Payer {totalPrice.toFixed(2)}€</>}
                             </button>
                           </div>
@@ -1394,7 +1700,7 @@ export function CheckoutPage() {
                             </div>
                             <h4 className="text-white font-black uppercase tracking-widest text-sm mb-2">Redirection Sécurisée</h4>
                             <p className="text-white/60 text-xs font-medium max-w-xs mx-auto mb-6">Vous serez redirigé vers le portail sécurisé de PayPlug pour finaliser votre achat.</p>
-                            <button onClick={() => handleCreatePayment('payplug')} disabled={isProcessing} className="w-full bg-white text-gray-900 font-black uppercase tracking-widest py-4 rounded-xl hover:bg-gray-100 transition-all text-xs disabled:opacity-50 flex items-center justify-center gap-3">
+                            <button onClick={() => handleCreatePayment('payplug')} disabled={isProcessing} className="w-full lg:flex hidden bg-white text-gray-900 font-black uppercase tracking-widest py-4 rounded-xl hover:bg-gray-100 transition-all text-xs disabled:opacity-50 items-center justify-center gap-3">
                               {isProcessing ? <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" /> : <><LockKey size={16} weight="bold" /> Payer {totalPrice.toFixed(2)}€</>}
                             </button>
                           </div>
@@ -1414,19 +1720,31 @@ export function CheckoutPage() {
                             {selectedGateway === 'square' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
                           </div>
                         </button>
-                        {selectedGateway === 'square' && config?.square?.enabled && (
-                          <div className="border-t border-gray-100 bg-[#F8F9FA] p-6">
-                            <PaymentForm
-                              applicationId={config?.square?.applicationId || ''}
-                              locationId={config?.square?.locationId || ''}
-                              cardTokenizeResponseReceived={async (token) => {
-                                if (token.status === 'OK') { await handleCreatePayment('square', { sourceId: token.token }); }
-                              }}
-                            >
-                              <SquareCreditCard
-                                buttonProps={{ css: { backgroundColor: '#111827', color: '#fff', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.15em', padding: '16px', borderRadius: '12px', marginTop: '24px', width: '100%' } }}
-                              />
-                            </PaymentForm>
+                        {selectedGateway === 'square' && (
+                          <div className="border-t border-gray-100 bg-[#F8F9FA] p-6 text-center">
+                            {!config?.square?.applicationId || config?.square?.applicationId.includes('sample') ? (
+                              <div className="space-y-3 p-4">
+                                <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-amber-500 border border-amber-100">
+                                  ⚠️
+                                </div>
+                                <h4 className="font-black text-gray-900 text-xs uppercase tracking-wider">Identifiants Square requis</h4>
+                                <p className="text-[11px] font-medium text-gray-500 max-w-xs mx-auto leading-relaxed">
+                                  Veuillez renseigner un <strong>Application ID</strong> et un <strong>Location ID</strong> valides dans l'admin pour activer le terminal de paiement Square.
+                                </p>
+                              </div>
+                            ) : (
+                              <PaymentForm
+                                applicationId={config.square.applicationId}
+                                locationId={config.square.locationId}
+                                cardTokenizeResponseReceived={async (token) => {
+                                  if (token.status === 'OK') { await handleCreatePayment('square', { sourceId: token.token }); }
+                                }}
+                              >
+                                <SquareCreditCard
+                                  buttonProps={{ css: { backgroundColor: '#111827', color: '#fff', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.15em', padding: '16px', borderRadius: '12px', marginTop: '24px', width: '100%' } }}
+                                />
+                              </PaymentForm>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1467,7 +1785,7 @@ export function CheckoutPage() {
                               nextStep();
                             }}
                             disabled={isProcessing}
-                            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg shadow-orange-500/20 transition-all text-xs flex items-center justify-center gap-3 disabled:opacity-50"
+                            className="w-full lg:flex hidden bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg shadow-orange-500/20 transition-all text-xs items-center justify-center gap-3 disabled:opacity-50"
                           >
                             {isProcessing ? (
                               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1651,16 +1969,16 @@ export function CheckoutPage() {
 
 
       {/* ─── MOBILE ONLY: STICKY BOTTOM ACTION BAR (Shopify Pro Style) ─── */}
-      {currentStep < 4 && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 p-3 z-[100] shadow-[0_-10px_30px_rgba(0,0,0,0.08)]">
+      {currentStep < 4 && !(currentStep === 3 && (selectedGateway === 'paypal' || selectedGateway === 'square')) && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 p-3.5 z-[100] shadow-[0_-10px_30px_rgba(0,0,0,0.08)]">
           <button 
             onClick={() => {
               if (currentStep === 1) handleIdentification();
               else if (currentStep === 2) handleShippingSubmit();
-              else if (currentStep === 3) document.dispatchEvent(new CustomEvent('STRIPE_SUBMIT'));
+              else if (currentStep === 3) handlePaymentSubmit();
             }}
-            disabled={isProcessing || (currentStep === 1 && (!formData.firstName || !formData.email)) || (currentStep === 2 && !selectedAddressId && (!formData.address || !formData.city))}
-            className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg active:scale-95 transition-all text-[11px] flex items-center justify-center gap-3 disabled:opacity-50"
+            disabled={isProcessing || (currentStep === 1 && (!formData.firstName || !formData.email)) || (currentStep === 2 && !selectedAddressId && (!formData.address || !formData.city)) || (currentStep === 3 && selectedGateway === 'mbway' && mbWayPhone.length < 9)}
+            className="w-full bg-primary disabled:bg-gray-150 disabled:text-gray-400 !text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg shadow-primary/20 disabled:shadow-none active:scale-95 transition-all text-[11px] flex items-center justify-center gap-3"
           >
             {isProcessing ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1670,7 +1988,12 @@ export function CheckoutPage() {
                 {currentStep === 2 && (
                   (selectedAddressId || formData.address) ? "Passer au paiement sécurisé" : "Choisir une adresse"
                 )}
-                {currentStep === 3 && `Valider & Payer ${totalPrice.toFixed(2)}€`}
+                {currentStep === 3 && (
+                  selectedGateway === 'bank_transfer' ? "Confirmer ma commande" :
+                  selectedGateway === 'multibanco' ? "Générer la référence" :
+                  selectedGateway === 'mbway' ? "Payer avec MB WAY" :
+                  `Valider & Payer ${totalPrice.toFixed(2)}€`
+                )}
                 {!isProcessing && <ArrowRight size={16} weight="bold" />}
               </>
             )}

@@ -3,17 +3,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   X, Trash, Minus, Plus, ShoppingBag, 
-  ArrowRight, Truck, Receipt, CheckCircle
+  ArrowRight, Truck, Receipt, CheckCircle, PlusCircle
 } from '@phosphor-icons/react';
 import { useCart } from '../../context/CartContext';
+import { subscribeToCollection } from '@imexmercado/firebase';
 
 export function CartDrawer() {
   const { 
     isDrawerOpen, setDrawerOpen, items, 
     updateQuantity, removeItem, clearCart, totalPrice, totalItems,
-    isSyncing
+    isSyncing, addItem
   } = useCart();
   const navigate = useNavigate();
+  const [allProducts, setAllProducts] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (!isDrawerOpen) return;
+    const unsubscribe = subscribeToCollection('products', (data) => {
+      setAllProducts(data);
+    });
+    return () => unsubscribe();
+  }, [isDrawerOpen]);
 
   const freeShippingThreshold = 150;
   const progressToFreeShipping = Math.min((totalPrice / freeShippingThreshold) * 100, 100);
@@ -33,7 +43,7 @@ export function CartDrawer() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setDrawerOpen(false)}
-            className="fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm cursor-pointer"
           />
           
           {/* Drawer Panel */}
@@ -115,7 +125,7 @@ export function CartDrawer() {
                           <div>
                               <div className="flex justify-between items-start gap-2">
                                   <Link 
-                                      to={`/p/${item.id}`} 
+                                      to={`/?product=${item.id}`} 
                                       onClick={() => setDrawerOpen(false)}
                                       className="text-[11px] font-black uppercase text-gray-900 leading-tight hover:text-primary transition-colors line-clamp-2"
                                   >
@@ -163,6 +173,44 @@ export function CartDrawer() {
                       Vider le panier
                     </button>
                   </div>
+
+                  {/* Complementary Products Suggestions */}
+                  {(() => {
+                    const cartItemIds = items.map(item => item.id);
+                    const recommendedItems = allProducts
+                      .filter(p => !cartItemIds.includes(p.id))
+                      .slice(0, 3);
+
+                    if (recommendedItems.length === 0) return null;
+
+                    return (
+                      <div className="mt-8 pt-6 border-t border-gray-100 space-y-4 text-left">
+                        <h4 className="text-[9px] font-black uppercase tracking-widest text-gray-900">Complétez votre panier</h4>
+                        <div className="space-y-3">
+                          {recommendedItems.map(item => (
+                            <div key={item.id} className="flex items-center justify-between gap-3 p-2 bg-gray-50/50 rounded-xl border border-gray-100">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 bg-white rounded-lg overflow-hidden flex-shrink-0 border border-gray-100 p-1 flex items-center justify-center">
+                                  <img src={item.image} alt="" className="max-w-full max-h-full object-contain" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-[9px] font-black text-gray-950 truncate uppercase leading-none" title={item.name}>{item.name}</p>
+                                  <p className="text-[9px] font-bold text-primary mt-1">€{item.price.toFixed(2)}</p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => addItem(item)}
+                                className="text-primary hover:text-primary-dark transition-all p-1 flex-shrink-0"
+                                title="Ajouter au panier"
+                              >
+                                <PlusCircle size={20} weight="fill" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>

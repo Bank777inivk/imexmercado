@@ -30,11 +30,11 @@ export function PromotionalBlocks() {
               className={`rounded-lg overflow-hidden flex flex-col justify-end p-6 min-h-[350px] relative text-white group cursor-pointer shadow-worten transition-shadow hover:shadow-worten-hover ${block.color?.startsWith('bg-') ? block.color : ''}`}
               style={!block.color?.startsWith('bg-') ? { backgroundColor: block.color } : undefined}
             >
-              <div className="absolute top-0 left-0 w-full h-1/2 overflow-hidden bg-white/10">
+              <div className="absolute top-0 left-0 w-full h-1/2 overflow-hidden">
                 <img 
                   src={block.image || `https://placehold.co/400x200/ffffff/cccccc?text=Produit+${idx+1}`} 
                   alt="Promo" 
-                  className="w-full h-full object-cover mix-blend-multiply opacity-50 group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 

@@ -8,6 +8,7 @@ import { Footer } from './Footer';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileDrawer } from './MobileDrawer';
 import { CartDrawer } from './CartDrawer';
+import { SocialProofNotification } from './SocialProofNotification';
 
 export function StoreLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -30,6 +31,7 @@ export function StoreLayout() {
 
       {/* Global Overlays */}
       <CartDrawer />
+      <SocialProofNotification />
       
       {/* Mobile Exclusives */}
       <MobileBottomNav />

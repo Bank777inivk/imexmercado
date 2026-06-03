@@ -16,7 +16,6 @@ import {
 } from './pages/legal/LegalPages';
 
 import { LoginPage, RegisterPage, ForgotPasswordPage } from './pages/auth/AuthPages';
-import { ProductPage } from './pages/ProductPage';
 import { WishlistPage } from './pages/WishlistPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { Dashboard, Orders, Settings, Favorites } from './pages/account/AccountPages';
@@ -63,7 +62,7 @@ function useDynamicTheme() {
 const ProductRedirect = () => {
   const location = useLocation();
   const id = location.pathname.split('/').pop();
-  return <Navigate to={`/p/${id}`} replace />;
+  return <Navigate to={`/?product=${id}`} replace />;
 };
 
 function App() {
@@ -83,8 +82,8 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/a-propos" element={<AboutPage />} />
         
-        {/* Product Drawer (overlay logic is global) */}
-        <Route path="/p/:productSlug" element={<ProductPage />} />
+        {/* Product Drawer is now global via modal */}
+        <Route path="/p/:productSlug" element={<ProductRedirect />} />
         <Route path="/produit/*" element={<ProductRedirect />} />
 
         {/* Auth (Still using Store Layout for branding) */}

@@ -26,7 +26,7 @@ export function CheckoutLayout() {
   return (
     <div className="min-h-screen bg-white text-gray-900 overflow-x-hidden">
       {/* Checkout Minimalist Header — DESIGN PREMIUM FIXED */}
-      <header className="fixed top-0 left-0 right-0 z-[60] bg-white/90 backdrop-blur-xl border-b border-gray-100 px-4 py-3 lg:py-5">
+      <header className="fixed top-0 left-0 right-0 z-[60] bg-[#1F222A] backdrop-blur-xl border-b border-gray-800 px-4 py-3 lg:py-5">
         <div className="w-full max-w-[1600px] lg:px-12 mx-auto flex lg:flex-row items-center justify-between lg:justify-between grid grid-cols-3 lg:block lg:flex">
           
           {/* Left: Boutique Navigation / Brand Identity */}
@@ -34,23 +34,23 @@ export function CheckoutLayout() {
             {/* Mobile: Home Icon */}
             <Link 
               to="/boutique" 
-              className="lg:hidden group flex items-center gap-2 text-primary hover:text-primary/80 transition-all ml-1"
+              className="lg:hidden group flex items-center gap-2 text-white hover:text-white/80 transition-all ml-1"
               title="Retour à la boutique"
             >
-              <div className="p-2 rounded-full bg-primary/5 border border-primary/10 group-hover:bg-primary/10 transition-all shadow-sm shadow-primary/5">
+              <div className="p-2 rounded-full bg-white/5 border border-white/10 group-hover:bg-white/10 transition-all shadow-sm">
                 <House size={20} weight="fill" />
               </div>
             </Link>
 
             {/* Desktop: Brand Logo (Positioned Left) */}
-            <Link to="/boutique" className="hidden lg:block text-xl lg:text-2xl font-black tracking-tighter text-gray-900 group">
+            <Link to="/boutique" className="hidden lg:block text-xl lg:text-2xl font-black tracking-tighter text-white group">
               IMEX<span className="text-primary group-hover:opacity-80 transition-opacity">MERCADO</span>
             </Link>
           </div>
 
           {/* Center: Brand Identity (Mobile Only) */}
           <div className="flex justify-center lg:hidden">
-            <Link to="/" className="text-xl font-black tracking-tighter text-gray-900 group">
+            <Link to="/" className="text-xl font-black tracking-tighter text-white group">
               IMEX<span className="text-primary group-hover:opacity-80 transition-opacity">MERCADO</span>
             </Link>
           </div>

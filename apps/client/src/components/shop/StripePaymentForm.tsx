@@ -34,7 +34,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div className="space-y-1">
       <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">{label}</label>
-      <div className="bg-white border border-gray-200 focus-within:border-gray-900 focus-within:ring-1 focus-within:ring-gray-900 rounded-xl px-4 py-3.5 transition-all">
+      <div className="bg-[#1F222A]/5 border border-[#1F222A] focus-within:border-gray-900 focus-within:ring-1 focus-within:ring-gray-900 rounded-xl px-4 py-3.5 transition-all">
         {children}
       </div>
     </div>
@@ -54,9 +54,9 @@ export function StripePaymentForm() {
         <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
           {cardBrand !== 'unknown' ? cardBrand.toUpperCase() : 'Carte bancaire'}
         </span>
-        <div className="flex items-center gap-1.5 ml-auto opacity-50">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-3" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-4" />
+        <div className="flex items-center gap-1.5 ml-auto opacity-70">
+          <img src="https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@master/logo/visa.svg" alt="Visa" className="h-3" />
+          <img src="https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@master/logo/mastercard.svg" alt="Mastercard" className="h-4" />
         </div>
       </div>
 

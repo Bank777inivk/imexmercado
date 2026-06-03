@@ -8,6 +8,8 @@ interface PaymentConfig {
   square: { enabled: boolean; mode: 'test' | 'live'; applicationId: string; locationId: string };
   paypal: { enabled: boolean; mode: 'test' | 'live'; clientId: string };
   bank_transfer: { enabled: boolean; iban: string; bic: string; beneficiary: string };
+  mbway: { enabled: boolean; merchantId: string };
+  multibanco: { enabled: boolean; entity: string };
 }
 
 interface PaymentContextType {
@@ -25,6 +27,8 @@ const DEFAULT_CONFIG: PaymentConfig = {
   square: { enabled: false, mode: 'test', applicationId: '', locationId: '' },
   paypal: { enabled: false, mode: 'test', clientId: '' },
   bank_transfer: { enabled: false, iban: '', bic: '', beneficiary: '' },
+  mbway: { enabled: false, merchantId: '' },
+  multibanco: { enabled: false, entity: '' },
 };
 
 export function PaymentProvider({ children }: { children: React.ReactNode }) {
@@ -57,7 +61,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
   const isDev = import.meta.env.DEV;
   const hasNoConfig = activeGateways.length === 0;
 
-  const finalGateways = (isDev && hasNoConfig) ? ['stripe', 'paypal', 'mollie', 'square', 'payplug', 'bank_transfer'] : activeGateways;
+  const finalGateways = (isDev && hasNoConfig) ? ['stripe', 'paypal', 'mollie', 'square', 'payplug', 'bank_transfer', 'mbway', 'multibanco'] : activeGateways;
   const finalConfig: PaymentConfig | null = (isDev && hasNoConfig) 
     ? {
         ...DEFAULT_CONFIG,
@@ -66,7 +70,9 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
         mollie: { enabled: true, mode: 'test' as const, profileId: 'pfl_test_sample' },
         square: { enabled: true, mode: 'test' as const, applicationId: 'sq0idp-sample', locationId: 'L_sample' },
         payplug: { enabled: true, mode: 'test' as const },
-        bank_transfer: { enabled: true, iban: 'FR76 3000 6000 0123 4567 8901 234', bic: 'IMEXFR2P', beneficiary: 'IMEXMERCADO SARL' }
+        bank_transfer: { enabled: true, iban: 'PT50 0003 1234 5678 9012 345', bic: 'MBWAYPT', beneficiary: 'IMEXMERCADO PORTUGAL' },
+        mbway: { enabled: true, merchantId: 'MBW-PT-12345' },
+        multibanco: { enabled: true, entity: '12345' }
       }
     : config;
 

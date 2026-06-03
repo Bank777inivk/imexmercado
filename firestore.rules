@@ -57,6 +57,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Avis clients : Lecture et création publiques, modification et suppression Admin
+    match /reviews/{reviewId} {
+      allow read, create: if true;
+      allow update, delete: if isAdmin();
+    }
+
     // Commandes : Création publique, lecture (propriétaire ou admin), modification (admin)
     match /orders/{orderId} {
       allow read: if request.auth != null && 

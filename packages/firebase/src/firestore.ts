@@ -92,3 +92,8 @@ export const updateDocument = async (collectionName: string, id: string, data: a
   const docRef = doc(db, collectionName, id);
   return await updateDoc(docRef, data);
 };
+
+export const addDocument = async (collectionName: string, data: any) => {
+  const colRef = collection(db, collectionName);
+  return await addDoc(colRef, data);
+};

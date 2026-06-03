@@ -613,7 +613,7 @@ export const Favorites = () => {
                 <div className="flex items-center justify-between border-t border-gray-50 pt-4">
                   <p className="text-sm font-black text-gray-900">{product.price?.toFixed(2)}€</p>
                   <Link 
-                    to={`/p/${product.id}`}
+                    to={`/?product=${product.id}`}
                     className="text-[9px] font-black uppercase tracking-widest text-gray-900 hover:underline"
                   >
                     Détails

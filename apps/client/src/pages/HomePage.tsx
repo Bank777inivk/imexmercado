@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { HeroSlider } from '../components/home/HeroSlider';
 import { TrustBar } from '../components/home/TrustBar';
 import { CategoryGrid } from '../components/home/CategoryGrid';
@@ -24,6 +25,9 @@ export function HomePage({ isSidebarOpen }: HomePageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const productParam = searchParams.get('product');
 
   useEffect(() => {
     setLoading(true);
@@ -33,6 +37,25 @@ export function HomePage({ isSidebarOpen }: HomePageProps) {
     });
     return () => unsubscribe();
   }, []);
+
+  // Listen to product query param to open modal
+  useEffect(() => {
+    if (!productParam || allProducts.length === 0) return;
+    const prod = allProducts.find(p => p.id === productParam);
+    if (prod) {
+      setSelectedProduct(prod);
+      setIsModalOpen(true);
+    }
+  }, [productParam, allProducts]);
+
+  // Handle URL cleanup on close
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('product');
+    setSearchParams(newParams, { replace: true });
+  };
 
   // Filtered lists for sections
   const sections = useMemo(() => {

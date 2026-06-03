@@ -1,6 +1,6 @@
 import { getDocs, collection, deleteDoc, query, where } from "firebase/firestore";
 import { db } from "./config";
-import { setDocument } from "./firestore";
+import { setDocument, getCollection, updateDocument } from "./firestore";
 
 // Helper function to build a structured product
 const makeProduct = (
@@ -429,3 +429,207 @@ export const seedProducts = async () => {
   
   console.log("🔥 BOMBARDEMENT DES PRODUITS RÉUSSI ! La Démo V2 est en vie ! (Les avis ont été conservés intacts)");
 };
+
+// ─── REVIEWS SEEDING ─────────────────────────────────────────────────────────
+
+const FIRST_NAMES_PT = ['João', 'Maria', 'António', 'Ana', 'Manuel', 'Isabel', 'José', 'Catarina', 'Rui', 'Beatriz', 'Pedro', 'Sofia', 'Ricardo', 'Mariana', 'Nuno', 'Inês', 'Miguel', 'Leonor', 'Tiago', 'Diana', 'Francisco', 'Patricia', 'André', 'Carla', 'Vítor'];
+const LAST_NAMES_PT = ['Santos', 'Silva', 'Ferreira', 'Pereira', 'Oliveira', 'Costa', 'Rodrigues', 'Martins', 'Lopes', 'Gomes', 'Almeida', 'Cardoso', 'Sousa', 'Teixeira', 'Pinto'];
+const CITIES_PT = ['Lisboa', 'Porto', 'Braga', 'Coimbra', 'Setúbal', 'Faro', 'Aveiro', 'Funchal', 'Viseu', 'Leiria', 'Évora', 'Guimarães', 'Albufeira', 'Portimão', 'Vila Real'];
+
+const FIRST_NAMES_FR = ['Thomas', 'Marie', 'Pierre', 'Julie', 'Nicolas', 'Sophie', 'Jean', 'Camille', 'Antoine', 'Lucas', 'Emma', 'Léa', 'Mathieu', 'Sarah', 'Alexandre', 'Chloé', 'Maxime', 'Manon', 'Hugo', 'Clara', 'Julien', 'Émilie', 'Guillaume', 'Audrey', 'Vincent'];
+const LAST_NAMES_FR = ['Martin', 'Bernard', 'Dubois', 'Thomas', 'Robert', 'Richard', 'Petit', 'Durand', 'Leroy', 'Moreau', 'Simon', 'Laurent', 'Lefebvre', 'Michel', 'Garcia'];
+const CITIES_FR = ['Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier', 'Bordeaux', 'Lille', 'Rennes', 'Reims', 'Le Havre', 'Toulon', 'Grenoble'];
+
+const REVIEW_TEMPLATES_BY_CATEGORY: Record<string, { pt: string[], fr: string[] }> = {
+  'default': {
+    pt: [
+      "Excelente produto, superou as minhas expectativas.",
+      "Muito satisfeito com a compra. Entrega super rápida!",
+      "Boa qualidade e preço justo. Recomendo vivamente.",
+      "Conforme a descrição, funciona perfeitamente.",
+      "Excelente serviço de apoio ao cliente e embalagem impecável."
+    ],
+    fr: [
+      "Excellent produit, conforme à mes attentes.",
+      "Très satisfait de mon achat. Livraison très rapide !",
+      "Bonne qualité pour un prix correct. Je recommande vivement.",
+      "Conforme à la description, fonctionne parfaitement.",
+      "Très bon service client et emballage soigné."
+    ]
+  },
+  'Téléphones et Hitech': {
+    pt: [
+      "Smartphone incrível! A bateria dura o dia todo e a câmara é brutal.",
+      "Muito rápido no processamento e a qualidade do ecrã é top.",
+      "Melhor hitech do mercado nesta gama de preço.",
+      "Super fluido, design elegante e leve.",
+      "Qualidade de som espetacular e fácil de configurar."
+    ],
+    fr: [
+      "Smartphone incroyable ! Batterie longue durée et super appareil photo.",
+      "Très fluide et rapide, qualité d'écran magnifique.",
+      "Le meilleur produit hi-tech à ce niveau de prix.",
+      "Design élégant, super réactif et léger.",
+      "Qualité sonore incroyable et configuration facile."
+    ]
+  },
+  'Maison & décoration': {
+    pt: [
+      "Fica lindo na minha sala, material de ótima qualidade.",
+      "Muda completamente o ambiente, design muito moderno.",
+      "Excelente acabamento, muito feliz com esta escolha.",
+      "Muito prático e elegante, exatamente o que procurava.",
+      "Dá um toque muito acolhedor à casa."
+    ],
+    fr: [
+      "Rendu magnifique dans mon salon, matériaux de qualité.",
+      "Change complètement l'ambiance, design très moderne.",
+      "Finitions soignées, très content de ce choix.",
+      "Pratique et élégant, exactement ce que je cherchais.",
+      "Apporte une touche chaleureuse à la maison."
+    ]
+  },
+  'Meubles, lampes,': {
+    pt: [
+      "Muito confortável e robusto, excelente design.",
+      "Iluminação perfeita, dá um ambiente fantástico.",
+      "Fácil de montar e excelente qualidade de madeira.",
+      "Design contemporâneo que se adapta muito bem.",
+      "Relação qualidade-preço imbatível neste móvel."
+    ],
+    fr: [
+      "Très confortable et solide, super design.",
+      "Éclairage idéal, crée une ambiance fantastique.",
+      "Facile à monter et bois de super qualité.",
+      "Design contemporain qui s'intègre parfaitement.",
+      "Rapport qualité-prix imbattable pour ce meuble."
+    ]
+  },
+  'Bricolage': {
+    pt: [
+      "Ferramenta profissional de alta resistência, recomendo.",
+      "Muito potente e prático para pequenos trabalhos em casa.",
+      "Excelente precisão nas tarefas cotidianas.",
+      "Bosch/Makita não desilude nunca, qualidade garantida.",
+      "Robusto e durável, um investimento seguro."
+    ],
+    fr: [
+      "Outil professionnel de haute résistance, je recommande.",
+      "Très puissant et maniable pour les petits travaux à la maison.",
+      "Excellente précision pour les tâches quotidiennes.",
+      "Matériel robuste qui ne déçoit pas, qualité garantie.",
+      "Robuste et solide, un très bon investissement."
+    ]
+  },
+  'Barbecues et Planchas': {
+    pt: [
+      "Grelha perfeitamente, fácil de limpar após o uso.",
+      "Ideal para os churrascos de verão com a família.",
+      "Materiais muito resistentes e aquecimento rápido.",
+      "Muito prático e seguro de manusear.",
+      "O sabor das grelhadas fica espetacular!"
+    ],
+    fr: [
+      "Cuisson parfaite, très facile à nettoyer après usage.",
+      "Idéal pour les barbecues d'été en famille.",
+      "Matériaux de haute qualité et montée en température rapide.",
+      "Très pratique et sécurisé à l'usage.",
+      "Le goût des grillades est tout simplement excellent !"
+    ]
+  },
+  'Piscines et Spas': {
+    pt: [
+      "Relaxamento total, fácil instalação e manutenção.",
+      "Ideal para os dias quentes de verão, as crianças adoram.",
+      "Sistema de filtragem eficiente e robusto.",
+      "Spa super confortável, jatos de água perfeitos.",
+      "Excelente resistência do liner e estabilidade."
+    ],
+    fr: [
+      "Détente totale, installation et entretien faciles.",
+      "Idéal pour les chaudes journées d'été, les enfants adorent.",
+      "Système de filtration efficace et robuste.",
+      "Spa ultra confortable, buses de massage parfaites.",
+      "Excellente résistance de la structure et du liner."
+    ]
+  }
+};
+
+// Map categories in firestore to templates (handling legacy/accent differences)
+const getTemplatesForCategory = (categoryName: string) => {
+  const normalized = Object.keys(REVIEW_TEMPLATES_BY_CATEGORY).find(
+    key => key.toLowerCase().replace(/[^a-z0-9]/g, '') === categoryName.toLowerCase().replace(/[^a-z0-9]/g, '')
+  );
+  return REVIEW_TEMPLATES_BY_CATEGORY[normalized || 'default'];
+};
+
+export const seedReviewsForExistingProducts = async () => {
+  console.log("🌱 SEEDING REVIEWS FOR EXISTING PRODUCTS...");
+  
+  // Get all products
+  const products = await getCollection("products");
+  if (products.length === 0) {
+    console.log("⚠️ No products found in the database. Seeding reviews aborted.");
+    return;
+  }
+  
+  console.log(`🔍 Found ${products.length} products. Generating 20 reviews for each...`);
+  
+  let totalSeeded = 0;
+  
+  const promises: (() => Promise<any>)[] = [];
+  
+  for (const product of products) {
+    const productId = product.id;
+    const catTemplates = getTemplatesForCategory(product.category || 'default');
+    
+    // Generate 20 reviews for this product
+    for (let r = 0; r < 20; r++) {
+      const isPT = Math.random() > 0.4;
+      const firstNames = isPT ? FIRST_NAMES_PT : FIRST_NAMES_FR;
+      const lastNames = isPT ? LAST_NAMES_PT : LAST_NAMES_FR;
+      const cities = isPT ? CITIES_PT : CITIES_FR;
+      const comments = isPT ? catTemplates.pt : catTemplates.fr;
+      
+      const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+      const city = cities[Math.floor(Math.random() * cities.length)];
+      const text = comments[Math.floor(Math.random() * comments.length)] + (Math.random() > 0.5 ? " 👍" : "");
+      const rating = Math.random() > 0.3 ? 5 : 4;
+      const date = new Date(Date.now() - Math.floor(Math.random() * 60 * 24 * 60 * 60 * 1000)).toISOString();
+      const reviewId = `rev-${productId}-${r}`;
+      
+      const reviewData = {
+        id: reviewId,
+        productId,
+        productName: product.name,
+        name,
+        city,
+        text,
+        rating,
+        date,
+        approved: true,
+        createdAt: date
+      };
+      
+      promises.push(() => setDocument("reviews", reviewId, reviewData));
+    }
+    
+    const updatedRating = (Math.random() * (5.0 - 4.4) + 4.4).toFixed(1);
+    promises.push(() => updateDocument("products", productId, {
+      rating: updatedRating,
+      reviewCount: 20
+    }));
+  }
+  
+  // Execute promises in parallel chunks of 100
+  const chunkSize = 100;
+  for (let i = 0; i < promises.length; i += chunkSize) {
+    const chunk = promises.slice(i, i + chunkSize);
+    await Promise.all(chunk.map(fn => fn()));
+    totalSeeded += chunk.length;
+    console.log(`⚡ Reviews Seeding progress: ${totalSeeded}/${promises.length} written...`);
+  }
+  
+  console.log(`✅ Success! Seeded ${totalSeeded} documents in parallel.`);
+};
+
