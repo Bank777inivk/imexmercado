@@ -127,6 +127,21 @@ export async function sendAutomatedEmail(
       body = body.replaceAll(key, replacements[key]);
     });
 
+    // Call serverless API to send real SMTP email via Nodemailer
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipientEmail,
+          subject,
+          body
+        })
+      });
+    } catch (apiErr) {
+      console.warn("Failed to dispatch real email via Vercel serverless API:", apiErr);
+    }
+
     // 4. Log to email_logs in Firestore
     await addDocument('email_logs', {
       type,
