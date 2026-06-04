@@ -633,3 +633,108 @@ export const seedReviewsForExistingProducts = async () => {
   console.log(`✅ Success! Seeded ${totalSeeded} documents in parallel.`);
 };
 
+export const seedEmailTemplates = async () => {
+  console.log("🌱 SEEDING DEFAULT EMAIL TEMPLATES...");
+  
+  const defaultTemplates = {
+    abandoned_cart: {
+      name: "Panier abandonné",
+      subject: "Votre panier vous attend chez IMEX MERCADO 🛒",
+      body: `<div style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #FFFFFF; color: #1F222A; border: 1px solid #F3F4F6; rounded: 24px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 26px; font-weight: 900; letter-spacing: -0.05em; margin: 0; color: #1F222A;"><span style="color: #FBBF24;">I</span>MEX MERCADO</h1>
+    <p style="font-size: 11px; text-transform: uppercase; tracking-widest: 0.2em; color: #9CA3AF; margin-top: 5px;">Le meilleur du commerce européen</p>
+  </div>
+  <div style="margin-bottom: 30px;">
+    <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 10px 0;">Bonjour {customer_name},</h2>
+    <p style="font-size: 14px; line-height: 1.6; color: #4B5563; margin: 0;">Vous étiez sur le point de commander des articles d'exception chez nous, mais vous n'avez pas finalisé votre achat. Rassurez-vous, nous avons sauvegardé votre panier pour vous faciliter la tâche !</p>
+  </div>
+  <div style="background-color: #F9FAFB; padding: 24px; border-radius: 16px; margin-bottom: 30px;">
+    <h3 style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #9CA3AF; margin: 0 0 15px 0;">Votre sélection :</h3>
+    <div style="font-size: 14px; font-weight: 700; color: #1F222A;">
+      {cart_items}
+    </div>
+  </div>
+  <div style="text-align: center; margin-bottom: 40px;">
+    <a href="{checkout_url}" style="display: inline-block; background-color: #1F222A; color: #FFFFFF; padding: 16px 36px; border-radius: 14px; font-size: 13px; font-weight: 900; text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">Finaliser ma commande</a>
+  </div>
+  <hr style="border: 0; border-top: 1px solid #E5E7EB; margin-bottom: 25px;" />
+  <div style="text-align: center; font-size: 11px; color: #9CA3AF; line-height: 1.5;">
+    <p style="margin: 0 0 5px 0;">IMEX MERCADO | NIF: PT 510 236 789</p>
+    <p style="margin: 0;">Si vous avez besoin d'assistance, n'hésitez pas à répondre directement à ce mail.</p>
+  </div>
+</div>`
+    },
+    payment_cancelled: {
+      name: "Paiement annulé",
+      subject: "Problème lors du règlement de votre commande ⚠️",
+      body: `<div style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #FFFFFF; color: #1F222A; border: 1px solid #F3F4F6;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 26px; font-weight: 900; letter-spacing: -0.05em; margin: 0; color: #1F222A;"><span style="color: #FBBF24;">I</span>MEX MERCADO</h1>
+  </div>
+  <div style="margin-bottom: 30px;">
+    <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 10px 0; color: #EF4444;">Paiement non finalisé</h2>
+    <p style="font-size: 14px; line-height: 1.6; color: #4B5563; margin: 0;">Bonjour {customer_name},<br/><br/>Nous avons constaté que le paiement de votre tentative de commande <strong>{order_id}</strong> a été annulé ou a échoué. Ne vous inquiétez pas, aucun montant n'a été débité et votre sélection est toujours en sécurité dans votre session.</p>
+  </div>
+  <div style="text-align: center; margin-bottom: 40px; margin-top: 30px;">
+    <a href="{retry_url}" style="display: inline-block; background-color: #EF4444; color: #FFFFFF; padding: 16px 36px; border-radius: 14px; font-size: 13px; font-weight: 900; text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em;">Retenter le paiement</a>
+  </div>
+  <hr style="border: 0; border-top: 1px solid #E5E7EB; margin-bottom: 25px;" />
+  <div style="text-align: center; font-size: 11px; color: #9CA3AF; line-height: 1.5;">
+    <p style="margin: 0 0 5px 0;">IMEX MERCADO | NIF: PT 510 236 789</p>
+  </div>
+</div>`
+    },
+    order_confirmation: {
+      name: "Confirmation de commande",
+      subject: "Merci pour votre commande chez IMEX MERCADO ! 🎉",
+      body: `<div style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #FFFFFF; color: #1F222A; border: 1px solid #F3F4F6;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 26px; font-weight: 900; letter-spacing: -0.05em; margin: 0; color: #1F222A;"><span style="color: #FBBF24;">I</span>MEX MERCADO</h1>
+  </div>
+  <div style="margin-bottom: 30px;">
+    <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 10px 0; color: #10B981;">Commande confirmée !</h2>
+    <p style="font-size: 14px; line-height: 1.6; color: #4B5563; margin: 0;">Bonjour {customer_name},<br/><br/>Merci pour votre confiance ! Nous avons bien reçu votre commande <strong>{order_id}</strong> et notre équipe prépare déjà son emballage avec le plus grand soin.</p>
+  </div>
+  <div style="background-color: #F9FAFB; padding: 24px; border-radius: 16px; margin-bottom: 30px;">
+    <h3 style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #9CA3AF; margin: 0 0 15px 0;">Détail de votre achat :</h3>
+    <div style="font-size: 14px; color: #1F222A; line-height: 1.6;">
+      {order_items}
+      <div style="border-top: 1px solid #E5E7EB; margin-top: 15px; padding-top: 15px; font-weight: 900; font-size: 16px; text-align: right;">
+        Total : {total_price}
+      </div>
+    </div>
+  </div>
+  <hr style="border: 0; border-top: 1px solid #E5E7EB; margin-bottom: 25px;" />
+  <div style="text-align: center; font-size: 11px; color: #9CA3AF; line-height: 1.5;">
+    <p style="margin: 0 0 5px 0;">IMEX MERCADO | NIF: PT 510 236 789</p>
+  </div>
+</div>`
+    },
+    order_shipped: {
+      name: "Commande expédiée",
+      subject: "Bonne nouvelle ! Votre commande {order_id} a été expédiée 🚚",
+      body: `<div style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #FFFFFF; color: #1F222A; border: 1px solid #F3F4F6;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 26px; font-weight: 900; letter-spacing: -0.05em; margin: 0; color: #1F222A;"><span style="color: #FBBF24;">I</span>MEX MERCADO</h1>
+  </div>
+  <div style="margin-bottom: 30px;">
+    <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 10px 0; color: #3B82F6;">Votre colis est en route !</h2>
+    <p style="font-size: 14px; line-height: 1.6; color: #4B5563; margin: 0;">Bonjour {customer_name},<br/><br/>Votre commande <strong>{order_id}</strong> a été remise à notre transporteur. Vous pouvez suivre son acheminement en temps réel.</p>
+  </div>
+  <div style="background-color: #F3F8FF; border: 1px solid #DBEAFE; padding: 24px; border-radius: 16px; margin-bottom: 30px; text-align: center;">
+    <p style="font-size: 14px; font-weight: 800; color: #1E40AF; margin: 0 0 10px 0;">Numéro de suivi : {tracking_number}</p>
+    <a href="{tracking_link}" style="display: inline-block; background-color: #3B82F6; color: #FFFFFF; padding: 14px 28px; border-radius: 12px; font-size: 12px; font-weight: 900; text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em;">Suivre mon colis</a>
+  </div>
+  <hr style="border: 0; border-top: 1px solid #E5E7EB; margin-bottom: 25px;" />
+  <div style="text-align: center; font-size: 11px; color: #9CA3AF; line-height: 1.5;">
+    <p style="margin: 0 0 5px 0;">IMEX MERCADO | NIF: PT 510 236 789</p>
+  </div>
+</div>`
+    }
+  };
+
+  await setDocument('settings', 'email_templates', defaultTemplates);
+  console.log("✅ Default email templates successfully seeded!");
+};
+

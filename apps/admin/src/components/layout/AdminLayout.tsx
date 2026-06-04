@@ -17,6 +17,7 @@ export function AdminLayout() {
     if (path.startsWith('/parametres')) return 'Paramètres Système';
     if (path.startsWith('/cms')) return 'Contenu Site';
     if (path.startsWith('/avis')) return 'Modération des Avis';
+    if (path.startsWith('/messagerie')) return 'Automations & Messagerie';
     return 'IMEX-ADMIN';
   };
 

@@ -89,6 +89,7 @@ const ProductRedirect = () => {
 
 function App() {
   useDynamicTheme();
+  const [simulatedEmail, setSimulatedEmail] = React.useState<{ type: string; recipientEmail: string; subject: string } | null>(null);
 
   React.useEffect(() => {
     if (window.location.protocol === 'http:' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
@@ -96,10 +97,48 @@ function App() {
     }
   }, []);
 
+  React.useEffect(() => {
+    const handleEmailEvent = (e: any) => {
+      setSimulatedEmail(e.detail);
+      const timer = setTimeout(() => {
+        setSimulatedEmail(null);
+      }, 7000);
+      return () => clearTimeout(timer);
+    };
+    window.addEventListener('simulated-email-sent', handleEmailEvent);
+    return () => window.removeEventListener('simulated-email-sent', handleEmailEvent);
+  }, []);
+
   return (
     <>
       <TrackingManager />
       <CookieBanner />
+      
+      {/* Visual Email Simulation Toast */}
+      {simulatedEmail && (
+        <div className="fixed bottom-6 right-6 z-[9999] max-w-sm w-full bg-slate-900 text-white p-5 rounded-2xl shadow-2xl border border-slate-800 animate-in slide-in-from-bottom duration-300 flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="animate-ping w-2.5 h-2.5 bg-amber-400 rounded-full inline-block"></span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">Simulation Email</span>
+          </div>
+          <h4 className="text-xs font-black truncate">{simulatedEmail.subject}</h4>
+          <p className="text-[10px] text-gray-400">
+            Envoyé à : <span className="font-bold text-gray-200">{simulatedEmail.recipientEmail}</span>
+          </p>
+          <div className="mt-1 flex items-center justify-between">
+            <span className="text-[9px] bg-slate-800 text-gray-300 font-bold px-2 py-0.5 rounded uppercase">
+              {simulatedEmail.type.replace('_', ' ')}
+            </span>
+            <button 
+              onClick={() => setSimulatedEmail(null)} 
+              className="text-[10px] font-extrabold uppercase text-gray-400 hover:text-white"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
+
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           {/* ─── Special Isolated Checkout ─── */}

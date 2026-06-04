@@ -1,4 +1,4 @@
-import { auth, setDocument, getDocument, seedOrders } from "@imexmercado/firebase";
+import { auth, setDocument, getDocument, seedOrders, seedEmailTemplates } from "@imexmercado/firebase";
 
 /**
  * Utility to promote the currently logged-in user to Admin.
@@ -30,6 +30,7 @@ export async function seedDatabase() {
   console.log("Génération des données de test en cours...");
   try {
     await seedOrders();
+    await seedEmailTemplates();
     console.log("Base de données initialisée avec succès !");
     window.location.reload();
   } catch (error) {

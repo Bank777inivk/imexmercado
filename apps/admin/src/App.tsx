@@ -12,6 +12,7 @@ import { CustomersView } from './views/CustomersView';
 import { SettingsView } from './views/SettingsView';
 import { CategoriesView } from './views/CategoriesView';
 import { ReviewsView } from './views/ReviewsView';
+import { EmailsView } from './views/EmailsView';
 import { subscribeToDocument } from '@imexmercado/firebase';
 import { adjustColor } from '@imexmercado/ui/src/utils';
 
@@ -103,6 +104,7 @@ function App() {
           <Route path="/clients" element={<CustomersView />} />
           <Route path="/parametres" element={<SettingsView />} />
           <Route path="/avis" element={<ReviewsView />} />
+          <Route path="/messagerie" element={<EmailsView />} />
         </Route>
       </Route>
 

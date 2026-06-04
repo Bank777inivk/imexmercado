@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { auth, setDocument, useAuth, subscribeToDocument } from '@imexmercado/firebase';
+import { auth, setDocument, useAuth, subscribeToDocument, deleteDocument } from '@imexmercado/firebase';
 console.log("CheckoutPage.tsx Module Loaded - setDocument exists:", !!setDocument);
+import { sendAutomatedEmail } from '../utils/emailHelper';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   User, Truck, CreditCard, CheckCircle, 
@@ -19,7 +20,7 @@ import { useStripe, useElements, CardNumberElement } from '@stripe/react-stripe-
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { CreditCard as SquareCreditCard, PaymentForm } from 'react-square-web-payments-sdk';
 
-function StripePaymentInner({ isProcessing, setIsProcessing, nextStep, totalPrice, saveOrder }: any) {
+function StripePaymentInner({ isProcessing, setIsProcessing, nextStep, totalPrice, saveOrder, formData }: any) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -50,12 +51,32 @@ function StripePaymentInner({ isProcessing, setIsProcessing, nextStep, totalPric
 
         if (result.error) {
           alert(result.error.message);
+          // Trigger Cancelled Payment email
+          try {
+            await sendAutomatedEmail('payment_cancelled', formData.email, {
+              customerName: formData.firstName,
+              orderId: `ORD-${Date.now().toString().slice(-6).toUpperCase()}`,
+              retryUrl: window.location.origin + '/commande?email=' + encodeURIComponent(formData.email)
+            });
+          } catch (e) {
+            console.error("Error sending cancelled payment email:", e);
+          }
         } else if (result.paymentIntent.status === 'succeeded') {
           await saveOrder('stripe', result.paymentIntent);
           nextStep();
         }
       } catch (err) {
         console.error(err);
+        // Trigger Cancelled Payment email
+        try {
+          await sendAutomatedEmail('payment_cancelled', formData.email, {
+            customerName: formData.firstName,
+            orderId: `ORD-${Date.now().toString().slice(-6).toUpperCase()}`,
+            retryUrl: window.location.origin + '/commande?email=' + encodeURIComponent(formData.email)
+          });
+        } catch (e) {
+          console.error("Error sending cancelled payment email:", e);
+        }
       } finally {
         setIsProcessing(false);
       }
@@ -63,7 +84,7 @@ function StripePaymentInner({ isProcessing, setIsProcessing, nextStep, totalPric
 
     document.addEventListener('STRIPE_SUBMIT', handleSumbit);
     return () => document.removeEventListener('STRIPE_SUBMIT', handleSumbit);
-  }, [stripe, elements, isProcessing, totalPrice]);
+  }, [stripe, elements, isProcessing, totalPrice, formData]);
 
   return <StripePaymentForm />;
 }
@@ -139,6 +160,15 @@ export function CheckoutPage() {
     return () => unsubscribe();
   }, []);
 
+  // Prefill email from query parameter if recovering cart
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlEmail = params.get('email');
+    if (urlEmail) {
+      setFormData(prev => ({ ...prev, email: urlEmail }));
+    }
+  }, []);
+
   useEffect(() => {
     let country = formData.country;
     if (selectedAddressId && profile?.addresses) {
@@ -157,6 +187,38 @@ export function CheckoutPage() {
   }, [formData.country, selectedAddressId, profile, shippingZones]);
 
   const finalTotal = totalPrice + shippingPrice;
+
+  // Sync abandoned carts to Firestore
+  useEffect(() => {
+    if (!formData.email || items.length === 0 || isOrderConfirmed.current) return;
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        await setDocument('abandoned_carts', formData.email, {
+          email: formData.email,
+          customerName: `${formData.firstName} ${formData.lastName}`.trim() || 'Client',
+          phone: formData.phone || '',
+          items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image
+          })),
+          total: finalTotal,
+          updatedAt: new Date().toISOString(),
+          checkoutUrl: window.location.origin + '/commande?email=' + encodeURIComponent(formData.email)
+        });
+      } catch (err) {
+        console.error('Error syncing abandoned cart:', err);
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [formData, items, finalTotal]);
 
   useEffect(() => {
     if (profile && !authLoading) {
@@ -296,6 +358,30 @@ export function CheckoutPage() {
       };
 
       await setDocument('orders', orderId, orderData);
+      
+      // Delete temporary abandoned cart if it exists
+      try {
+        await deleteDocument('abandoned_carts', formData.email);
+      } catch (e) {
+        console.error("Error deleting abandoned cart:", e);
+      }
+
+      // Send Order Confirmation email
+      try {
+        await sendAutomatedEmail('order_confirmation', formData.email, {
+          customerName: formData.firstName,
+          orderId: orderId,
+          items: items.map(item => ({
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image
+          })),
+          totalPrice: finalTotal.toFixed(2) + '€'
+        });
+      } catch (e) {
+        console.error("Error sending order confirmation email:", e);
+      }
       
       // Prevent redirect when cart clears
       isOrderConfirmed.current = true;
@@ -1470,6 +1556,7 @@ export function CheckoutPage() {
                                   nextStep={nextStep} 
                                   totalPrice={finalTotal}
                                   saveOrder={saveOrder}
+                                  formData={formData}
                                 />
                               </Elements>
                             ) : (
