@@ -39,10 +39,22 @@ service cloud.firestore {
 
     // Paramètres (CMS & Paiement)
     match /settings/{settingId} {
-      // Accès public spécifique pour éviter les erreurs d'évaluation isAdmin() chez les invités
-      allow read: if settingId in ['homepage', 'payment_public'];
-      // Accès Admin complet
-      allow read, write: if isAdmin();
+      // Accès public complet en lecture pour tous les paramètres
+      allow read: if true;
+      // Accès Admin complet en écriture
+      allow write: if isAdmin();
+    }
+
+    // Paniers abandonnés : Création, modification et suppression publiques pour la gestion du panier abandonné durant le checkout, lecture réservée aux admins
+    match /abandoned_carts/{cartId} {
+      allow create, update, delete: if true;
+      allow read: if isAdmin();
+    }
+
+    // Journaux d'emails (logs) : création publique lors de l'envoi d'e-mails, lecture, modification et suppression réservées aux admins
+    match /email_logs/{logId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
     }
 
     // Catégories : Lecture publique, écriture Admin uniquement

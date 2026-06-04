@@ -21,6 +21,7 @@ export function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
+  const [hoveredPath, setHoveredPath] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -71,7 +72,17 @@ export function DashboardLayout() {
     : user.displayName || 'Utilisateur';
 
   return (
-    <div className="min-h-screen bg-[#F5F7F9] flex overflow-hidden font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#E2E8F0] flex overflow-hidden font-sans">
+      {/* Local high-specificity style injection to protect sidebar links on hover */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .sidebar-link-item:not(.active-link):hover {
+          background-color: rgba(241, 90, 36, 0.28) !important;
+          color: #FFFFFF !important;
+        }
+        .sidebar-link-item:not(.active-link):hover * {
+          color: #FFFFFF !important;
+        }
+      `}} />
       
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
@@ -83,7 +94,7 @@ export function DashboardLayout() {
 
       {/* Sidebar - Premium Dark Design */}
       <aside 
-        className={`fixed inset-y-0 left-0 w-[280px] flex flex-col z-[70] transform transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarOpen ? 'translate-x-0 shadow-[20px_0_60px_rgba(0,0,0,0.3)]' : '-translate-x-full'} lg:relative lg:translate-x-0`}
+        className={`fixed inset-y-0 left-0 w-[280px] flex flex-col z-[70] border-r border-white/5 transform transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarOpen ? 'translate-x-0 shadow-[20px_0_60px_rgba(0,0,0,0.3)]' : '-translate-x-full'} lg:relative lg:translate-x-0`}
         style={{ backgroundColor: 'var(--client-sidebar-bg, #0F1115)' }}
       >
         
@@ -104,14 +115,17 @@ export function DashboardLayout() {
         <nav className="flex-grow px-4 space-y-1.5 overflow-y-auto custom-scrollbar">
           {accountMenu.map((item) => {
             const active = location.pathname === item.path;
+            const isHovered = hoveredPath === item.path;
             return (
               <Link 
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 relative group overflow-hidden ${
+                onMouseEnter={() => setHoveredPath(item.path)}
+                onMouseLeave={() => setHoveredPath(null)}
+                className={`sidebar-link-item flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 relative group overflow-hidden ${
                   active 
-                    ? 'bg-primary text-white shadow-[0_10px_25px_-5px_rgba(255,92,0,0.4)]' 
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? 'active-link bg-gradient-to-r from-primary to-orange-500 text-white shadow-[0_8px_20px_-4px_rgba(255,92,0,0.35)] scale-[1.02]' 
+                    : 'text-gray-400 hover:scale-[1.01]'
                 }`}
               >
                 {/* Active Indicator Line */}
@@ -121,21 +135,16 @@ export function DashboardLayout() {
                 
                 <item.icon 
                   size={22} 
-                  weight={active ? 'fill' : 'bold'} 
+                  weight={active || isHovered ? 'fill' : 'bold'} 
                   className={`transition-transform duration-300 group-hover:scale-110`}
-                  style={{ color: active ? 'var(--client-sidebar-active-text, #FFFFFF)' : 'var(--client-sidebar-text, #9CA3AF)' }}
+                  style={{ color: (active || isHovered) ? 'var(--client-sidebar-active-text, #FFFFFF)' : 'var(--client-sidebar-text, #9CA3AF)' }}
                 />
                 <span 
                   className="text-[13px] font-bold uppercase tracking-widest"
-                  style={{ color: active ? 'var(--client-sidebar-active-text, #FFFFFF)' : 'var(--client-sidebar-text, #9CA3AF)' }}
+                  style={{ color: (active || isHovered) ? 'var(--client-sidebar-active-text, #FFFFFF)' : 'var(--client-sidebar-text, #9CA3AF)' }}
                 >
                   {item.label}
                 </span>
-                
-                {/* Hover Glow Effect */}
-                {!active && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/0 to-primary/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
-                )}
               </Link>
             );
           })}
@@ -164,7 +173,7 @@ export function DashboardLayout() {
       <div className="flex-1 flex flex-col min-h-screen min-w-0 w-full relative h-[100dvh] overflow-hidden">
         
         {/* Dashboard TopBar (Shared Mobile & Desktop) */}
-        <header className="h-[70px] md:h-[80px] w-full bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-8 z-30 shrink-0 shadow-sm lg:shadow-none">
+        <header className="h-[70px] md:h-[80px] w-full bg-white/75 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-4 md:px-8 z-30 shrink-0 shadow-sm lg:shadow-none">
           
           <div className="flex items-center gap-3 md:gap-4">
             <button className="lg:hidden text-gray-900 p-2 -ml-2" onClick={() => setIsSidebarOpen(true)}>

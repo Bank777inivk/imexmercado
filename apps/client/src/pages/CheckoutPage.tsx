@@ -573,28 +573,31 @@ export function CheckoutPage() {
     return (
       <div className={`min-h-screen bg-gradient-to-b ${isPendingPayment ? 'from-amber-50/60' : 'from-green-50/60'} via-white to-white flex flex-col items-center justify-center p-4 sm:p-8`}>
         
-        {/* Success Animation */}
-        <div className="relative mb-8 flex items-center justify-center">
-          <div className={`absolute w-40 h-40 rounded-full animate-ping ${isPendingPayment ? 'bg-amber-400/10' : 'bg-green-400/10'}`} />
-          <div className={`absolute w-32 h-32 rounded-full animate-pulse ${isPendingPayment ? 'bg-amber-400/15' : 'bg-green-400/15'}`} />
-          <div className={`relative z-10 w-24 h-24 bg-gradient-to-br ${isPendingPayment ? 'from-amber-400 to-amber-600 shadow-amber-500/30' : 'from-green-400 to-green-600 shadow-green-500/30'} text-white rounded-full flex items-center justify-center shadow-2xl border-4 border-white`}>
-            {isPendingPayment ? <Info size={48} weight="bold" /> : <CheckCircle size={48} weight="bold" />}
+        {/* Success Card without background with green border */}
+        <div className="w-full max-w-lg p-6 sm:p-8 border-2 border-[#00A859] rounded-3xl flex flex-col items-center justify-center bg-transparent mb-6 text-center">
+          {/* Success Animation */}
+          <div className="relative mb-8 flex items-center justify-center">
+            <div className={`absolute w-40 h-40 rounded-full animate-ping ${isPendingPayment ? 'bg-amber-400/10' : 'bg-green-400/10'}`} />
+            <div className={`absolute w-32 h-32 rounded-full animate-pulse ${isPendingPayment ? 'bg-amber-400/15' : 'bg-green-400/15'}`} />
+            <div className={`relative z-10 w-24 h-24 bg-gradient-to-br ${isPendingPayment ? 'from-amber-400 to-amber-600 shadow-amber-500/30' : 'from-green-400 to-green-600 shadow-green-500/30'} text-white rounded-full flex items-center justify-center shadow-2xl border-4 border-white`}>
+              {isPendingPayment ? <Info size={48} weight="bold" /> : <CheckCircle size={48} weight="bold" />}
+            </div>
+          </div>
+
+          {/* Title */}
+          <div className="text-center">
+            <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${isPendingPayment ? 'text-amber-500' : 'text-green-500'}`}>{topLabel}</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tighter mb-3">
+              {mainTitle}
+            </h1>
+            <p className="text-gray-500 font-medium max-w-md mx-auto leading-relaxed">
+              {topDesc}
+            </p>
           </div>
         </div>
 
-        {/* Title */}
-        <div className="text-center mb-2">
-          <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${isPendingPayment ? 'text-amber-500' : 'text-green-500'}`}>{topLabel}</p>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tighter mb-3">
-            {mainTitle}
-          </h1>
-          <p className="text-gray-500 font-medium max-w-md mx-auto leading-relaxed">
-            {topDesc}
-          </p>
-        </div>
-
-        {/* Order Card */}
-        <div className="w-full max-w-lg mt-8 bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-100/80 overflow-hidden">
+        {/* Order Card with green border */}
+        <div className="w-full max-w-lg bg-white rounded-3xl border-2 border-[#00A859] shadow-xl shadow-gray-100/80 overflow-hidden">
           
           {/* Order Header */}
           <div className="bg-gray-900 px-6 py-4 flex items-center justify-between">
@@ -1006,38 +1009,37 @@ export function CheckoutPage() {
                       <div className="h-12 bg-gray-200 rounded-xl w-full" />
                     </div>
                   ) : user ? (
-                    /* ─── SMART IDENTIFIED VIEW ─── */
                     <div className="space-y-6 pt-2 pb-2">
-                      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
+                      <div className="bg-[#1F222A] border border-[#2F333F] rounded-2xl p-6 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
                         <div className="relative z-10">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center text-primary">
+                            <div className="w-10 h-10 bg-zinc-800 rounded-xl shadow-sm border border-zinc-700 flex items-center justify-center text-amber-500">
                               <User size={20} weight="bold" />
                             </div>
                             <div>
-                               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 leading-none mb-1">Client Identifié</p>
-                               <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                               <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-none mb-1">Client Identifié</p>
+                               <h3 className="text-sm font-black text-white uppercase tracking-tight">
                                  {profile?.firstName ? `Ravi de vous revoir, ${profile.firstName} !` : "Bienvenue !"}
                                </h3>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 border-t border-gray-100 pt-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 border-t border-[#2F333F] pt-4">
                             <div>
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Coordonnées</p>
-                              <p className="text-xs font-bold text-gray-900 uppercase">
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Coordonnées</p>
+                              <p className="text-xs font-bold text-white uppercase">
                                 {profile?.firstName} {profile?.lastName}
                               </p>
                             </div>
                             <div>
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Email</p>
-                              <p className="text-xs font-bold text-gray-900">{user.email}</p>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Email</p>
+                              <p className="text-xs font-bold text-white">{user.email}</p>
                             </div>
                             {profile?.phone && (
                               <div className="sm:col-span-2">
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Téléphone</p>
-                                <p className="text-xs font-bold text-gray-900">{profile.phone}</p>
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Téléphone</p>
+                                <p className="text-xs font-bold text-white">{profile.phone}</p>
                               </div>
                             )}
                           </div>
@@ -1045,7 +1047,7 @@ export function CheckoutPage() {
                           <div className="mt-6 flex items-center justify-end">
                             <button 
                               onClick={() => auth.signOut()}
-                              className="text-[10px] font-black uppercase text-gray-400 hover:text-red-500 transition-colors"
+                              className="text-[10px] font-black uppercase text-zinc-400 hover:text-red-400 transition-colors"
                             >
                               Se déconnecter
                             </button>
@@ -1056,7 +1058,7 @@ export function CheckoutPage() {
                       <button 
                         onClick={() => setCurrentStep(2)}
                         disabled={!formData.firstName || !formData.email}
-                        className="w-full lg:flex hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-black transition-all mt-4 text-xs disabled:opacity-50 flex items-center justify-center gap-3"
+                        className="w-full lg:flex hidden bg-primary text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/95 transition-all mt-4 text-xs disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 hover:scale-[1.02]"
                       >
                         Continuer vers la livraison <ArrowRight size={16} weight="bold" />
                       </button>
@@ -1180,7 +1182,7 @@ export function CheckoutPage() {
                       <button 
                         onClick={handleIdentification}
                         disabled={isProcessing || !formData.firstName || !formData.email || (authMode === 'register' && !registerPassword)}
-                        className="w-full lg:block hidden bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-black transition-all mt-4 text-xs disabled:opacity-50"
+                        className="w-full lg:block hidden bg-primary text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/95 transition-all mt-4 text-xs disabled:opacity-50 active:scale-95 hover:scale-[1.02]"
                       >
                         {isProcessing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" /> : (authMode === 'register' ? "Créer mon compte & continuer" : "Continuer vers la livraison")}
                       </button>
@@ -1201,7 +1203,7 @@ export function CheckoutPage() {
               </motion.div>
             </AnimatePresence>
           ) : (
-            <div className="p-3 bg-gray-50/80 border border-gray-100 rounded-xl flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-100 transition-all cursor-pointer group" onClick={() => setCurrentStep(1)}>
+            <div className="p-3 bg-gray-50/80 border border-[#00A859] rounded-xl flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-100 transition-all cursor-pointer group" onClick={() => setCurrentStep(1)}>
               <div className="flex items-center gap-3 min-w-0">
                 <div className="flex-shrink-0 w-6 h-6 bg-white rounded-lg flex items-center justify-center text-success border border-gray-100 shadow-sm">
                   <Check size={12} weight="bold" />
@@ -1484,7 +1486,7 @@ export function CheckoutPage() {
                 </motion.div>
               </AnimatePresence>
             ) : currentStep > 2 ? (
-              <div className="p-3 bg-gray-50/80 border border-gray-100 rounded-xl flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-100 transition-all cursor-pointer group" onClick={() => setCurrentStep(2)}>
+              <div className="p-3 bg-gray-50/80 border border-[#00A859] rounded-xl flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-100 transition-all cursor-pointer group" onClick={() => setCurrentStep(2)}>
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex-shrink-0 w-6 h-6 bg-white rounded-lg flex items-center justify-center text-success border border-gray-100 shadow-sm">
                     <Check size={12} weight="bold" />
@@ -1536,14 +1538,14 @@ export function CheckoutPage() {
 
                     {/* STRIPE */}
                     {activeGateways.includes('stripe') && (
-                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'stripe' ? 'border-gray-900' : 'border-gray-100'}`}>
+                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'stripe' ? 'border-[#00A859]' : 'border-[#00A859]/30'}`}>
                         <button onClick={() => setSelectedGateway(selectedGateway === 'stripe' ? null : 'stripe')} className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === 'stripe' ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
                           <div className="flex items-center gap-3">
-                            <CreditCard size={24} className={selectedGateway === 'stripe' ? 'text-gray-900' : 'text-gray-400'} weight={selectedGateway === 'stripe' ? 'fill' : 'regular'} />
+                            <CreditCard size={24} className={selectedGateway === 'stripe' ? 'text-[#00A859]' : 'text-gray-400'} weight={selectedGateway === 'stripe' ? 'fill' : 'regular'} />
                             <span className={`text-sm font-bold ${selectedGateway === 'stripe' ? 'text-gray-900' : 'text-gray-500'}`}>Carte Bancaire</span>
                           </div>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'stripe' ? 'border-gray-900' : 'border-gray-300'}`}>
-                            {selectedGateway === 'stripe' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'stripe' ? 'border-[#00A859]' : 'border-gray-300'}`}>
+                            {selectedGateway === 'stripe' && <div className="w-2.5 h-2.5 bg-[#00A859] rounded-full" />}
                           </div>
                         </button>
                         {selectedGateway === 'stripe' && (
@@ -1576,7 +1578,7 @@ export function CheckoutPage() {
 
                     {/* PAYPAL */}
                     {activeGateways.includes('paypal') && (
-                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'paypal' ? 'border-gray-900' : 'border-gray-100'}`}>
+                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'paypal' ? 'border-[#00A859]' : 'border-[#00A859]/30'}`}>
                         <button onClick={() => setSelectedGateway(selectedGateway === 'paypal' ? null : 'paypal')} className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === 'paypal' ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
                           <div className="flex items-center gap-3">
                             <svg className="h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1585,8 +1587,8 @@ export function CheckoutPage() {
                             </svg>
                             <span className={`text-sm font-bold ${selectedGateway === 'paypal' ? 'text-gray-900' : 'text-gray-500'}`}>PayPal</span>
                           </div>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'paypal' ? 'border-gray-900' : 'border-gray-300'}`}>
-                            {selectedGateway === 'paypal' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'paypal' ? 'border-[#00A859]' : 'border-gray-300'}`}>
+                            {selectedGateway === 'paypal' && <div className="w-2.5 h-2.5 bg-[#00A859] rounded-full" />}
                           </div>
                         </button>
                         {selectedGateway === 'paypal' && (
@@ -1617,14 +1619,14 @@ export function CheckoutPage() {
                     
                     {/* BANK TRANSFER */}
                     {(activeGateways.includes('bank_transfer') || true) && (
-                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'bank_transfer' ? 'border-gray-900' : 'border-gray-100'}`}>
+                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'bank_transfer' ? 'border-[#00A859]' : 'border-[#00A859]/30'}`}>
                         <button onClick={() => setSelectedGateway(selectedGateway === 'bank_transfer' ? null : 'bank_transfer')} className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === 'bank_transfer' ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
                           <div className="flex items-center gap-3">
-                            <Bank size={24} className={selectedGateway === 'bank_transfer' ? 'text-gray-900' : 'text-gray-400'} weight={selectedGateway === 'bank_transfer' ? 'fill' : 'regular'} />
+                            <Bank size={24} className={selectedGateway === 'bank_transfer' ? 'text-[#00A859]' : 'text-gray-400'} weight={selectedGateway === 'bank_transfer' ? 'fill' : 'regular'} />
                             <span className={`text-sm font-bold ${selectedGateway === 'bank_transfer' ? 'text-gray-900' : 'text-gray-500'}`}>Virement Bancaire</span>
                           </div>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'bank_transfer' ? 'border-gray-900' : 'border-gray-300'}`}>
-                            {selectedGateway === 'bank_transfer' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'bank_transfer' ? 'border-[#00A859]' : 'border-gray-300'}`}>
+                            {selectedGateway === 'bank_transfer' && <div className="w-2.5 h-2.5 bg-[#00A859] rounded-full" />}
                           </div>
                         </button>
                         {selectedGateway === 'bank_transfer' && (
@@ -1677,14 +1679,14 @@ export function CheckoutPage() {
 
                     {/* MB WAY */}
                     {activeGateways.includes('mbway') && (
-                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'mbway' ? 'border-gray-900' : 'border-gray-100'}`}>
+                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'mbway' ? 'border-[#00A859]' : 'border-[#00A859]/30'}`}>
                         <button onClick={() => setSelectedGateway(selectedGateway === 'mbway' ? null : 'mbway')} className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === 'mbway' ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
                           <div className="flex items-center gap-3">
                             <span className="text-xl">📱</span>
                             <span className={`text-sm font-bold ${selectedGateway === 'mbway' ? 'text-gray-900' : 'text-gray-500'}`}>MB WAY</span>
                           </div>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'mbway' ? 'border-gray-900' : 'border-gray-300'}`}>
-                            {selectedGateway === 'mbway' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'mbway' ? 'border-[#00A859]' : 'border-gray-300'}`}>
+                            {selectedGateway === 'mbway' && <div className="w-2.5 h-2.5 bg-[#00A859] rounded-full" />}
                           </div>
                         </button>
                         {selectedGateway === 'mbway' && (
@@ -1732,14 +1734,14 @@ export function CheckoutPage() {
 
                     {/* MULTIBANCO */}
                     {activeGateways.includes('multibanco') && (
-                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'multibanco' ? 'border-gray-900' : 'border-gray-100'}`}>
+                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'multibanco' ? 'border-[#2F333F]' : 'border-[#2F333F]/30'}`}>
                         <button onClick={() => setSelectedGateway(selectedGateway === 'multibanco' ? null : 'multibanco')} className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === 'multibanco' ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
                           <div className="flex items-center gap-3">
                             <span className="text-xl">🏦</span>
                             <span className={`text-sm font-bold ${selectedGateway === 'multibanco' ? 'text-gray-900' : 'text-gray-500'}`}>Multibanco</span>
                           </div>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'multibanco' ? 'border-gray-900' : 'border-gray-300'}`}>
-                            {selectedGateway === 'multibanco' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'multibanco' ? 'border-[#2F333F]' : 'border-gray-300'}`}>
+                            {selectedGateway === 'multibanco' && <div className="w-2.5 h-2.5 bg-[#2F333F] rounded-full" />}
                           </div>
                         </button>
                         {selectedGateway === 'multibanco' && (
@@ -1777,14 +1779,14 @@ export function CheckoutPage() {
 
                     {/* MOLLIE */}
                     {activeGateways.includes('mollie') && (
-                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'mollie' ? 'border-gray-900' : 'border-gray-100'}`}>
+                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'mollie' ? 'border-[#2F333F]' : 'border-[#2F333F]/30'}`}>
                         <button onClick={() => setSelectedGateway(selectedGateway === 'mollie' ? null : 'mollie')} className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === 'mollie' ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
                           <div className="flex items-center gap-3">
-                            <Globe size={24} className={selectedGateway === 'mollie' ? 'text-gray-900' : 'text-gray-400'} weight={selectedGateway === 'mollie' ? 'fill' : 'regular'} />
+                            <Globe size={24} className={selectedGateway === 'mollie' ? 'text-[#2F333F]' : 'text-gray-400'} weight={selectedGateway === 'mollie' ? 'fill' : 'regular'} />
                             <span className={`text-sm font-bold ${selectedGateway === 'mollie' ? 'text-gray-900' : 'text-gray-500'}`}>Mollie (Bancontact / iDEAL)</span>
                           </div>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'mollie' ? 'border-gray-900' : 'border-gray-300'}`}>
-                            {selectedGateway === 'mollie' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'mollie' ? 'border-[#2F333F]' : 'border-gray-300'}`}>
+                            {selectedGateway === 'mollie' && <div className="w-2.5 h-2.5 bg-[#2F333F] rounded-full" />}
                           </div>
                         </button>
                         {selectedGateway === 'mollie' && (
@@ -1805,14 +1807,14 @@ export function CheckoutPage() {
 
                     {/* PAYPLUG */}
                     {activeGateways.includes('payplug') && (
-                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'payplug' ? 'border-gray-900' : 'border-gray-100'}`}>
+                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'payplug' ? 'border-[#2F333F]' : 'border-[#2F333F]/30'}`}>
                         <button onClick={() => setSelectedGateway(selectedGateway === 'payplug' ? null : 'payplug')} className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === 'payplug' ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
                           <div className="flex items-center gap-3">
-                            <LockKey size={24} className={selectedGateway === 'payplug' ? 'text-gray-900' : 'text-gray-400'} weight={selectedGateway === 'payplug' ? 'fill' : 'regular'} />
+                            <LockKey size={24} className={selectedGateway === 'payplug' ? 'text-[#2F333F]' : 'text-gray-400'} weight={selectedGateway === 'payplug' ? 'fill' : 'regular'} />
                             <span className={`text-sm font-bold ${selectedGateway === 'payplug' ? 'text-gray-900' : 'text-gray-500'}`}>PayPlug (Sécurisé)</span>
                           </div>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'payplug' ? 'border-gray-900' : 'border-gray-300'}`}>
-                            {selectedGateway === 'payplug' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'payplug' ? 'border-[#2F333F]' : 'border-gray-300'}`}>
+                            {selectedGateway === 'payplug' && <div className="w-2.5 h-2.5 bg-[#2F333F] rounded-full" />}
                           </div>
                         </button>
                         {selectedGateway === 'payplug' && (
@@ -1833,14 +1835,14 @@ export function CheckoutPage() {
 
                     {/* SQUARE */}
                     {activeGateways.includes('square') && (
-                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'square' ? 'border-gray-900' : 'border-gray-100'}`}>
+                      <div className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === 'square' ? 'border-[#2F333F]' : 'border-[#2F333F]/30'}`}>
                         <button onClick={() => setSelectedGateway(selectedGateway === 'square' ? null : 'square')} className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === 'square' ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
                           <div className="flex items-center gap-3">
-                            <Bank size={24} className={selectedGateway === 'square' ? 'text-gray-900' : 'text-gray-400'} weight={selectedGateway === 'square' ? 'fill' : 'regular'} />
+                            <Bank size={24} className={selectedGateway === 'square' ? 'text-[#2F333F]' : 'text-gray-400'} weight={selectedGateway === 'square' ? 'fill' : 'regular'} />
                             <span className={`text-sm font-bold ${selectedGateway === 'square' ? 'text-gray-900' : 'text-gray-500'}`}>Terminal Square</span>
                           </div>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'square' ? 'border-gray-900' : 'border-gray-300'}`}>
-                            {selectedGateway === 'square' && <div className="w-2.5 h-2.5 bg-gray-900 rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedGateway === 'square' ? 'border-[#2F333F]' : 'border-gray-300'}`}>
+                            {selectedGateway === 'square' && <div className="w-2.5 h-2.5 bg-[#2F333F] rounded-full" />}
                           </div>
                         </button>
                         {selectedGateway === 'square' && (
@@ -1874,7 +1876,7 @@ export function CheckoutPage() {
                     )}
 
                     {/* MODE TEST — SIMULATION */}
-                    <div className={`border-2 border-dashed rounded-2xl overflow-hidden transition-all ${selectedGateway === 'simulation' ? 'border-orange-400 bg-orange-50/50' : 'border-gray-200 bg-gray-50/30'}`}>
+                    <div className={`border-2 border-dashed rounded-2xl overflow-hidden transition-all ${selectedGateway === 'simulation' ? 'border-orange-400 bg-orange-50/50' : 'border-[#2F333F]/30 bg-gray-50/30'}`}>
                       <button
                         onClick={() => setSelectedGateway(selectedGateway === 'simulation' ? null : 'simulation')}
                         className="w-full flex items-center justify-between p-4 transition-all"
@@ -1970,17 +1972,17 @@ export function CheckoutPage() {
                   </div>
 
                   {/* Cart Items — rééinjectés dans la colonne droite */}
-                  <div className="mb-8 bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-                    <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                  <div className="mb-8 bg-white border border-[#2F333F] rounded-2xl overflow-hidden shadow-sm">
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-[#2F333F]">
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-500">Articles
                       </h4>
                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full">{totalItems} article(s)</span>
                     </div>
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-[#2F333F]">
                       {items.map((item) => (
                         <div key={item.id} className="flex items-center gap-4 px-5 py-4">
                           <div className="relative shrink-0">
-                            <div className="w-14 h-14 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-center overflow-hidden">
+                            <div className="w-14 h-14 bg-gray-50 rounded-xl border border-[#2F333F] flex items-center justify-center overflow-hidden">
                               {item.image ? (
                                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                               ) : (
@@ -2010,7 +2012,7 @@ export function CheckoutPage() {
                   </div>
 
                   {/* Promo Code Field */}
-                  <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm mb-8">
+                  <div className="bg-white p-5 rounded-2xl border border-[#2F333F] shadow-sm mb-8">
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">Code Promotionnel</p>
                     <div className="flex gap-2 items-center">
                       <input type="text" placeholder="Entrez votre code" className="flex-1 min-w-0 bg-white border border-gray-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl px-3 py-3 text-sm font-medium outline-none transition-all placeholder:text-gray-400" />
@@ -2019,12 +2021,12 @@ export function CheckoutPage() {
                   </div>
                   
                   {/* Price breakdown */}
-                  <div className="space-y-4 text-sm mb-8 bg-white/50 p-6 rounded-2xl border border-gray-100">
+                  <div className="space-y-4 text-sm mb-8 bg-white/50 p-6 rounded-2xl border border-[#2F333F]">
                     <div className="flex justify-between items-center">
                       <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Sous-total</span>
                       <span className="font-black text-gray-900">{totalPrice.toFixed(2)}€</span>
                     </div>
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                    <div className="flex justify-between items-center pt-4 border-t border-[#2F333F]">
                       <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Expédition</span>
                       <div className="flex items-center gap-2">
                         {shippingPrice === 0 ? (

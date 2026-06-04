@@ -8,18 +8,17 @@ import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { motion } from 'framer-motion';
 
-const StatCard = ({ label, value, icon, color, subtitle }: any) => (
+const StatCard = ({ label, value, icon, gradient, subtitle }: any) => (
   <div 
-    className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500 h-full flex flex-col"
-    style={{ backgroundColor: 'var(--client-card-bg, #FFFFFF)' }}
+    className="bg-white/80 backdrop-blur-md p-5 sm:p-6 rounded-3xl border border-[#2F333F]/30 shadow-lg relative overflow-hidden group hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1 transition-all duration-500 h-full flex flex-col"
   >
-    <div className={`w-12 h-12 ${color} text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
+    <div className={`w-12 h-12 bg-gradient-to-br ${gradient} text-white rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
       {icon}
     </div>
-    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1" style={{ color: 'var(--client-card-text, #111827)', opacity: 0.5 }}>{label}</p>
-    <h3 className="text-3xl font-bold tracking-tighter mb-2" style={{ color: 'var(--client-card-text, #111827)' }}>{value}</h3>
-    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-auto" style={{ color: 'var(--client-card-text, #111827)', opacity: 0.5 }}>{subtitle}</p>
-    <div className={`absolute -right-8 -bottom-8 w-32 h-32 ${color.replace('bg-', 'bg-')}/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700`}></div>
+    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{label}</p>
+    <h3 className="text-2xl font-black tracking-tight mb-1 text-gray-900">{value}</h3>
+    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-auto">{subtitle}</p>
+    <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
   </div>
 );
 
@@ -42,7 +41,7 @@ export const Dashboard = () => {
       {/* Premium Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div>
-          <h1 className="text-3xl md:text-5xl font-bold text-gray-900 tracking-tighter leading-none mb-4 uppercase">
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight leading-none mb-2 uppercase">
             Bienvenue, {profile?.firstName || user?.displayName?.split(' ')[0] || 'Client'}
           </h1>
           <div className="flex items-center gap-3">
@@ -59,21 +58,21 @@ export const Dashboard = () => {
           label="Commandes" 
           value={orders.length} 
           icon={<Package size={24} weight="fill" />} 
-          color="bg-gray-900"
+          gradient="from-[#1F222A] to-[#0F1115]"
           subtitle="Suivi en temps réel"
         />
         <StatCard 
           label="Favoris" 
           value={profile?.wishlist?.length || 0} 
           icon={<Heart size={24} weight="fill" />} 
-          color="bg-primary"
+          gradient="from-[#FF5C00] to-[#FF8A00]"
           subtitle="Votre liste de souhaits"
         />
         <StatCard 
           label="Total Dépensé" 
           value={`${orders.reduce((sum: number, o: any) => sum + (o.total || 0), 0).toFixed(2)}€`} 
           icon={<Globe size={24} weight="fill" />} 
-          color="bg-gray-900"
+          gradient="from-[#00A859] to-[#00C86F]"
           subtitle="Investissement total"
         />
       </div>
@@ -90,22 +89,35 @@ export const Dashboard = () => {
           
           {orders.length > 0 ? (
             <div className="space-y-3">
-              {orders.slice(0, 4).map((order: any) => (
+              {orders.slice(0, 5).map((order: any) => (
                 <Link 
                   key={order.id} 
                   to={`/compte/commandes`} 
-                  className="flex items-center justify-between p-5 bg-white border border-gray-100 rounded-3xl hover:border-primary hover:shadow-xl hover:shadow-gray-200/50 transition-all group relative overflow-hidden"
+                  className="flex items-center justify-between p-4 bg-white border border-[#2F333F]/35 rounded-3xl hover:border-primary hover:shadow-xl hover:shadow-gray-200/50 transition-all group relative overflow-hidden"
                 >
                   <div className="flex items-center gap-5 relative z-10">
                     <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all duration-500">
                       <Package size={24} weight="bold" />
                     </div>
                     <div>
-                      <p className="text-sm font-black text-gray-900 mb-0.5">Commande #{order.id.slice(-6).toUpperCase()}</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Commande</span>
+                        <span className="px-2 py-0.5 bg-[#2F333F]/10 border border-[#2F333F]/20 text-[#2F333F] font-mono text-xs font-black rounded-lg">
+                          #{order.id.slice(-6).toUpperCase()}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{new Date(order.createdAt).toLocaleDateString()}</span>
                         <span className="w-1 h-1 bg-gray-200 rounded-full"></span>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-primary">{order.status}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                          order.status?.toLowerCase() === 'delivered' 
+                            ? 'bg-[#00A859]/10 text-[#00A859] border border-[#00A859]/20'
+                            : order.status?.toLowerCase() === 'processing'
+                            ? 'bg-[#FF5C00]/10 text-[#FF5C00] border border-[#FF5C00]/20'
+                            : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                        }`}>
+                          {order.status}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -128,26 +140,29 @@ export const Dashboard = () => {
         {/* Info / Quick Actions (1/3) */}
         <div className="space-y-6">
            <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">Profil Rapide</h2>
-           <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-gray-900/20">
+           <div className="bg-gradient-to-br from-[#1F222A] to-[#0F1115] border border-[#2F333F]/50 rounded-3xl p-6 text-white relative overflow-hidden shadow-2xl shadow-gray-900/40">
               <div className="relative z-10">
-                <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Compte Vérifié</p>
-                <h3 className="text-2xl font-black tracking-tight mb-6 line-clamp-1">{fullName}</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-1.5 h-1.5 bg-[#00A859] rounded-full animate-ping"></span>
+                  <p className="text-[10px] font-black text-[#00A859] uppercase tracking-widest">Compte Vérifié</p>
+                </div>
+                <h3 className="text-2xl font-black tracking-tight mb-6 line-clamp-1 text-white">{fullName}</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-white/60">
-                    <UserIcon size={18} weight="bold" />
+                  <div className="flex items-center gap-3 text-white/70">
+                    <UserIcon size={18} className="text-primary" weight="bold" />
                     <span className="text-xs font-bold truncate">{user?.email}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-white/60">
-                    <Phone size={18} weight="bold" />
+                  <div className="flex items-center gap-3 text-white/70">
+                    <Phone size={18} className="text-primary" weight="bold" />
                     <span className="text-xs font-bold">{profile?.phone || 'Non renseigné'}</span>
                   </div>
                 </div>
-                <Link to="/compte/parametres" className="mt-8 block w-full bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl py-3 text-center text-[10px] font-black uppercase tracking-widest transition-all">
+                <Link to="/compte/parametres" className="mt-8 block w-full bg-transparent hover:bg-primary hover:text-white border border-primary text-primary rounded-2xl py-3.5 text-center text-[10px] font-black uppercase tracking-widest transition-all duration-300">
                   Modifier le profil
                 </Link>
               </div>
-              <div className="absolute -right-12 -top-12 w-40 h-40 bg-gray-500/10 rounded-full blur-3xl"></div>
-              <div className="absolute -left-12 -bottom-12 w-40 h-40 bg-gray-500/10 rounded-full blur-3xl"></div>
+              <div className="absolute -right-12 -top-12 w-40 h-40 bg-primary/10 rounded-full blur-3xl"></div>
+              <div className="absolute -left-12 -bottom-12 w-40 h-40 bg-[#00A859]/10 rounded-full blur-3xl"></div>
            </div>
         </div>
       </div>
@@ -363,6 +378,12 @@ export const Settings = () => {
 
 export const Orders = () => {
   const { orders } = useOutletContext<any>();
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentOrders = orders.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
@@ -374,51 +395,109 @@ export const Orders = () => {
       </div>
 
       {orders.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4">
-          {orders.map((order: any) => (
-            <div key={order.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all group overflow-hidden relative">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all">
-                    <Package size={28} weight="bold" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="font-black text-gray-900 uppercase tracking-tight text-lg">#{order.id.slice(-6).toUpperCase()}</h3>
-                      <span className="px-3 py-1 bg-gray-900 text-white text-[9px] font-black uppercase tracking-widest rounded-lg">
-                        {order.status}
-                      </span>
+        <>
+          <div className="grid grid-cols-1 gap-4">
+            {currentOrders.map((order: any) => (
+              <div key={order.id} className="bg-white p-5 rounded-3xl border border-[#2F333F]/35 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all group overflow-hidden relative">
+                <div className="grid grid-cols-1 md:grid-cols-3 items-start gap-6 relative z-10">
+                  {/* Column 1: Order Info & Product Thumbnails */}
+                  <div className="flex items-start gap-4 col-span-1">
+                    <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all shrink-0">
+                      <Package size={24} weight="bold" />
                     </div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Le {new Date(order.createdAt).toLocaleDateString()}</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2.5 py-1 bg-[#2F333F]/10 border border-[#2F333F]/20 text-[#2F333F] font-mono text-sm font-black rounded-lg">
+                          #{order.id.slice(-6).toUpperCase()}
+                        </span>
+                        <span className={`px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                          order.status?.toLowerCase() === 'delivered' 
+                            ? 'bg-[#00A859]/10 text-[#00A859] border border-[#00A859]/20'
+                            : order.status?.toLowerCase() === 'processing'
+                            ? 'bg-[#FF5C00]/10 text-[#FF5C00] border border-[#FF5C00]/20'
+                            : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Le {new Date(order.createdAt).toLocaleDateString()}</p>
+                      
+                      {/* Inline Product Thumbnails below details on column 1 */}
+                      {order.items && order.items.length > 0 && (
+                        <div className="flex gap-2 pt-2 flex-wrap">
+                          {order.items.map((item: any, idx: number) => (
+                            <div key={idx} className="w-10 h-10 rounded-lg border border-gray-100 overflow-hidden bg-gray-50 group-hover:border-primary/20 transition-colors">
+                              <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center justify-between md:justify-end gap-10 border-t md:border-t-0 pt-4 md:pt-0 border-gray-50">
-                  <div className="text-left md:text-right">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Articles</p>
-                    <p className="text-sm font-bold text-gray-900">{order.items?.length || 0} produits</p>
-                  </div>
-                  <div className="text-left md:text-right">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Total</p>
-                    <p className="text-xl font-black text-gray-900 leading-none">{order.total?.toFixed(2)}€</p>
-                  </div>
-                </div>
-              </div>
-              
-              {order.items && order.items.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-50 flex gap-3 overflow-x-auto pb-2 scrollbar-hide relative z-10">
-                  {order.items.map((item: any, idx: number) => (
-                    <div key={idx} className="w-12 h-12 rounded-xl border border-gray-100 flex-shrink-0 overflow-hidden bg-gray-50 group-hover:border-primary/20 transition-colors">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  {/* Column 2: Empty Spacer for Middle Column */}
+                  <div className="hidden md:block col-span-1"></div>
+
+                  {/* Column 3: Totals & Articles count */}
+                  <div className="flex items-center justify-between md:justify-end gap-10 col-span-1 border-t md:border-t-0 pt-4 md:pt-0 border-gray-50 text-right w-full">
+                    <div className="text-left md:text-right">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Articles</p>
+                      <p className="text-sm font-bold text-gray-900">{order.items?.length || 0} produits</p>
                     </div>
-                  ))}
+                    <div className="text-left md:text-right">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Total</p>
+                      <p className="text-xl font-black text-gray-900 leading-none">{order.total?.toFixed(2)}€</p>
+                    </div>
+                  </div>
                 </div>
-              )}
-              {/* Decorative background ID */}
-              <span className="absolute -right-4 -bottom-6 text-7xl font-black text-gray-50/30 select-none group-hover:text-gray-900/5 transition-colors pointer-events-none">#{order.id.slice(-2)}</span>
+                
+                {/* Decorative background ID */}
+                <span className="absolute -right-4 -bottom-6 text-7xl font-black text-gray-50/30 select-none group-hover:text-gray-900/5 transition-colors pointer-events-none">#{order.id.slice(-2)}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-6">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 border border-[#2F333F]/30 hover:border-primary hover:text-primary rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-30 disabled:hover:border-[#2F333F]/30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
+              >
+                Précédent
+              </button>
+              
+              <div className="flex items-center gap-1.5 px-2">
+                {Array.from({ length: totalPages }).map((_, i) => {
+                  const pageNum = i + 1;
+                  const isActive = currentPage === pageNum;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-8 h-8 rounded-xl text-xs font-black flex items-center justify-center border transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-primary border-primary text-white shadow-md shadow-primary/20 scale-105'
+                          : 'bg-white border-[#2F333F]/30 text-gray-500 hover:border-primary hover:text-primary'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 border border-[#2F333F]/30 hover:border-primary hover:text-primary rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-30 disabled:hover:border-[#2F333F]/30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
+              >
+                Suivant
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       ) : (
         <div className="bg-white p-20 rounded-[3rem] text-center border-2 border-dashed border-gray-100">
           <Package size={64} weight="thin" className="text-gray-200 mx-auto mb-6" />
@@ -663,6 +742,12 @@ export const Addresses = () => {
 
 export const Favorites = () => {
   const { toggleWishlist, wishlist } = useWishlist();
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 4;
+
+  const totalPages = Math.ceil(wishlist.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = wishlist.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -674,38 +759,81 @@ export const Favorites = () => {
       </div>
 
       {wishlist.length > 0 ? (
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {wishlist.map((product: any) => (
-            <div key={product.id} className="bg-white p-4 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 transition-all group relative">
-              <div className="aspect-square relative overflow-hidden bg-gray-50 rounded-[2rem] mb-4">
-                <img 
-                  src={product.image} 
-                  alt={product.name} 
-                  className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-700" 
-                />
-                <button 
-                  onClick={() => toggleWishlist(product)}
-                  className="absolute top-4 right-4 bg-white shadow-lg p-2.5 rounded-xl text-primary hover:bg-primary hover:text-white transition-all group-hover:rotate-12"
-                >
-                  <Heart size={20} weight="fill" />
-                </button>
-              </div>
-              <div>
-                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">{product.category}</p>
-                <h3 className="text-xs font-black text-gray-900 line-clamp-1 mb-4 uppercase tracking-tight">{product.name}</h3>
-                <div className="flex items-center justify-between border-t border-gray-50 pt-4">
-                  <p className="text-sm font-black text-gray-900">{product.price?.toFixed(2)}€</p>
-                  <Link 
-                    to={`/?product=${product.id}`}
-                    className="text-[9px] font-black uppercase tracking-widest text-gray-900 hover:underline"
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {currentItems.map((product: any) => (
+              <div key={product.id} className="bg-white p-4 rounded-[2.5rem] border border-[#2F333F]/35 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 transition-all group relative">
+                <div className="aspect-square relative overflow-hidden bg-gray-50 rounded-[2rem] mb-4">
+                  <img 
+                    src={product.image} 
+                    alt={product.name} 
+                    className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-700" 
+                  />
+                  <button 
+                    onClick={() => toggleWishlist(product)}
+                    className="absolute top-4 right-4 bg-white shadow-lg p-2.5 rounded-xl text-primary hover:bg-primary hover:text-white transition-all group-hover:rotate-12"
                   >
-                    Détails
-                  </Link>
+                    <Heart size={20} weight="fill" />
+                  </button>
+                </div>
+                <div>
+                  <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">{product.category}</p>
+                  <h3 className="text-xs font-black text-gray-900 line-clamp-1 mb-4 uppercase tracking-tight">{product.name}</h3>
+                  <div className="flex items-center justify-between border-t border-gray-50 pt-4">
+                    <p className="text-sm font-black text-gray-900">{product.price?.toFixed(2)}€</p>
+                    <Link 
+                      to={`/?product=${product.id}`}
+                      className="text-[9px] font-black uppercase tracking-widest text-gray-900 hover:underline"
+                    >
+                      Détails
+                    </Link>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-6">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 border border-[#2F333F]/30 hover:border-primary hover:text-primary rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-30 disabled:hover:border-[#2F333F]/30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
+              >
+                Précédent
+              </button>
+              
+              <div className="flex items-center gap-1.5 px-2">
+                {Array.from({ length: totalPages }).map((_, i) => {
+                  const pageNum = i + 1;
+                  const isActive = currentPage === pageNum;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-8 h-8 rounded-xl text-xs font-black flex items-center justify-center border transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-primary border-primary text-white shadow-md shadow-primary/20 scale-105'
+                          : 'bg-white border-[#2F333F]/30 text-gray-500 hover:border-primary hover:text-primary'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 border border-[#2F333F]/30 hover:border-primary hover:text-primary rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-30 disabled:hover:border-[#2F333F]/30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
+              >
+                Suivant
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       ) : (
         <div className="bg-white p-20 rounded-[3rem] text-center border-2 border-dashed border-gray-100">
           <Heart size={64} weight="fill" className="text-gray-200 mx-auto mb-6 opacity-20" />

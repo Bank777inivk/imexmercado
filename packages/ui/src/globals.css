@@ -98,3 +98,18 @@
     background: rgba(241, 90, 36, 0.4);
   }
 }
+
+/* Sidebar Link Premium Hover Style & Protection */
+.sidebar-link-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.sidebar-link-item:not(.active-link):hover {
+  background-color: rgba(241, 90, 36, 0.12) !important; /* Elegant semi-transparent primary amber/gold */
+}
+
+.sidebar-link-item:not(.active-link):hover,
+.sidebar-link-item:not(.active-link):hover * {
+  color: #FFFFFF !important;
+}
+
