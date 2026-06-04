@@ -398,7 +398,7 @@ export const Orders = () => {
         <>
           <div className="grid grid-cols-1 gap-4">
             {currentOrders.map((order: any) => (
-              <div key={order.id} className="bg-white p-5 rounded-3xl border border-[#2F333F]/35 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all group overflow-hidden relative">
+              <div key={order.id} className="bg-white p-5 rounded-3xl border border-[#2F333F] shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all group overflow-hidden relative">
                 <div className="grid grid-cols-1 md:grid-cols-3 items-start gap-6 relative z-10">
                   {/* Column 1: Order Info & Product Thumbnails */}
                   <div className="flex items-start gap-4 col-span-1">
@@ -762,7 +762,7 @@ export const Favorites = () => {
         <>
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {currentItems.map((product: any) => (
-              <div key={product.id} className="bg-white p-4 rounded-[2.5rem] border border-[#2F333F]/35 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 transition-all group relative">
+              <div key={product.id} className="bg-white p-4 rounded-[2.5rem] border border-[#2F333F] shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 transition-all group relative">
                 <div className="aspect-square relative overflow-hidden bg-gray-50 rounded-[2rem] mb-4">
                   <img 
                     src={product.image} 
