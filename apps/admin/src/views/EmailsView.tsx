@@ -198,14 +198,14 @@ export function EmailsView() {
             templates d'email.
           </p>
         </div>
-        {!templates && !loading && (
+        {!loading && (
           <button
             disabled={seeding}
             onClick={handleSeedDefaults}
             className="flex items-center justify-center gap-2 bg-amber-500 text-slate-900 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-amber-500/10 hover:scale-105 transition-transform"
           >
             <Flame size={16} weight="fill" />
-            Initialiser les Templates par défaut
+            Réinitialiser les Templates par défaut
           </button>
         )}
       </div>
@@ -311,7 +311,7 @@ export function EmailsView() {
                         </label>
                         <span className="text-[8px] font-bold text-gray-300 uppercase">
                           Tags valides :{" "}
-                          {placeholders[selectedTemplateKey]?.join(", ")}
+                          {(placeholders[selectedTemplateKey] || placeholders[selectedTemplateKey.replace(/_(fr|pt)$/, "")])?.join(", ")}
                         </span>
                       </div>
                       <textarea

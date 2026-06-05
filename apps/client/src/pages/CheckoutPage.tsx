@@ -111,7 +111,7 @@ function StripePaymentInner({
               customerName: formData.firstName,
               orderId: `ORD-${Date.now().toString().slice(-6).toUpperCase()}`,
               retryUrl: checkoutUrl(formData.email),
-            });
+            }, isFR ? "fr" : "pt");
           } catch (e) {
             console.error("Error sending cancelled payment email:", e);
           }
@@ -127,7 +127,7 @@ function StripePaymentInner({
             customerName: formData.firstName,
             orderId: `ORD-${Date.now().toString().slice(-6).toUpperCase()}`,
             retryUrl: checkoutUrl(formData.email),
-          });
+          }, isFR ? "fr" : "pt");
         } catch (e) {
           console.error("Error sending cancelled payment email:", e);
         }
@@ -640,7 +640,7 @@ export function CheckoutPage() {
             image: item.image,
           })),
           totalPrice: finalTotal.toFixed(2) + "€",
-        });
+        }, isFR ? "fr" : "pt");
       } catch (e) {
         console.error("Error sending order confirmation email:", e);
       }
