@@ -91,10 +91,8 @@ export function Header({ onMenuClick }: HeaderProps) {
   const updateDropdownPos = React.useCallback(() => {
     if (mobileInputRef.current) {
       const rect = mobileInputRef.current.getBoundingClientRect();
-      const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
       const maxH = Math.max(120, rect.top - 12);
       setDropdownPos({
-        bottom: viewportHeight - rect.top + 4,
         left: rect.left,
         width: rect.width,
         maxHeight: maxH,
@@ -615,24 +613,24 @@ export function Header({ onMenuClick }: HeaderProps) {
             >
               <MagnifyingGlass size={16} weight="bold" className="text-white" />
             </button>
-          </form>
 
-          {/* Suggestions Dropdown Mobile — position:fixed so it stays below input even with keyboard open */}
-          {isOpen && searchQuery.trim().length > 0 && dropdownPos && (
-            <div
-              style={{
-                position: "fixed",
-                bottom: dropdownPos.bottom,
-                left: dropdownPos.left,
-                width: dropdownPos.width,
-                maxHeight: dropdownPos.maxHeight,
-                zIndex: 9999,
-              }}
-              className="bg-[#1F222A] border border-[#2D3039] rounded-xl shadow-2xl overflow-y-auto overflow-x-hidden text-sm search-suggestions-scrollbar"
-            >
-              {renderDropdownContent()}
-            </div>
-          )}
+            {/* Suggestions Dropdown Mobile — positioned absolute relative to form to always show above the input */}
+            {isOpen && searchQuery.trim().length > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "calc(100% + 8px)",
+                  left: 0,
+                  width: "100%",
+                  maxHeight: dropdownPos?.maxHeight || 250,
+                  zIndex: 9999,
+                }}
+                className="bg-[#1F222A] border border-[#2D3039] rounded-xl shadow-2xl overflow-y-auto overflow-x-hidden text-sm search-suggestions-scrollbar"
+              >
+                {renderDropdownContent()}
+              </div>
+            )}
+          </form>
         </div>
       </div>
     </header>
