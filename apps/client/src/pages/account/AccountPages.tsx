@@ -138,28 +138,28 @@ export const Dashboard = () => {
                 <Link
                   key={order.id}
                   to={localLink("/compte/commandes")}
-                  className="flex items-center justify-between p-4 bg-white border border-[#2F333F]/35 rounded-3xl hover:border-primary hover:shadow-xl hover:shadow-gray-200/50 transition-all group relative overflow-hidden"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white border border-[#2F333F]/35 rounded-3xl hover:border-primary hover:shadow-xl hover:shadow-gray-200/50 transition-all group relative overflow-hidden text-left"
                 >
-                  <div className="flex items-center gap-5 relative z-10">
-                    <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all duration-500">
-                      <Package size={24} weight="bold" />
+                  <div className="flex items-center gap-3 sm:gap-5 relative z-10 min-w-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all duration-500 shrink-0">
+                      <Package size={20} className="sm:size-[24px]" weight="bold" />
                     </div>
-                    <div className="text-left">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">
+                    <div className="text-left min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-[9px] sm:text-[10px] font-black uppercase text-gray-400 tracking-wider">
                           {t("dashboard.order")}
                         </span>
-                        <span className="px-2 py-0.5 bg-[#2F333F]/10 border border-[#2F333F]/20 text-[#2F333F] font-mono text-xs font-black rounded-lg">
+                        <span className="px-2 py-0.5 bg-[#2F333F]/10 border border-[#2F333F]/20 text-[#2F333F] font-mono text-[10px] sm:text-xs font-black rounded-lg">
                           #{order.id.slice(-6).toUpperCase()}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                        <span className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase tracking-widest whitespace-nowrap">
                           {new Date(order.createdAt).toLocaleDateString()}
                         </span>
-                        <span className="w-1 h-1 bg-gray-200 rounded-full"></span>
+                        <span className="w-1 h-1 bg-gray-200 rounded-full shrink-0"></span>
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                          className={`px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-wider ${
                             order.status?.toLowerCase() === "delivered"
                               ? "bg-[#00A859]/10 text-[#00A859] border border-[#00A859]/20"
                               : order.status?.toLowerCase() === "processing"
@@ -172,13 +172,13 @@ export const Dashboard = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right relative z-10">
-                    <p className="text-lg font-black text-gray-900 leading-none">
+                  <div className="text-left sm:text-right relative z-10 shrink-0 pl-13 sm:pl-0">
+                    <p className="text-base sm:text-lg font-black text-gray-900 leading-none">
                       {order.total?.toFixed(2)}€
                     </p>
                   </div>
                   {/* Decorative background number */}
-                  <span className="absolute -right-4 -bottom-8 text-8xl font-black text-gray-50/50 select-none group-hover:text-primary/5 transition-colors">
+                  <span className="absolute -right-4 -bottom-8 text-8xl font-black text-gray-50/50 select-none group-hover:text-primary/5 transition-colors pointer-events-none">
                     #{order.id.slice(-2)}
                   </span>
                 </Link>
@@ -582,21 +582,21 @@ export const Orders = () => {
             {currentOrders.map((order: any) => (
               <div
                 key={order.id}
-                className="bg-white p-5 rounded-3xl border border-[#2F333F] shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all group overflow-hidden relative"
+                className="bg-white p-4 sm:p-5 rounded-3xl border border-[#2F333F] shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all group overflow-hidden relative text-left"
               >
-                <div className="grid grid-cols-1 md:grid-cols-3 items-start gap-6 relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-3 items-start gap-4 sm:gap-6 relative z-10">
                   {/* Column 1: Order Info & Product Thumbnails */}
-                  <div className="flex items-start gap-4 col-span-1">
-                    <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all shrink-0">
-                      <Package size={24} weight="bold" />
+                  <div className="flex items-start gap-3 sm:gap-4 col-span-1 min-w-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all shrink-0">
+                      <Package size={20} className="sm:size-[24px]" weight="bold" />
                     </div>
-                    <div className="space-y-2 text-left">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2.5 py-1 bg-[#2F333F]/10 border border-[#2F333F]/20 text-[#2F333F] font-mono text-sm font-black rounded-lg">
+                    <div className="space-y-2 text-left min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                        <span className="px-2 py-0.5 bg-[#2F333F]/10 border border-[#2F333F]/20 text-[#2F333F] font-mono text-xs font-black rounded-lg">
                           #{order.id.slice(-6).toUpperCase()}
                         </span>
                         <span
-                          className={`px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                          className={`px-2 py-0.5 rounded-lg text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${
                             order.status?.toLowerCase() === "delivered"
                               ? "bg-[#00A859]/10 text-[#00A859] border border-[#00A859]/20"
                               : order.status?.toLowerCase() === "processing"
@@ -607,18 +607,18 @@ export const Orders = () => {
                           {t(`orders_page.status_${order.status?.toLowerCase()}`, { defaultValue: order.status })}
                         </span>
                       </div>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                      <p className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest">
                         {t("orders_page.date_prefix")}{" "}
                         {new Date(order.createdAt).toLocaleDateString()}
                       </p>
 
                       {/* Inline Product Thumbnails below details on column 1 */}
                       {order.items && order.items.length > 0 && (
-                        <div className="flex gap-2 pt-2 flex-wrap">
+                        <div className="flex gap-1.5 pt-1 flex-wrap">
                           {order.items.map((item: any, idx: number) => (
                             <div
                               key={idx}
-                              className="w-10 h-10 rounded-lg border border-gray-100 overflow-hidden bg-gray-50 group-hover:border-primary/20 transition-colors"
+                              className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg border border-gray-100 overflow-hidden bg-gray-50 group-hover:border-primary/20 transition-colors shrink-0"
                             >
                               <img
                                 src={item.image}
@@ -636,22 +636,22 @@ export const Orders = () => {
                   <div className="hidden md:block col-span-1"></div>
 
                   {/* Column 3: Totals & Articles count */}
-                  <div className="flex items-center justify-between md:justify-end gap-10 col-span-1 border-t md:border-t-0 pt-4 md:pt-0 border-gray-50 text-right w-full">
+                  <div className="flex items-center justify-between md:justify-end gap-6 sm:gap-10 col-span-1 border-t md:border-t-0 pt-3 md:pt-0 border-gray-50 text-right w-full">
                     <div className="text-left md:text-right">
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                      <p className="text-[8px] sm:text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
                         {t("orders_page.articles")}
                       </p>
-                      <p className="text-sm font-bold text-gray-900">
+                      <p className="text-xs sm:text-sm font-bold text-gray-900">
                         {t("orders_page.items_count", {
                           count: order.items?.length || 0,
                         })}
                       </p>
                     </div>
                     <div className="text-left md:text-right">
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                      <p className="text-[8px] sm:text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
                         {t("orders_page.total")}
                       </p>
-                      <p className="text-xl font-black text-gray-900 leading-none">
+                      <p className="text-lg sm:text-xl font-black text-gray-900 leading-none">
                         {order.total?.toFixed(2)}€
                       </p>
                     </div>

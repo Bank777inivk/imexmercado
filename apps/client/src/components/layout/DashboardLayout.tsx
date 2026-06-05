@@ -313,7 +313,7 @@ export function DashboardLayout() {
         </header>
 
         {/* Scrollable Content */}
-        <main ref={mainRef} className="p-4 md:p-8 lg:p-12 pb-12 flex-grow overflow-y-auto">
+        <main ref={mainRef} className="p-4 md:p-8 lg:p-12 pb-12 flex-grow overflow-y-auto overflow-x-hidden">
           <Outlet context={{ user, profile, orders }} />
 
           <footer className="mt-12 text-center text-sm font-medium text-gray-400 border-t border-gray-100 pt-8 pb-4">
