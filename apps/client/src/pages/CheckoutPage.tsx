@@ -235,9 +235,13 @@ export function CheckoutPage() {
     }
   }, [currentStep]);
 
-  // Sync step changes to localStorage
+  // Sync step changes to localStorage (Only for active steps 1-3)
   useEffect(() => {
-    localStorage.setItem("imex_checkout_step", currentStep.toString());
+    if (currentStep === 4) {
+      localStorage.removeItem("imex_checkout_step");
+    } else {
+      localStorage.setItem("imex_checkout_step", currentStep.toString());
+    }
   }, [currentStep]);
 
   // Security: Redirect to store if cart becomes empty during checkout (except on success)
