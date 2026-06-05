@@ -7,7 +7,7 @@ import {
   Heart,
 } from "@phosphor-icons/react";
 import { subscribeToCollection } from "@imexmercado/firebase";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useAuth } from "@imexmercado/firebase";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
@@ -29,9 +29,21 @@ export function Header({ onMenuClick }: HeaderProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const navigate = useNavigate();
+  const location = useLocation();
   const { localLink } = useLocale();
   const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
+
+  React.useEffect(() => {
+    const searchParamsObj = new URLSearchParams(location.search);
+    const searchVal = searchParamsObj.get("search");
+    if (searchVal) {
+      setSearchQuery(searchVal);
+    } else {
+      setSearchQuery("");
+    }
+    setIsOpen(false);
+  }, [location.pathname, location.search]);
 
   const queryCat = searchParams.get("category");
 
