@@ -92,7 +92,7 @@ export function SocialProofNotification() {
 
   return (
     <div
-      className={`fixed top-4 md:top-auto md:bottom-6 left-4 right-4 md:right-6 md:left-auto z-[200] max-w-sm bg-white md:bg-[#1F222A] rounded-2xl shadow-2xl border border-gray-150 md:border-gray-800 p-4 transition-all duration-500 flex items-center gap-4 ${
+      className={`fixed top-4 md:top-auto md:bottom-6 left-4 right-4 md:right-6 md:left-auto z-[200] max-w-sm bg-white md:bg-[#1F222A] rounded-2xl shadow-2xl border border-gray-150 md:border-gray-800 p-2.5 md:p-4 transition-all duration-500 flex items-center gap-3 md:gap-4 ${
         visible
           ? "opacity-100 translate-x-0 translate-y-0 scale-100"
           : "opacity-0 -translate-x-full -translate-y-12 md:translate-x-0 md:translate-y-4 scale-75 md:scale-95 pointer-events-none"
@@ -101,7 +101,7 @@ export function SocialProofNotification() {
       {/* Product Image */}
       <Link
         to={localLink(`/?product=${product.id}`)}
-        className="w-12 h-12 rounded-xl bg-[#1F222A] md:bg-white flex-shrink-0 overflow-hidden border border-gray-800 md:border-gray-200 flex items-center justify-center hover:scale-105 transition-transform"
+        className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-[#1F222A] md:bg-white flex-shrink-0 overflow-hidden border border-gray-800 md:border-gray-200 flex items-center justify-center hover:scale-105 transition-transform"
       >
         <img
           src={product.image}
@@ -111,7 +111,7 @@ export function SocialProofNotification() {
       </Link>
 
       {/* Text Info */}
-      <div className="flex-1 min-w-0 pr-2">
+      <div className="flex-1 min-w-0 pr-1">
         <div className="flex items-center gap-1 text-[9px] font-black text-primary uppercase tracking-widest mb-0.5">
           <ShoppingBag size={12} weight="fill" />
           <span>{isFR ? "Achat récent" : "Nova Venda"}</span>
@@ -126,11 +126,11 @@ export function SocialProofNotification() {
               vient d'acheter{" "}
               <Link
                 to={localLink(`/?product=${product.id}`)}
-                className="text-primary hover:underline font-bold inline"
+                className="text-primary hover:underline font-bold inline-block max-w-[120px] xs:max-w-[180px] md:max-w-none truncate align-bottom"
               >
                 {displayName}
               </Link>{" "}
-              il y a {minutes} minutes.
+              il y a {minutes} min.
             </>
           ) : (
             <>
@@ -138,14 +138,14 @@ export function SocialProofNotification() {
               <strong className="text-gray-900 md:text-white font-black">
                 {city}
               </strong>{" "}
-              acabou de comprar{" "}
+              comprou{" "}
               <Link
                 to={localLink(`/?product=${product.id}`)}
-                className="text-primary hover:underline font-bold inline"
+                className="text-primary hover:underline font-bold inline-block max-w-[120px] xs:max-w-[180px] md:max-w-none truncate align-bottom"
               >
                 {displayName}
               </Link>{" "}
-              há {minutes} minutos.
+              há {minutes} min.
             </>
           )}
         </p>
