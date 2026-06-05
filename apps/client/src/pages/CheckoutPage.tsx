@@ -151,6 +151,22 @@ export function CheckoutPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedGateway, setSelectedGateway] = useState<string | null>(null);
+  const selectGatewayAndCenter = (gateway: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    const isCurrentlySelected = selectedGateway === gateway;
+    setSelectedGateway(isCurrentlySelected ? null : gateway);
+    
+    if (!isCurrentlySelected) {
+      const target = e.currentTarget.closest('.border-2');
+      if (target) {
+        setTimeout(() => {
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }, 300);
+      }
+    }
+  };
   const [mbWayPhone, setMbWayPhone] = useState("");
   const [stripePromise, setStripePromise] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -2315,13 +2331,7 @@ export function CheckoutPage() {
                               className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === "stripe" ? "border-[#00A859]" : "border-[#00A859]/30"}`}
                             >
                               <button
-                                onClick={() =>
-                                  setSelectedGateway(
-                                    selectedGateway === "stripe"
-                                      ? null
-                                      : "stripe",
-                                  )
-                                }
+                                onClick={(e) => selectGatewayAndCenter("stripe", e)}
                                 className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === "stripe" ? "bg-gray-50" : "bg-white hover:bg-gray-50"}`}
                               >
                                 <div className="flex items-center gap-3">
@@ -2400,13 +2410,7 @@ export function CheckoutPage() {
                               className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === "paypal" ? "border-[#00A859]" : "border-[#00A859]/30"}`}
                             >
                               <button
-                                onClick={() =>
-                                  setSelectedGateway(
-                                    selectedGateway === "paypal"
-                                      ? null
-                                      : "paypal",
-                                  )
-                                }
+                                onClick={(e) => selectGatewayAndCenter("paypal", e)}
                                 className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === "paypal" ? "bg-gray-50" : "bg-white hover:bg-gray-50"}`}
                               >
                                 <div className="flex items-center gap-3">
@@ -2509,13 +2513,7 @@ export function CheckoutPage() {
                               className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === "bank_transfer" ? "border-[#00A859]" : "border-[#00A859]/30"}`}
                             >
                               <button
-                                onClick={() =>
-                                  setSelectedGateway(
-                                    selectedGateway === "bank_transfer"
-                                      ? null
-                                      : "bank_transfer",
-                                  )
-                                }
+                                onClick={(e) => selectGatewayAndCenter("bank_transfer", e)}
                                 className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === "bank_transfer" ? "bg-gray-50" : "bg-white hover:bg-gray-50"}`}
                               >
                                 <div className="flex items-center gap-3">
@@ -2550,50 +2548,50 @@ export function CheckoutPage() {
                                 </div>
                               </button>
                               {selectedGateway === "bank_transfer" && (
-                                <div className="border-t border-gray-100 bg-[#F8F9FA] p-6">
-                                  <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 space-y-4 shadow-sm">
+                                <div className="border-t border-gray-100 bg-[#F8F9FA] p-3.5 sm:p-6">
+                                  <div className="bg-white border border-gray-200 rounded-xl p-3.5 sm:p-5 mb-4 sm:mb-6 space-y-2.5 sm:space-y-4 shadow-sm">
                                     <div className="flex items-center gap-3 text-primary">
                                       <Info size={18} weight="bold" />
                                       <p className="text-[10px] font-black uppercase tracking-widest">
                                         {t("checkout:bank_transfer_info")}
                                       </p>
                                     </div>
-                                    <p className="text-[11px] text-gray-500 font-medium leading-relaxed">
+                                    <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium leading-relaxed">
                                       {t("checkout:bank_transfer_desc")}
                                     </p>
-                                    <div className="grid grid-cols-1 gap-3 pt-2">
-                                      <div className="p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
-                                        <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">
+                                    <div className="grid grid-cols-1 gap-2 pt-1">
+                                      <div className="p-2 sm:p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
+                                        <p className="text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase mb-0.5">
                                           {t("checkout:beneficiary")}
                                         </p>
-                                        <p className="text-xs font-black text-gray-900">
+                                        <p className="text-[11px] sm:text-xs font-black text-gray-900">
                                           {config?.bank_transfer?.beneficiary ||
                                             "IMEXMERCADO SARL"}
                                         </p>
                                       </div>
-                                      <div className="p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
-                                        <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">
+                                      <div className="p-2 sm:p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
+                                        <p className="text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase mb-0.5">
                                           IBAN
                                         </p>
-                                        <p className="text-xs font-black text-gray-900 tracking-widest">
+                                        <p className="text-[11px] sm:text-xs font-black text-gray-900 tracking-widest">
                                           {config?.bank_transfer?.iban ||
                                             "FR76 3000 6000 0123 4567 8901 234"}
                                         </p>
                                       </div>
-                                      <div className="p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
-                                        <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">
+                                      <div className="p-2 sm:p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
+                                        <p className="text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase mb-0.5">
                                           BIC
                                         </p>
-                                        <p className="text-xs font-black text-gray-900 tracking-widest">
+                                        <p className="text-[11px] sm:text-xs font-black text-gray-900 tracking-widest">
                                           {config?.bank_transfer?.bic ||
                                             "IMEXFR2P"}
                                         </p>
                                       </div>
-                                      <div className="p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
-                                        <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">
+                                      <div className="p-2 sm:p-3 bg-[#1F222A]/5 rounded-lg border border-[#1F222A]">
+                                        <p className="text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase mb-0.5">
                                           {t("checkout:reference_to_indicate")}
                                         </p>
-                                        <p className="text-xs font-black text-primary">
+                                        <p className="text-[11px] sm:text-xs font-black text-primary">
                                           {txt("COMMANDE #", "ENCOMENDA #")}
                                           {Date.now().toString().slice(-6)}
                                         </p>
@@ -2635,13 +2633,7 @@ export function CheckoutPage() {
                               className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === "mbway" ? "border-[#00A859]" : "border-[#00A859]/30"}`}
                             >
                               <button
-                                onClick={() =>
-                                  setSelectedGateway(
-                                    selectedGateway === "mbway"
-                                      ? null
-                                      : "mbway",
-                                  )
-                                }
+                                onClick={(e) => selectGatewayAndCenter("mbway", e)}
                                 className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === "mbway" ? "bg-gray-50" : "bg-white hover:bg-gray-50"}`}
                               >
                                 <div className="flex items-center gap-3">
@@ -2661,13 +2653,13 @@ export function CheckoutPage() {
                                 </div>
                               </button>
                               {selectedGateway === "mbway" && (
-                                <div className="border-t border-gray-100 bg-[#F8F9FA] p-6">
-                                  <div className="space-y-4 mb-6">
+                                <div className="border-t border-gray-100 bg-[#F8F9FA] p-3.5 sm:p-6">
+                                  <div className="space-y-2.5 mb-4 sm:mb-6">
                                     <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">
                                       {t("checkout:mbway_phone_label")}
                                     </label>
                                     <div className="flex gap-2">
-                                      <span className="bg-white border border-[#1F222A] px-3 py-3 rounded-xl text-sm font-bold flex items-center justify-center text-gray-500 shrink-0">
+                                      <span className="bg-white border border-[#1F222A] px-2.5 py-2 sm:px-3 sm:py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center text-gray-500 shrink-0">
                                         +351
                                       </span>
                                       <input
@@ -2681,7 +2673,7 @@ export function CheckoutPage() {
                                               .slice(0, 9),
                                           )
                                         }
-                                        className="w-full bg-white border border-[#1F222A] focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-4 py-3 rounded-xl outline-none text-sm font-bold transition-all shadow-sm"
+                                        className="w-full bg-white border border-[#1F222A] focus:border-gray-900 focus:ring-1 focus:ring-gray-900 px-3 py-2 sm:px-4 sm:py-3 rounded-xl outline-none text-xs sm:text-sm font-bold transition-all shadow-sm"
                                         required
                                       />
                                     </div>
@@ -2734,13 +2726,7 @@ export function CheckoutPage() {
                               className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === "multibanco" ? "border-[#2F333F]" : "border-[#2F333F]/30"}`}
                             >
                               <button
-                                onClick={() =>
-                                  setSelectedGateway(
-                                    selectedGateway === "multibanco"
-                                      ? null
-                                      : "multibanco",
-                                  )
-                                }
+                                onClick={(e) => selectGatewayAndCenter("multibanco", e)}
                                 className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === "multibanco" ? "bg-gray-50" : "bg-white hover:bg-gray-50"}`}
                               >
                                 <div className="flex items-center gap-3">
@@ -2815,13 +2801,7 @@ export function CheckoutPage() {
                               className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === "mollie" ? "border-[#2F333F]" : "border-[#2F333F]/30"}`}
                             >
                               <button
-                                onClick={() =>
-                                  setSelectedGateway(
-                                    selectedGateway === "mollie"
-                                      ? null
-                                      : "mollie",
-                                  )
-                                }
+                                onClick={(e) => selectGatewayAndCenter("mollie", e)}
                                 className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === "mollie" ? "bg-gray-50" : "bg-white hover:bg-gray-50"}`}
                               >
                                 <div className="flex items-center gap-3">
@@ -2896,13 +2876,7 @@ export function CheckoutPage() {
                               className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === "payplug" ? "border-[#2F333F]" : "border-[#2F333F]/30"}`}
                             >
                               <button
-                                onClick={() =>
-                                  setSelectedGateway(
-                                    selectedGateway === "payplug"
-                                      ? null
-                                      : "payplug",
-                                  )
-                                }
+                                onClick={(e) => selectGatewayAndCenter("payplug", e)}
                                 className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === "payplug" ? "bg-gray-50" : "bg-white hover:bg-gray-50"}`}
                               >
                                 <div className="flex items-center gap-3">
@@ -2977,13 +2951,7 @@ export function CheckoutPage() {
                               className={`border-2 rounded-2xl overflow-hidden transition-all ${selectedGateway === "square" ? "border-[#2F333F]" : "border-[#2F333F]/30"}`}
                             >
                               <button
-                                onClick={() =>
-                                  setSelectedGateway(
-                                    selectedGateway === "square"
-                                      ? null
-                                      : "square",
-                                  )
-                                }
+                                onClick={(e) => selectGatewayAndCenter("square", e)}
                                 className={`w-full flex items-center justify-between p-4 transition-all ${selectedGateway === "square" ? "bg-gray-50" : "bg-white hover:bg-gray-50"}`}
                               >
                                 <div className="flex items-center gap-3">
@@ -3094,13 +3062,7 @@ export function CheckoutPage() {
                             className={`border-2 border-dashed rounded-2xl overflow-hidden transition-all ${selectedGateway === "simulation" ? "border-orange-400 bg-orange-50/50" : "border-[#2F333F]/30 bg-gray-50/30"}`}
                           >
                             <button
-                              onClick={() =>
-                                setSelectedGateway(
-                                  selectedGateway === "simulation"
-                                    ? null
-                                    : "simulation",
-                                )
-                              }
+                              onClick={(e) => selectGatewayAndCenter("simulation", e)}
                               className="w-full flex items-center justify-between p-4 transition-all"
                             >
                               <div className="flex items-center gap-3">
