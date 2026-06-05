@@ -1,35 +1,52 @@
-import React, { useState } from 'react';
-import { CaretDown, CaretUp, Check } from '@phosphor-icons/react';
+import React, { useState } from "react";
+import { CaretDown, CaretUp, Check } from "@phosphor-icons/react";
+import { useTranslation } from "react-i18next";
 
-const categories = [
-  'Téléphones & Hi-Tech',
-  'Maison & Décoration',
-  'Meubles & Lampes',
-  'Bricolage',
-  'Barbecues & Planchas',
-  'Piscines & Spas',
+const staticCategories = [
+  "Téléphones & Hi-Tech",
+  "Maison & Décoration",
+  "Meubles & Lampes",
+  "Bricolage",
+  "Barbecues & Planchas",
+  "Piscines & Spas",
 ];
 
-const brands = ['Samsung', 'Apple', 'IKEA', 'Bosch', 'Weber', 'Intex', 'Philips', 'Sony', 'Herman Miller', 'Roborock'];
+const brands = [
+  "Samsung",
+  "Apple",
+  "IKEA",
+  "Bosch",
+  "Weber",
+  "Intex",
+  "Philips",
+  "Sony",
+  "Herman Miller",
+  "Roborock",
+];
 
 const colors = [
-  { name: 'Noir', hex: '#000000' },
-  { name: 'Blanc', hex: '#FFFFFF', border: true },
-  { name: 'Gris', hex: '#808080' },
-  { name: 'Rouge', hex: '#FF0000' },
-  { name: 'Bleu', hex: '#0000FF' },
-  { name: 'Vert', hex: '#008000' },
-  { name: 'Bois', hex: '#DEB887' },
-  { name: 'Titane', hex: '#A0A0A0' },
+  { name: "Noir", hex: "#000000" },
+  { name: "Blanc", hex: "#FFFFFF", border: true },
+  { name: "Gris", hex: "#808080" },
+  { name: "Rouge", hex: "#FF0000" },
+  { name: "Bleu", hex: "#0000FF" },
+  { name: "Vert", hex: "#008000" },
+  { name: "Bois", hex: "#DEB887" },
+  { name: "Titane", hex: "#A0A0A0" },
 ];
 
-export function FilterSidebar({ 
-  activeFilters, 
-  onFilterChange 
-}: { 
-  activeFilters: any; 
-  onFilterChange: (type: string, value: any) => void 
+export function FilterSidebar({
+  activeFilters,
+  onFilterChange,
+  categories,
+}: {
+  activeFilters: any;
+  onFilterChange: (type: string, value: any) => void;
+  categories?: any[];
 }) {
+  const { t, i18n } = useTranslation(["shop", "common"]);
+  const currentLang = i18n.language || "pt";
+
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
     price: true,
@@ -38,63 +55,112 @@ export function FilterSidebar({
   });
 
   const toggleSection = (section: string) => {
-    setExpandedSections((prev: any) => ({ ...prev, [section]: !prev[section] }));
+    setExpandedSections((prev: any) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  const categoriesList =
+    categories && categories.length > 0 ? categories : staticCategories;
+
+  const getCategoryLabel = (cat: any) => {
+    if (typeof cat === "string") return cat;
+    let name = currentLang === "pt" ? cat.namePT || cat.name : cat.name;
+    if (name === cat.name) {
+      name = t(`common:categories.${cat.short || cat.name}`, cat.name);
+    }
+    return name;
+  };
+
+  const getCategoryValue = (cat: any) => {
+    return typeof cat === "string" ? cat : cat.name;
   };
 
   return (
     <aside className="w-full lg:w-64 space-y-6">
-      
       {/* Categories */}
       <div className="bg-white border border-gray-100 shadow-sm rounded-lg overflow-hidden">
-        <button 
-          onClick={() => toggleSection('categories')}
+        <button
+          onClick={() => toggleSection("categories")}
           className="w-full flex items-center justify-between p-4 text-xs font-black uppercase tracking-widest text-gray-900 border-b border-gray-50 bg-gray-50/50"
         >
-          <span>Catégories</span>
-          {expandedSections.categories ? <CaretUp size={14} weight="bold" /> : <CaretDown size={14} weight="bold" />}
+          <span>{t("shop:filters.category")}</span>
+          {expandedSections.categories ? (
+            <CaretUp size={14} weight="bold" />
+          ) : (
+            <CaretDown size={14} weight="bold" />
+          )}
         </button>
         {expandedSections.categories && (
           <div className="p-4 space-y-2">
-            {categories.map((cat) => (
-              <label key={cat} className="flex items-center gap-3 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  checked={activeFilters.categories.includes(cat)}
-                  onChange={() => onFilterChange('categories', cat)}
-                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <span className="text-sm text-gray-600 group-hover:text-primary transition-colors">{cat}</span>
-              </label>
-            ))}
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={activeFilters.categories.length === 0}
+                onChange={() => onFilterChange("categories", "all")}
+                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <span className="text-sm font-semibold text-gray-900 group-hover:text-primary transition-colors">
+                {currentLang === "pt"
+                  ? "Todas as categorias"
+                  : t("common:header.all_categories")}
+              </span>
+            </label>
+            <div className="border-t border-gray-100 my-2" />
+            {categoriesList.map((cat) => {
+              const val = getCategoryValue(cat);
+              const label = getCategoryLabel(cat);
+              return (
+                <label
+                  key={val}
+                  className="flex items-center gap-3 cursor-pointer group"
+                >
+                  <input
+                    type="checkbox"
+                    checked={activeFilters.categories.includes(val)}
+                    onChange={() => onFilterChange("categories", val)}
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span className="text-sm text-gray-600 group-hover:text-primary transition-colors">
+                    {label}
+                  </span>
+                </label>
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Price Range */}
       <div className="bg-white border border-gray-100 shadow-sm rounded-lg overflow-hidden">
-        <button 
-          onClick={() => toggleSection('price')}
+        <button
+          onClick={() => toggleSection("price")}
           className="w-full flex items-center justify-between p-4 text-xs font-black uppercase tracking-widest text-gray-900 border-b border-gray-50 bg-gray-50/50"
         >
-          <span>Prix (€)</span>
-          {expandedSections.price ? <CaretUp size={14} weight="bold" /> : <CaretDown size={14} weight="bold" />}
+          <span>{t("shop:filters.price")}</span>
+          {expandedSections.price ? (
+            <CaretUp size={14} weight="bold" />
+          ) : (
+            <CaretDown size={14} weight="bold" />
+          )}
         </button>
         {expandedSections.price && (
           <div className="p-4 space-y-4">
             <div className="flex items-center gap-2">
-              <input 
-                type="number" 
-                placeholder="Min" 
+              <input
+                type="number"
+                placeholder={t("shop:filters.min")}
                 value={activeFilters.priceRange.min}
-                onChange={(e) => onFilterChange('priceMin', e.target.value)}
+                onChange={(e) => onFilterChange("priceMin", e.target.value)}
                 className="w-full text-xs p-2 border border-gray-200 rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none"
               />
               <span className="text-gray-400">—</span>
-              <input 
-                type="number" 
-                placeholder="Max" 
+              <input
+                type="number"
+                placeholder={t("shop:filters.max")}
                 value={activeFilters.priceRange.max}
-                onChange={(e) => onFilterChange('priceMax', e.target.value)}
+                onChange={(e) => onFilterChange("priceMax", e.target.value)}
                 className="w-full text-xs p-2 border border-gray-200 rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none"
               />
             </div>
@@ -104,24 +170,33 @@ export function FilterSidebar({
 
       {/* Brands */}
       <div className="bg-white border border-gray-100 shadow-sm rounded-lg overflow-hidden">
-        <button 
-          onClick={() => toggleSection('brands')}
+        <button
+          onClick={() => toggleSection("brands")}
           className="w-full flex items-center justify-between p-4 text-xs font-black uppercase tracking-widest text-gray-900 border-b border-gray-50 bg-gray-50/50"
         >
-          <span>Marques</span>
-          {expandedSections.brands ? <CaretUp size={14} weight="bold" /> : <CaretDown size={14} weight="bold" />}
+          <span>{t("shop:filters.brand")}</span>
+          {expandedSections.brands ? (
+            <CaretUp size={14} weight="bold" />
+          ) : (
+            <CaretDown size={14} weight="bold" />
+          )}
         </button>
         {expandedSections.brands && (
           <div className="p-4 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
             {brands.map((brand) => (
-              <label key={brand} className="flex items-center gap-3 cursor-pointer group">
-                <input 
-                  type="checkbox" 
+              <label
+                key={brand}
+                className="flex items-center gap-3 cursor-pointer group"
+              >
+                <input
+                  type="checkbox"
                   checked={activeFilters.brands.includes(brand)}
-                  onChange={() => onFilterChange('brands', brand)}
+                  onChange={() => onFilterChange("brands", brand)}
                   className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
-                <span className="text-sm text-gray-600 group-hover:text-primary transition-colors">{brand}</span>
+                <span className="text-sm text-gray-600 group-hover:text-primary transition-colors">
+                  {brand}
+                </span>
               </label>
             ))}
           </div>
@@ -130,34 +205,46 @@ export function FilterSidebar({
 
       {/* Colors */}
       <div className="bg-white border border-gray-100 shadow-sm rounded-lg overflow-hidden">
-        <button 
-          onClick={() => toggleSection('colors')}
+        <button
+          onClick={() => toggleSection("colors")}
           className="w-full flex items-center justify-between p-4 text-xs font-black uppercase tracking-widest text-gray-900 border-b border-gray-50 bg-gray-50/50"
         >
-          <span>Couleurs</span>
-          {expandedSections.colors ? <CaretUp size={14} weight="bold" /> : <CaretDown size={14} weight="bold" />}
+          <span>{t("shop:filters.color")}</span>
+          {expandedSections.colors ? (
+            <CaretUp size={14} weight="bold" />
+          ) : (
+            <CaretDown size={14} weight="bold" />
+          )}
         </button>
         {expandedSections.colors && (
           <div className="p-4 grid grid-cols-4 gap-3">
-            {colors.map((color) => (
-              <button
-                key={color.name}
-                onClick={() => onFilterChange('colors', color.name)}
-                title={color.name}
-                className={`w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center
-                  ${activeFilters.colors.includes(color.name) ? 'border-primary' : color.border ? 'border-gray-200' : 'border-transparent'}
-                `}
-                style={{ backgroundColor: color.hex }}
-              >
-                {activeFilters.colors.includes(color.name) && (
-                  <Check size={14} weight="bold" className={color.name === 'Blanc' ? 'text-black' : 'text-white'} />
-                )}
-              </button>
-            ))}
+            {colors.map((color) => {
+              const colorLabel = t(`shop:colors.${color.name}`, color.name);
+              return (
+                <button
+                  key={color.name}
+                  onClick={() => onFilterChange("colors", color.name)}
+                  title={colorLabel}
+                  className={`w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center
+                    ${activeFilters.colors.includes(color.name) ? "border-primary" : color.border ? "border-gray-200" : "border-transparent"}
+                  `}
+                  style={{ backgroundColor: color.hex }}
+                >
+                  {activeFilters.colors.includes(color.name) && (
+                    <Check
+                      size={14}
+                      weight="bold"
+                      className={
+                        color.name === "Blanc" ? "text-black" : "text-white"
+                      }
+                    />
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
-
     </aside>
   );
 }

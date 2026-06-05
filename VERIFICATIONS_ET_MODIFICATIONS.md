@@ -5,6 +5,7 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## 📁 1. CATALOGUE PRODUITS & CATÉGORIES
+
 - [x] **Volume de produits** : Intégrer ou valider la présence de 300 produits (environ 50 par catégorie).
 - [x] **6 catégories principales** dans la structure :
   - Telephones et Hitech
@@ -17,6 +18,7 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## 📱 2. RESPONSIVE & UI
+
 - [ ] **Affichage mobile** : Corriger et valider le rendu responsive sur toutes les pages (client et admin).
 - [ ] **Dimensions des bannières** :
   - Indiquer explicitement les dimensions requises dans le dashboard admin.
@@ -28,12 +30,13 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## 📝 3. DESCRIPTIONS & FICHES PRODUITS
+
 - [x] **Descriptions produits** : Réécrire et formater toutes les descriptions (mise en gras, bullet points, mise en avant des avantages clients, incitation à l'achat, génération via le seed).
 - [x] **Avis clients** :
   - [x] Ajouter au moins 20 avis clients sous chaque produit.
   - [x] Rendre ces avis gérables/modifiables directement depuis le dashboard admin.
 - [x] **Notification d'achat (Social Proof)** :
-  - [x] Activer la notification dynamique : *"Um cliente acabou de comprar de [cidade] há X minutos"* (Un client vient d'acheter à [ville] il y a X minutes).
+  - [x] Activer la notification dynamique : _"Um cliente acabou de comprar de [cidade] há X minutos"_ (Un client vient d'acheter à [ville] il y a X minutes).
 - [x] **Suggestions de produits** :
   - [x] Afficher des suggestions de produits similaires ou complémentaires sur la fiche produit (modal).
   - [x] Afficher des suggestions complémentaires lors de l'ajout au panier.
@@ -41,6 +44,7 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## 🔍 4. RECHERCHE
+
 - [ ] **Barre de recherche** :
   - Implémenter l'autocomplétion.
   - Ajouter les suggestions automatiques de mots-clés et de noms de produits lors de la saisie.
@@ -48,6 +52,7 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## 💳 5. PAIEMENTS
+
 - [ ] **Méthodes de paiement à intégrer** :
   - [ ] Virement bancaire SEPA (option par défaut)
   - [ ] MB WAY (prioritaire pour le Portugal)
@@ -59,6 +64,7 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## 📣 6. MARKETING & PUBLICITÉ
+
 - [ ] **Pixels & Tracking** :
   - [ ] Intégration Meta Pixel (Facebook / Instagram Ads)
   - [ ] Intégration Google Analytics GA4
@@ -68,6 +74,7 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## 📧 7. AUTOMATISATIONS & MESSAGES
+
 - [ ] **Emails automatiques** :
   - [ ] Email de panier abandonné
   - [ ] Email de paiement annulé
@@ -78,6 +85,7 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## ⚖️ 8. PAGES LÉGALES (UE & RGPD)
+
 - [ ] **Pages légales éditables** depuis le dashboard admin :
   - [ ] Mentions légales
   - [ ] Politique de confidentialité (conforme RGPD)
@@ -88,6 +96,7 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## 🍪 9. COOKIES (RGPD)
+
 - [ ] **Bannière de consentement** : Implémenter une bannière cookies conforme RGPD.
 - [ ] **Bloquer les cookies non essentiels** avant le consentement explicite de l'utilisateur.
 - [ ] **Politique de cookies** éditable depuis l'admin.
@@ -96,6 +105,7 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## 🔒 10. SÉCURITÉ
+
 - [ ] **HTTPS** : Forcer la redirection HTTPS sur l'ensemble du site.
 - [ ] **Endpoints API** : Sécuriser tous les endpoints.
 - [ ] **Rôles & Permissions** : Gérer les accès dans le dashboard admin.
@@ -106,6 +116,7 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## 🌐 11. LANGUES
+
 - [ ] **Bilingue** : Configurer uniquement le Portugais et le Français.
   - **Portugais (PT)** : Langue par défaut de la plateforme.
   - **Français (FR)** : Langue optionnelle, activable ou désactivable depuis le dashboard admin.
@@ -113,6 +124,7 @@ Ce document sert de fil conducteur pour le suivi, l'implémentation et la valida
 ---
 
 ## 📌 12. POINTS SUPPLÉMENTAIRES & CONFIGURATIONS
+
 - [ ] **SEO** : Rendre les balises meta title & description éditables pour chaque produit et chaque page.
 - [ ] **Sitemap & Search Console** : Génération automatique du `sitemap.xml` et préparation pour Google Search Console.
 - [ ] **Open Graph & Favicon** : Optimiser le rendu lors du partage sur les réseaux sociaux (WhatsApp, Facebook, etc.) et intégrer le favicon.

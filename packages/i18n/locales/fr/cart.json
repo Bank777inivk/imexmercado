@@ -1,0 +1,16 @@
+{
+  "drawer": {
+    "title": "Mon Panier",
+    "items_count_one": "{{count}} article sélectionné",
+    "items_count_other": "{{count}} articles sélectionnés",
+    "free_shipping_success": "Livraison offerte !",
+    "free_shipping_remaining": "Plus que <span class=\"text-primary\">{{remaining}}€</span>",
+    "empty": "Votre panier est vide",
+    "per_unit": "€{{price}} / unité",
+    "clear_cart": "Vider le panier",
+    "recommendations_title": "Complétez votre panier",
+    "total_label": "Total TTC",
+    "secure_label": "Paiement 100% sécurisé",
+    "btn_checkout": "Passer en Caisse"
+  }
+}

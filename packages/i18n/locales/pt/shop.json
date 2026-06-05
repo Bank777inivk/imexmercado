@@ -1,0 +1,44 @@
+{
+  "title": "Loja",
+  "breadcrumb_home": "Início",
+  "breadcrumb_shop": "Loja",
+  "mobile_filter_btn": "Filtrar & Ordenar",
+  "filters": {
+    "title": "Filtros",
+    "category": "Categorias",
+    "price": "Preço",
+    "brand": "Marcas",
+    "color": "Cores",
+    "min": "Mín",
+    "max": "Máx",
+    "reset": "Limpar filtros",
+    "view_results": "Ver os resultados"
+  },
+  "sort": {
+    "label": "Ordenar por :",
+    "relevance": "Relevância",
+    "price_asc": "Preço crescente",
+    "price_desc": "Preço decrescente",
+    "rating": "Melhores avaliações",
+    "newest": "Novidades",
+    "price_asc_detailed": "Preço: Mais baratos primeiro",
+    "price_desc_detailed": "Preço: Mais caros primeiro",
+    "newest_detailed": "Novidades (Recente)",
+    "rating_detailed": "Melhor classificados pelos clientes"
+  },
+  "no_products": "Nenhum produto encontrado",
+  "no_products_desc": "Não encontrámos nenhum artigo correspondente aos seus critérios de pesquisa.",
+  "results": "Mostrando <span class=\"font-bold text-gray-900\">{{count}}</span> produto",
+  "results_plural": "Mostrando <span class=\"font-bold text-gray-900\">{{count}}</span> produtos",
+  "pagination_showing": "Mostrando {{start}}-{{end}} de {{total}} produtos",
+  "colors": {
+    "Noir": "Preto",
+    "Blanc": "Branco",
+    "Gris": "Cinzento",
+    "Rouge": "Vermelho",
+    "Bleu": "Azul",
+    "Vert": "Verde",
+    "Bois": "Madeira",
+    "Titane": "Titânio"
+  }
+}

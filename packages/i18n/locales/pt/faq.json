@@ -1,0 +1,43 @@
+{
+  "breadcrumb_home": "Início",
+  "breadcrumb_current": "Centro de Ajuda (FAQ)",
+  "title_prefix": "Como podemos",
+  "title_accent": "ajudar?",
+  "description": "Encontre aqui as respostas às perguntas mais frequentes. O nosso centro de ajuda foi concebido para lhe oferecer uma assistência rápida e transparente.",
+  "quick_tracking": {
+    "title": "Rastreio rápido",
+    "desc": "Aceda diretamente ao estado da sua encomenda com o seu número IMX.",
+    "cta": "Rastrear a minha encomenda"
+  },
+  "cta_bottom": {
+    "title_prefix": "Não encontra",
+    "title_accent": "a sua resposta?",
+    "desc": "A nossa equipa de especialistas em Alhos Vedros está à sua disposição para o acompanhar no processo.",
+    "cta": "Contactar-nos"
+  },
+  "categories": {
+    "orders": "Encomendas & Rastreio",
+    "shipping": "Entrega",
+    "returns": "Devoluções & Reembolsos"
+  },
+  "questions": {
+    "q1": "Como posso rastrear a minha encomenda?",
+    "a1": "Assim que a sua encomenda for enviada, receberá um e-mail com uma ligação de rastreio. Também pode consultar o estado da sua encomenda na nossa página de Rastreio de encomendas, utilizando o número da encomenda e o seu endereço de e-mail.",
+    "q2": "Posso alterar ou cancelar a minha encomenda?",
+    "a2": "As encomendas são processadas rapidamente para garantir prazos de entrega ideais. Se cometeu um erro, contacte o nosso apoio ao cliente no prazo de uma hora após a sua encomenda. Passado esse período, o envio geralmente já não poderá ser interrompido.",
+    "q3": "Porque não recebi a confirmação da encomenda?",
+    "a3": "Verifique primeiro a sua pasta de correio não solicitado (Spam). Se não encontrar nada, pode ter havido um erro tipográfico no seu endereço de e-mail. Contacte-nos e reenviaremos a confirmação.",
+    "q4": "Quais são os prazos de entrega?",
+    "a4": "Os prazos variam de acordo com o país de destino. Para Portugal, conte geralmente com 2 a 3 dias úteis. Para o resto da Europa (França, Alemanha, Itália), os prazos padrão são de 4 a 7 dias úteis.",
+    "q5": "Que transportadoras utilizam?",
+    "a5": "Trabalhamos com uma rede de transportadoras fiáveis para garantir a segurança das suas encomendas. Dependendo da sua localização, a sua encomenda pode ser entregue por CTT, DHL, DPD ou outras parceiras reconhecidas.",
+    "q6": "Disponibilizam entrega expresso?",
+    "a6": "Sim, a entrega expresso via DHL (24h-48h) está disponível no momento do pagamento para a maioria dos destinos europeus, mediante uma taxa adicional.",
+    "q7": "Qual é a vossa política de devolução?",
+    "a7": "Dispõe de 14 dias seguidos após a receção da sua encomenda para alterar a sua decisão e devolver-nos um produto. O artigo deve estar na sua embalagem original, não utilizado e em perfeito estado de revenda.",
+    "q8": "Os custos de devolução ficam a meu cargo?",
+    "a8": "Os custos de devolução ficam a cargo do cliente, exceto em caso de erro da nossa parte ou de produto com defeito na receção.",
+    "q9": "Quando serei reembolsado?",
+    "a9": "Assim que a sua devolução for recebida e inspecionada pelas nossas equipas em Alhos Vedros, o reembolso será efetuado no prazo de 3 a 5 dias úteis através do método de pagamento utilizado na encomenda."
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "breadcrumb_home": "Accueil",
+  "breadcrumb_current": "Notre Maison",
+  "title_prefix": "IMEXSULTING",
+  "title_accent": "L'EXPERT IMPORT",
+  "description": "Depuis 2012, nous bâtissons des ponts commerciaux invisibles mais robustes entre les marchés mondiaux et les foyers européens.",
+  "origins": {
+    "subtitle": "L’Origine | 2012",
+    "title": "Une vision née à Alhos Vedros",
+    "p1": "Le 14 juin 2012, IMEXSULTING - Comércio Geral Import & Export., Lda voyait le jour avec une ambition claire : normaliser l'excellence. Ce qui n'était au départ qu'une structure de négoce spécialisée au Portugal est rapidement devenu un pilier de l'import-export en Europe.",
+    "p2": "Installés stratégiquement à Alhos Vedros, nous avons passé la première décennie à perfectionner nos chaînes logistiques, à sélectionner des partenaires de confiance et à comprendre les besoins profonds d'un marché en constante mutation.",
+    "experience_years": "Années d’Expertise"
+  },
+  "growth": {
+    "subtitle": "Croissance | Europe",
+    "title": "Une empreinte sans frontières",
+    "p1": "Grâce à une maîtrise pointue du Portugal, de la France, de l'Allemagne et de l'Italie, IMEXSULTING a su s'imposer comme un trait d'union entre les continents. Notre expertise ne s'arrête pas au transport de marchandises.",
+    "p2": "Nous analysons les marchés, nous certifions la conformité européenne de chaque référence et nous garantissons une qualité sans compromis. Ce sérieux nous a permis de livrer des milliers de professionnels avant de décider d'ouvrir nos services au plus grand nombre."
+  },
+  "expertise": {
+    "step1_num": "01 / SÉLECTION",
+    "step1_title": "Rigueur Absolue",
+    "step1_desc": "Nous ne nous contentons pas d'importer. Nous auditons les usines, testons les matériaux et rejetons 80% des produits qui ne répondent pas à nos critères de durabilité.",
+    "step2_num": "02 / QUALITÉ",
+    "step2_title": "Contrôle natif",
+    "step2_desc": "Chaque article passant par nos entrepôts d'Alhos Vedros subit une inspection finale. Votre satisfaction repose sur cette étape de vérification humaine et technique.",
+    "step3_num": "03 / LIVRAISON",
+    "step3_title": "Fiabilité Directe",
+    "step3_desc": "En éliminant les intermédiaires inutiles, nous réduisons non seulement les coûts, mais aussi l'empreinte carbone et les risques de dommages durant le transit."
+  },
+  "tomorrow": {
+    "title_main": "Demain se construit",
+    "title_sub": "avec ImexMercado",
+    "p1": "Pourquoi garder notre expertise pour les seuls professionnels ? C'est la question qui a donné naissance à imexmercado.pt. Dans un monde saturé de produits jetables et d'intermédiaires, nous avons choisi la transparence.",
+    "p2": "Aujourd'hui, chaque particulier peut accéder au catalogue rigoureux d'IMEXSULTING avec les mêmes garanties de prix, de service et de qualité que les plus gros acteurs du négoce mondial.",
+    "cta": "Explorer la Collection"
+  },
+  "stats": {
+    "foundation": "Fondation",
+    "countries": "Pays",
+    "articles": "Articles",
+    "clients": "Clients"
+  }
+}

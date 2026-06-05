@@ -1,6 +1,6 @@
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@imexmercado/firebase';
+import React from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "@imexmercado/firebase";
 
 export function AdminGuard() {
   const { user, isAdmin, loading } = useAuth();

@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import { PromoBar } from './PromoBar';
-import { TopBar } from './TopBar';
-import { Header } from './Header';
-import { NavBar } from './NavBar';
-import { Footer } from './Footer';
-import { MobileBottomNav } from './MobileBottomNav';
-import { MobileDrawer } from './MobileDrawer';
-import { CartDrawer } from './CartDrawer';
-import { SocialProofNotification } from './SocialProofNotification';
+import React, { useState } from "react";
+import { Outlet } from "react-router-dom";
+import { PromoBar } from "./PromoBar";
+import { TopBar } from "./TopBar";
+import { Header } from "./Header";
+import { NavBar } from "./NavBar";
+import { Footer } from "./Footer";
+import { MobileBottomNav } from "./MobileBottomNav";
+import { MobileDrawer } from "./MobileDrawer";
+import { CartDrawer } from "./CartDrawer";
+import { SocialProofNotification } from "./SocialProofNotification";
 
 export function StoreLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -22,7 +22,7 @@ export function StoreLayout() {
         <Header onMenuClick={() => setIsMobileDrawerOpen(true)} />
         <NavBar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
       </div>
-      
+
       <main className="flex-grow pt-[185px] md:pt-[160px] lg:pt-[196px]">
         <Outlet context={{ isSidebarOpen }} />
       </main>
@@ -32,12 +32,12 @@ export function StoreLayout() {
       {/* Global Overlays */}
       <CartDrawer />
       <SocialProofNotification />
-      
+
       {/* Mobile Exclusives */}
       <MobileBottomNav />
-      <MobileDrawer 
-        isOpen={isMobileDrawerOpen} 
-        onClose={() => setIsMobileDrawerOpen(false)} 
+      <MobileDrawer
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
       />
     </div>
   );

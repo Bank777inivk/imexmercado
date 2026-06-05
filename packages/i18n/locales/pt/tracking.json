@@ -1,0 +1,39 @@
+{
+  "breadcrumb_home": "Início",
+  "breadcrumb_current": "Rastreio de encomenda",
+  "title_main": "Rastreie a sua",
+  "title_sub": "Encomenda",
+  "description": "Introduza os seus dados abaixo para saber o estado atual da sua entrega em tempo real.",
+  "errors": {
+    "all_fields": "Por favor, preencha todos os campos.",
+    "not_found": "Nenhuma encomenda correspondente foi encontrada. Por favor, verifique os seus dados.",
+    "network": "Ocorreu um erro durante a pesquisa. Por favor, tente novamente."
+  },
+  "fields": {
+    "order_number": "Número de encomenda",
+    "email": "Endereço de e-mail",
+    "placeholder_order": "Ex: #95-USK ou ORD-...",
+    "btn_searching": "A pesquisar...",
+    "btn_search": "Pesquisar encomenda"
+  },
+  "success": {
+    "identified": "Encomenda Identificada",
+    "order_owner": "Encomenda #{{id}} em nome de ",
+    "status_title": "Estado da entrega",
+    "step_prep": "Preparação no armazém",
+    "step_prep_sub": "Alhos Vedros, PT — validado",
+    "step_transit": "Recolha da transportadora",
+    "step_transit_sub": "Em trânsito para o país de destino",
+    "step_delivered": "Entrega efetuada",
+    "step_delivered_sub": "Encomenda entregue ao destinatário",
+    "details_title": "Detalhes de envio",
+    "address_label": "Morada :",
+    "total_label": "Total :",
+    "items_label": "Artigos :"
+  },
+  "info": {
+    "update_title": "Atualização necessária",
+    "update_desc": "As informações de transporte são synchronizadas a cada 24 horas com os nossos parceiros logísticos (CTT, DHL, DPD).",
+    "pathway_title": "Percurso típico de envio"
+  }
+}

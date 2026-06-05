@@ -1,0 +1,43 @@
+{
+  "breadcrumb_home": "Accueil",
+  "breadcrumb_current": "Centre d'aide (FAQ)",
+  "title_prefix": "Comment pouvons-nous",
+  "title_accent": "vous aider ?",
+  "description": "Retrouvez ici les réponses aux questions les plus fréquentes. Notre centre d'aide est conçu pour vous offrir une assistance rapide et transparente.",
+  "quick_tracking": {
+    "title": "Suivi rapide",
+    "desc": "Accédez directement au statut de votre commande avec votre numéro IMX.",
+    "cta": "Suivre mon colis"
+  },
+  "cta_bottom": {
+    "title_prefix": "Vous ne trouvez pas",
+    "title_accent": "votre réponse ?",
+    "desc": "Notre équipe d'experts à Alhos Vedros est à votre disposition pour vous accompagner dans vos démarches.",
+    "cta": "Nous Contacter"
+  },
+  "categories": {
+    "orders": "Commandes & Suivi",
+    "shipping": "Livraison",
+    "returns": "Retours & Remboursements"
+  },
+  "questions": {
+    "q1": "Comment puis-je suivre ma commande ?",
+    "a1": "Une fois votre commande expédiée, vous recevrez un e-mail avec un lien de suivi. Vous pouvez également consulter l'état de votre commande sur notre page de Suivi de commande en utilisant votre numéro de commande et votre adresse e-mail.",
+    "q2": "Puis-je modifier ou annuler ma commande ?",
+    "a2": "Les commandes sont traitées rapidement pour assurer des délais de livraison optimaux. Si vous avez fait une erreur, contactez notre service client dans l'heure suivant votre commande. Au-delà, l'expédition ne pourra généralement plus être interrompue.",
+    "q3": "Pourquoi n'ai-je pas reçu de confirmation de commande ?",
+    "a3": "Vérifiez d'abord votre dossier Courrier indésirable (Spam). Si vous ne trouvez rien, il y a peut-être eu une erreur typographique dans votre adresse e-mail. Contactez-nous et nous vous renverrons la confirmation.",
+    "q4": "Quels sont les délais de livraison ?",
+    "a4": "Les délais varient selon le pays de destination. Pour le Portugal, comptez généralement 2 à 3 jours ouvrés. Pour le reste de l'Europe (France, Allemagne, Italie), les délais standard sont de 4 à 7 jours ouvrés.",
+    "q5": "Quels transporteurs utilisez-vous ?",
+    "a5": "Nous travaillons avec un réseau de transporteurs fiables pour garantir la sécurité de vos colis. Selon votre localisation, votre commande peut être livrée par CTT, DHL, DPD ou d'autres partenaires reconnus.",
+    "q6": "Proposez-vous la livraison express ?",
+    "a6": "Oui, la livraison express via DHL (24h-48h) est disponible lors du passage en caisse pour la plupart des destinations européennes, moyennant des frais supplémentaires.",
+    "q7": "Quelle est votre politique de retour ?",
+    "a7": "Vous disposez de 14 jours calendaires après la réception de votre colis pour changer d'avis et nous retourner un produit. L'article doit être dans son emballage d'origine, non utilisé et en parfait état de revente.",
+    "q8": "Les frais de retour sont-ils à ma charge ?",
+    "a8": "Les frais de retour sont à la charge du client, sauf en cas d'erreur de notre part ou de produit défectueux à la réception.",
+    "q9": "Quand serai-je remboursé ?",
+    "a9": "Une fois votre retour reçu et inspecté par nos équipes à Alhos Vedros, le remboursement sera effectué sous 3 à 5 jours ouvrés sur le moyen de paiement utilisé lors de la commande."
+  }
+}

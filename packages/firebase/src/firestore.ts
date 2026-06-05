@@ -1,63 +1,84 @@
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  query, 
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
   where,
   addDoc,
   setDoc,
   updateDoc,
   deleteDoc,
   onSnapshot,
-  Timestamp
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "./config";
 
-export const setDocument = async (collectionName: string, id: string, data: any) => {
+export const setDocument = async (
+  collectionName: string,
+  id: string,
+  data: any,
+) => {
   const docRef = doc(db, collectionName, id);
   return await setDoc(docRef, data);
 };
 
-export const getCollection = async <T = any>(collectionName: string): Promise<T[]> => {
+export const getCollection = async <T = any>(
+  collectionName: string,
+): Promise<T[]> => {
   const querySnapshot = await getDocs(collection(db, collectionName));
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as T);
+  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as T);
 };
 
-export const subscribeToCollection = <T = any>(collectionName: string, callback: (data: T[]) => void) => {
+export const subscribeToCollection = <T = any>(
+  collectionName: string,
+  callback: (data: T[]) => void,
+) => {
   const q = collection(db, collectionName);
-  return onSnapshot(q, 
+  return onSnapshot(
+    q,
     (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as T);
+      const data = snapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() }) as T,
+      );
       callback(data);
     },
     (error) => {
       console.error(`Snapshot collection error on ${collectionName}:`, error);
       callback([]); // Return empty array on error
-    }
+    },
   );
 };
 
 export const subscribeToCollectionWithFilter = <T = any>(
-  collectionName: string, 
-  field: string, 
-  value: any, 
-  callback: (data: T[]) => void
+  collectionName: string,
+  field: string,
+  value: any,
+  callback: (data: T[]) => void,
 ) => {
   const q = query(collection(db, collectionName), where(field, "==", value));
-  return onSnapshot(q, 
+  return onSnapshot(
+    q,
     (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as T);
+      const data = snapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() }) as T,
+      );
       callback(data);
     },
     (error) => {
-      console.error(`Snapshot collection filter error on ${collectionName}:`, error);
+      console.error(
+        `Snapshot collection filter error on ${collectionName}:`,
+        error,
+      );
       callback([]);
-    }
+    },
   );
 };
 
-export const getDocument = async <T = any>(collectionName: string, id: string): Promise<T | null> => {
+export const getDocument = async <T = any>(
+  collectionName: string,
+  id: string,
+): Promise<T | null> => {
   const docRef = doc(db, collectionName, id);
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
@@ -66,9 +87,14 @@ export const getDocument = async <T = any>(collectionName: string, id: string): 
   return null;
 };
 
-export const subscribeToDocument = <T = any>(collectionName: string, id: string, callback: (data: T | null) => void) => {
+export const subscribeToDocument = <T = any>(
+  collectionName: string,
+  id: string,
+  callback: (data: T | null) => void,
+) => {
   const docRef = doc(db, collectionName, id);
-  return onSnapshot(docRef, 
+  return onSnapshot(
+    docRef,
     (docSnap) => {
       if (docSnap.exists()) {
         callback({ id: docSnap.id, ...docSnap.data() } as T);
@@ -77,9 +103,12 @@ export const subscribeToDocument = <T = any>(collectionName: string, id: string,
       }
     },
     (error) => {
-      console.error(`Snapshot document error on ${collectionName}/${id}:`, error);
+      console.error(
+        `Snapshot document error on ${collectionName}/${id}:`,
+        error,
+      );
       callback(null); // Important: trigger callback with null to unblock UI
-    }
+    },
   );
 };
 
@@ -88,7 +117,11 @@ export const deleteDocument = async (collectionName: string, id: string) => {
   return await deleteDoc(docRef);
 };
 
-export const updateDocument = async (collectionName: string, id: string, data: any) => {
+export const updateDocument = async (
+  collectionName: string,
+  id: string,
+  data: any,
+) => {
   const docRef = doc(db, collectionName, id);
   return await updateDoc(docRef, data);
 };

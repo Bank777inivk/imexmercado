@@ -1,4 +1,10 @@
-export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+export type OrderStatus =
+  | "pending"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled"
+  | "refunded";
 
 export interface Order {
   id: string;
@@ -29,4 +35,4 @@ export interface OrderItem {
   image: string;
 }
 
-import { Address } from './user';
+import { Address } from "./user";

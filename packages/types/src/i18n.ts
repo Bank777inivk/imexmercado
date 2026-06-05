@@ -1,4 +1,4 @@
-export type SupportedLanguages = 'pt' | 'fr' | 'de' | 'it';
+export type SupportedLanguages = "pt" | "fr" | "de" | "it";
 
 export interface TranslationResources {
   [lang: string]: {

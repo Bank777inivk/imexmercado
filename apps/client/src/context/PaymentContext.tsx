@@ -1,13 +1,23 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { subscribeToDocument } from '@imexmercado/firebase';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { subscribeToDocument } from "@imexmercado/firebase";
 
 interface PaymentConfig {
-  stripe: { enabled: boolean; mode: 'test' | 'live'; publishableKey: string };
-  mollie: { enabled: boolean; mode: 'test' | 'live'; profileId: string };
-  payplug: { enabled: boolean; mode: 'test' | 'live' };
-  square: { enabled: boolean; mode: 'test' | 'live'; applicationId: string; locationId: string };
-  paypal: { enabled: boolean; mode: 'test' | 'live'; clientId: string };
-  bank_transfer: { enabled: boolean; iban: string; bic: string; beneficiary: string };
+  stripe: { enabled: boolean; mode: "test" | "live"; publishableKey: string };
+  mollie: { enabled: boolean; mode: "test" | "live"; profileId: string };
+  payplug: { enabled: boolean; mode: "test" | "live" };
+  square: {
+    enabled: boolean;
+    mode: "test" | "live";
+    applicationId: string;
+    locationId: string;
+  };
+  paypal: { enabled: boolean; mode: "test" | "live"; clientId: string };
+  bank_transfer: {
+    enabled: boolean;
+    iban: string;
+    bic: string;
+    beneficiary: string;
+  };
   mbway: { enabled: boolean; merchantId: string };
   multibanco: { enabled: boolean; entity: string };
 }
@@ -21,14 +31,14 @@ interface PaymentContextType {
 const PaymentContext = createContext<PaymentContextType | undefined>(undefined);
 
 const DEFAULT_CONFIG: PaymentConfig = {
-  stripe: { enabled: false, mode: 'test', publishableKey: '' },
-  mollie: { enabled: false, mode: 'test', profileId: '' },
-  payplug: { enabled: false, mode: 'test' },
-  square: { enabled: false, mode: 'test', applicationId: '', locationId: '' },
-  paypal: { enabled: false, mode: 'test', clientId: '' },
-  bank_transfer: { enabled: false, iban: '', bic: '', beneficiary: '' },
-  mbway: { enabled: false, merchantId: '' },
-  multibanco: { enabled: false, entity: '' },
+  stripe: { enabled: false, mode: "test", publishableKey: "" },
+  mollie: { enabled: false, mode: "test", profileId: "" },
+  payplug: { enabled: false, mode: "test" },
+  square: { enabled: false, mode: "test", applicationId: "", locationId: "" },
+  paypal: { enabled: false, mode: "test", clientId: "" },
+  bank_transfer: { enabled: false, iban: "", bic: "", beneficiary: "" },
+  mbway: { enabled: false, merchantId: "" },
+  multibanco: { enabled: false, entity: "" },
 };
 
 export function PaymentProvider({ children }: { children: React.ReactNode }) {
@@ -37,19 +47,23 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Écoute en temps réel des réglages publics de paiement
-    const unsubscribe = subscribeToDocument<PaymentConfig>('settings', 'payment_public', (data) => {
-      if (data) {
-        setConfig(data);
-      } else {
-        setConfig(DEFAULT_CONFIG);
-      }
-      setIsLoading(false);
-    });
+    const unsubscribe = subscribeToDocument<PaymentConfig>(
+      "settings",
+      "payment_public",
+      (data) => {
+        if (data) {
+          setConfig(data);
+        } else {
+          setConfig(DEFAULT_CONFIG);
+        }
+        setIsLoading(false);
+      },
+    );
 
     return () => unsubscribe();
   }, []);
 
-  const activeGateways = config 
+  const activeGateways = config
     ? Object.entries(config)
         .filter(([_, value]) => value.enabled)
         .map(([key]) => key)
@@ -61,23 +75,56 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
   const isDev = import.meta.env.DEV;
   const hasNoConfig = activeGateways.length === 0;
 
-  const finalGateways = (isDev && hasNoConfig) ? ['stripe', 'paypal', 'mollie', 'square', 'payplug', 'bank_transfer', 'mbway', 'multibanco'] : activeGateways;
-  const finalConfig: PaymentConfig | null = (isDev && hasNoConfig) 
-    ? {
-        ...DEFAULT_CONFIG,
-        stripe: { enabled: true, mode: 'test' as const, publishableKey: 'pk_test_sample_key' },
-        paypal: { enabled: true, mode: 'test' as const, clientId: 'sb' },
-        mollie: { enabled: true, mode: 'test' as const, profileId: 'pfl_test_sample' },
-        square: { enabled: true, mode: 'test' as const, applicationId: 'sq0idp-sample', locationId: 'L_sample' },
-        payplug: { enabled: true, mode: 'test' as const },
-        bank_transfer: { enabled: true, iban: 'PT50 0003 1234 5678 9012 345', bic: 'MBWAYPT', beneficiary: 'IMEXMERCADO PORTUGAL' },
-        mbway: { enabled: true, merchantId: 'MBW-PT-12345' },
-        multibanco: { enabled: true, entity: '12345' }
-      }
-    : config;
+  const finalGateways =
+    isDev && hasNoConfig
+      ? [
+          "stripe",
+          "paypal",
+          "mollie",
+          "square",
+          "payplug",
+          "bank_transfer",
+          "mbway",
+          "multibanco",
+        ]
+      : activeGateways;
+  const finalConfig: PaymentConfig | null =
+    isDev && hasNoConfig
+      ? {
+          ...DEFAULT_CONFIG,
+          stripe: {
+            enabled: true,
+            mode: "test" as const,
+            publishableKey: "pk_test_sample_key",
+          },
+          paypal: { enabled: true, mode: "test" as const, clientId: "sb" },
+          mollie: {
+            enabled: true,
+            mode: "test" as const,
+            profileId: "pfl_test_sample",
+          },
+          square: {
+            enabled: true,
+            mode: "test" as const,
+            applicationId: "sq0idp-sample",
+            locationId: "L_sample",
+          },
+          payplug: { enabled: true, mode: "test" as const },
+          bank_transfer: {
+            enabled: true,
+            iban: "PT50 0003 1234 5678 9012 345",
+            bic: "MBWAYPT",
+            beneficiary: "IMEXMERCADO PORTUGAL",
+          },
+          mbway: { enabled: true, merchantId: "MBW-PT-12345" },
+          multibanco: { enabled: true, entity: "12345" },
+        }
+      : config;
 
   return (
-    <PaymentContext.Provider value={{ config: finalConfig, isLoading, activeGateways: finalGateways }}>
+    <PaymentContext.Provider
+      value={{ config: finalConfig, isLoading, activeGateways: finalGateways }}
+    >
       {children}
     </PaymentContext.Provider>
   );
@@ -86,7 +133,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
 export const usePayment = () => {
   const context = useContext(PaymentContext);
   if (context === undefined) {
-    throw new Error('usePayment must be used within a PaymentProvider');
+    throw new Error("usePayment must be used within a PaymentProvider");
   }
   return context;
 };

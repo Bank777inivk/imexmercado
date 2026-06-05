@@ -1,11 +1,11 @@
-export { 
-  ShoppingCart, 
-  User, 
-  MagnifyingGlass, 
-  List, 
-  Heart, 
-  CaretRight, 
-  CaretLeft, 
+export {
+  ShoppingCart,
+  User,
+  MagnifyingGlass,
+  List,
+  Heart,
+  CaretRight,
+  CaretLeft,
   CaretDown,
   Phone,
   House,
@@ -32,5 +32,5 @@ export {
   Star,
   SquaresFour,
   Newspaper,
-  Package
-} from '@phosphor-icons/react';
+  Package,
+} from "@phosphor-icons/react";

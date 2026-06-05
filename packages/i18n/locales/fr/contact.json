@@ -1,0 +1,29 @@
+{
+  "breadcrumb_home": "Accueil",
+  "breadcrumb_current": "Contact",
+  "title_main": "Contactez",
+  "title_sub": "l'Expertise",
+  "description": "Besoin d'un renseignement sur un produit, une commande ou un partenariat ? Nos experts vous répondent sous 24h ouvrées.",
+  "fields": {
+    "fullname": "Nom Complet",
+    "email": "Email",
+    "subject": "Sujet",
+    "subject_opt_order": "Service Client - Commande",
+    "subject_opt_tech": "Question Technique sur un produit",
+    "subject_opt_partner": "Demande de Partenariat",
+    "subject_opt_other": "Autre demande",
+    "message": "Votre Message",
+    "placeholder_message": "Comment pouvons-nous vous aider ?",
+    "btn_submit": "Envoyer le message"
+  },
+  "info": {
+    "phone": "Téléphone",
+    "hours": "Lun - Ven | 9h - 18h",
+    "email_label": "Email",
+    "support_label": "SUPPORT 24/7",
+    "address_label": "Siège Social",
+    "hub_title": "Portugal Operations",
+    "hub_desc": "Notre hub logistique central orchestre l'ensemble de nos expéditions européennes.",
+    "hub_cta": "Ouvrir Google Maps"
+  }
+}

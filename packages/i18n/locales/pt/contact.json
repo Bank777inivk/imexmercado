@@ -1,0 +1,29 @@
+{
+  "breadcrumb_home": "Início",
+  "breadcrumb_current": "Contacto",
+  "title_main": "Contacte a",
+  "title_sub": "nossa Experiência",
+  "description": "Precisa de informações sobre um produto, uma encomenda ou uma parceria? Os nossos especialistas respondem em 24 horas úteis.",
+  "fields": {
+    "fullname": "Nome Completo",
+    "email": "E-mail",
+    "subject": "Assunto",
+    "subject_opt_order": "Apoio ao Cliente - Encomenda",
+    "subject_opt_tech": "Questão Técnica sobre um produto",
+    "subject_opt_partner": "Pedido de Parceria",
+    "subject_opt_other": "Outro assunto",
+    "message": "A sua mensagem",
+    "placeholder_message": "Como podemos ajudar?",
+    "btn_submit": "Enviar mensagem"
+  },
+  "info": {
+    "phone": "Telefone",
+    "hours": "Seg - Sex | 9h - 18h",
+    "email_label": "E-mail",
+    "support_label": "SUPORTE 24/7",
+    "address_label": "Sede Social",
+    "hub_title": "Operações em Portugal",
+    "hub_desc": "O nosso centro logístico central coordena todos os nossos envios europeus.",
+    "hub_cta": "Abrir Google Maps"
+  }
+}

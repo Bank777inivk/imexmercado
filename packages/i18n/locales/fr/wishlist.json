@@ -1,0 +1,11 @@
+{
+  "title_main": "Ma Liste de",
+  "title_accent": "Souhaits",
+  "items_count_one": "{{count}} produit sauvegardé",
+  "items_count_other": "{{count}} produits sauvegardés",
+  "continue_shopping": "Continuer mes achats",
+  "view_product": "Voir",
+  "empty_title": "Votre liste est vide",
+  "empty_desc": "Vous n'avez pas encore d'articles favoris. Parcourez notre boutique et cliquez sur le cœur pour sauvegarder vos produits préférés !",
+  "empty_cta": "Découvrir la boutique"
+}

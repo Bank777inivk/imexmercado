@@ -1,16 +1,19 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { 
-  Layout, Package, ShoppingCart, 
-  Users, Gear 
-} from '@phosphor-icons/react';
+import React from "react";
+import { NavLink } from "react-router-dom";
+import {
+  Layout,
+  Package,
+  ShoppingCart,
+  Users,
+  Gear,
+} from "@phosphor-icons/react";
 
 const mobileNavLinks = [
-  { label: 'Dash', path: '/', icon: Layout },
-  { label: 'Produits', path: '/produits', icon: Package },
-  { label: 'Commandes', path: '/commandes', icon: ShoppingCart },
-  { label: 'Clients', path: '/clients', icon: Users },
-  { label: 'Paramètres', path: '/parametres', icon: Gear },
+  { label: "Dash", path: "/", icon: Layout },
+  { label: "Produits", path: "/produits", icon: Package },
+  { label: "Commandes", path: "/commandes", icon: ShoppingCart },
+  { label: "Clients", path: "/clients", icon: Users },
+  { label: "Paramètres", path: "/parametres", icon: Gear },
 ];
 
 export function BottomNav() {
@@ -22,16 +25,15 @@ export function BottomNav() {
           to={item.path}
           className={({ isActive }) => `
             flex flex-col items-center gap-1 px-3 py-1 rounded-2xl transition-all
-            ${isActive ? 'text-primary' : 'text-gray-400'}
+            ${isActive ? "text-primary" : "text-gray-400"}
           `}
         >
           {({ isActive }) => (
             <>
-              <item.icon 
-                size={22} 
-                weight={isActive ? 'fill' : 'bold'} 
-              />
-              <span className={`text-[9px] font-black uppercase tracking-tight ${isActive ? 'opacity-100' : 'opacity-60'}`}>
+              <item.icon size={22} weight={isActive ? "fill" : "bold"} />
+              <span
+                className={`text-[9px] font-black uppercase tracking-tight ${isActive ? "opacity-100" : "opacity-60"}`}
+              >
                 {item.label}
               </span>
             </>

@@ -1,0 +1,39 @@
+{
+  "breadcrumb_home": "Accueil",
+  "breadcrumb_current": "Suivi de commande",
+  "title_main": "Suivez votre",
+  "title_sub": "Colis",
+  "description": "Entrez vos informations ci-dessous pour connaître l'état actuel de votre livraison en temps réel.",
+  "errors": {
+    "all_fields": "Veuillez remplir tous les champs.",
+    "not_found": "Aucune commande correspondante n'a été trouvée. Veuillez vérifier vos identifiants.",
+    "network": "Une erreur est survenue lors de la recherche. Veuillez réessayer."
+  },
+  "fields": {
+    "order_number": "Numéro de commande",
+    "email": "Adresse E-mail",
+    "placeholder_order": "Ex: #95-USK ou ORD-...",
+    "btn_searching": "Recherche en cours...",
+    "btn_search": "Rechercher mon colis"
+  },
+  "success": {
+    "identified": "Commande Identifiée",
+    "order_owner": "Commande #{{id}} au nom de ",
+    "status_title": "Statut de livraison",
+    "step_prep": "Préparation en entrepôt",
+    "step_prep_sub": "Alhos Vedros, PT — validé",
+    "step_transit": "Prise en charge transporteur",
+    "step_transit_sub": "En transit vers le pays de destination",
+    "step_delivered": "Livraison effectuée",
+    "step_delivered_sub": "Colis remis au destinataire",
+    "details_title": "Détails d'expédition",
+    "address_label": "Adresse :",
+    "total_label": "Total :",
+    "items_label": "Articles :"
+  },
+  "info": {
+    "update_title": "Mise à jour requise",
+    "update_desc": "Les informations de transport sont synchronisées toutes les 24h avec nos partenaires logistiques (CTT, DHL, DPD).",
+    "pathway_title": "Parcours type d'expédition"
+  }
+}

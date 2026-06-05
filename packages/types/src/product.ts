@@ -18,11 +18,9 @@ export interface Product {
   };
   attributes: Record<string, any>;
   tags: string[];
-  status: 'draft' | 'published' | 'archived';
+  status: "draft" | "published" | "archived";
   isNew?: boolean;
   isPromo?: boolean;
   updatedAt: string;
   createdAt: string;
 }
-
-

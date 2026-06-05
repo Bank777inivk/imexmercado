@@ -1,5 +1,15 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { useAuth, subscribeToDocument, setDocument } from '@imexmercado/firebase';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
+import {
+  useAuth,
+  subscribeToDocument,
+  setDocument,
+} from "@imexmercado/firebase";
 
 export interface CartItem {
   id: string;
@@ -8,6 +18,7 @@ export interface CartItem {
   image: string;
   quantity: number;
   category: string;
+  nameFR?: string;
 }
 
 interface CartContextType {
@@ -28,19 +39,19 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const [items, setItems] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem('imex_cart');
+    const saved = localStorage.getItem("imex_cart");
     return saved ? JSON.parse(saved) : [];
   });
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  
+
   // Track if we just logged in to prevent infinite loops during merge
   const isClearingRef = useRef(false);
   const isInitialSyncDone = useRef(false);
 
   // Persist to localStorage for guests and backup
   useEffect(() => {
-    localStorage.setItem('imex_cart', JSON.stringify(items));
+    localStorage.setItem("imex_cart", JSON.stringify(items));
   }, [items]);
 
   // --- REAL-TIME SYNC & MERGE ---
@@ -48,74 +59,101 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (authLoading) return;
     if (!user) {
       isInitialSyncDone.current = false;
-      if (localStorage.getItem('imex_last_uid')) {
-        localStorage.removeItem('imex_last_uid');
+      if (localStorage.getItem("imex_last_uid")) {
+        localStorage.removeItem("imex_last_uid");
         setItems([]);
       }
       return;
     }
 
     setIsSyncing(true);
-    const unsubscribe = subscribeToDocument<{ items: CartItem[] }>('carts', user.uid, async (remoteCart) => {
-      const savedUid = localStorage.getItem('imex_last_uid');
-      
-      // If we are currently clearing the cart, ignore remote updates that are not empty
-      if (isClearingRef.current && remoteCart?.items && remoteCart.items.length > 0) {
-        console.log("Cart sync: Ignoring non-empty remote update during clearCart action.");
-        return;
-      }
+    const unsubscribe = subscribeToDocument<{ items: CartItem[] }>(
+      "carts",
+      user.uid,
+      async (remoteCart) => {
+        const savedUid = localStorage.getItem("imex_last_uid");
 
-      if (!isInitialSyncDone.current && savedUid !== user.uid) {
-        // ... (rest of merge logic remains same)
-        const remoteItems = remoteCart?.items || [];
-        const localItems = items;
-        const mergedMap = new Map<string, CartItem>();
-
-        remoteItems.forEach(item => mergedMap.set(item.id, { ...item }));
-        localItems.forEach(localItem => {
-          const existing = mergedMap.get(localItem.id);
-          if (existing) {
-            mergedMap.set(localItem.id, { ...existing, quantity: existing.quantity + localItem.quantity });
-          } else {
-            mergedMap.set(localItem.id, { ...localItem });
-          }
-        });
-
-        const finalItems = Array.from(mergedMap.values());
-        setItems(finalItems);
-        localStorage.setItem('imex_last_uid', user.uid);
-        isInitialSyncDone.current = true;
-
-        await setDocument('carts', user.uid, { 
-          items: finalItems, 
-          updatedAt: new Date(),
-          mergedAt: new Date()
-        });
-      } else {
-        if (remoteCart && remoteCart.items) {
-          setItems(remoteCart.items);
-          // If we received an empty cart from remote, we can stop the clearing lock
-          if (remoteCart.items.length === 0) {
-            isClearingRef.current = false;
-          }
+        // If we are currently clearing the cart, ignore remote updates that are not empty
+        if (
+          isClearingRef.current &&
+          remoteCart?.items &&
+          remoteCart.items.length > 0
+        ) {
+          console.log(
+            "Cart sync: Ignoring non-empty remote update during clearCart action.",
+          );
+          return;
         }
-        isInitialSyncDone.current = true;
-        localStorage.setItem('imex_last_uid', user.uid);
-      }
-      setIsSyncing(false);
-    });
+
+        if (!isInitialSyncDone.current && savedUid !== user.uid) {
+          // ... (rest of merge logic remains same)
+          const remoteItems = remoteCart?.items || [];
+          const localItems = items;
+          const mergedMap = new Map<string, CartItem>();
+
+          remoteItems.forEach((item) => mergedMap.set(item.id, { ...item }));
+          localItems.forEach((localItem) => {
+            const existing = mergedMap.get(localItem.id);
+            if (existing) {
+              mergedMap.set(localItem.id, {
+                ...existing,
+                quantity: existing.quantity + localItem.quantity,
+              });
+            } else {
+              mergedMap.set(localItem.id, { ...localItem });
+            }
+          });
+
+          const finalItems = Array.from(mergedMap.values());
+          setItems(finalItems);
+          localStorage.setItem("imex_last_uid", user.uid);
+          isInitialSyncDone.current = true;
+
+          await setDocument("carts", user.uid, {
+            items: cleanItemsForFirestore(finalItems),
+            updatedAt: new Date(),
+            mergedAt: new Date(),
+          });
+        } else {
+          if (remoteCart && remoteCart.items) {
+            setItems(remoteCart.items);
+            // If we received an empty cart from remote, we can stop the clearing lock
+            if (remoteCart.items.length === 0) {
+              isClearingRef.current = false;
+            }
+          }
+          isInitialSyncDone.current = true;
+          localStorage.setItem("imex_last_uid", user.uid);
+        }
+        setIsSyncing(false);
+      },
+    );
 
     return () => unsubscribe();
   }, [user, authLoading]);
+
+  // Clean items helper to remove any undefined values before sending to Firestore
+  const cleanItemsForFirestore = (itemsList: CartItem[]) => {
+    return itemsList.map((item) => {
+      const cleaned: any = {};
+      Object.keys(item).forEach((key) => {
+        const val = (item as any)[key];
+        if (val !== undefined) {
+          cleaned[key] = val;
+        }
+      });
+      return cleaned;
+    });
+  };
 
   // Helper to persist changes
   const persistItems = async (newItems: CartItem[]) => {
     setItems(newItems);
     if (user && isInitialSyncDone.current) {
       try {
-        await setDocument('carts', user.uid, { 
-          items: newItems, 
-          updatedAt: new Date() 
+        await setDocument("carts", user.uid, {
+          items: cleanItemsForFirestore(newItems),
+          updatedAt: new Date(),
         });
       } catch (err) {
         console.error("Cart persistence error:", err);
@@ -125,32 +163,38 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = (product: any) => {
     isClearingRef.current = false; // Reset lock if user adds items
-    const existing = items.find(item => item.id === product.id);
+    const existing = items.find((item) => item.id === product.id);
     let newItems;
     if (existing) {
-      newItems = items.map(item => 
-        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+      newItems = items.map((item) =>
+        item.id === product.id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item,
       );
     } else {
-      newItems = [...items, { 
-        id: product.id, 
-        name: product.name, 
-        price: product.price, 
-        image: product.image,
-        category: product.category,
-        quantity: 1 
-      }];
+      newItems = [
+        ...items,
+        {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          category: product.category,
+          quantity: 1,
+          nameFR: product.nameFR,
+        },
+      ];
     }
     persistItems(newItems);
   };
 
   const removeItem = (productId: string) => {
-    const newItems = items.filter(item => item.id !== productId);
+    const newItems = items.filter((item) => item.id !== productId);
     persistItems(newItems);
   };
 
   const updateQuantity = (productId: string, delta: number) => {
-    const newItems = items.map(item => {
+    const newItems = items.map((item) => {
       if (item.id === productId) {
         const newQty = Math.max(1, item.quantity + delta);
         return { ...item, quantity: newQty };
@@ -162,9 +206,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
     isClearingRef.current = true;
-    localStorage.removeItem('imex_cart'); // Force clear localStorage
+    localStorage.removeItem("imex_cart"); // Force clear localStorage
     persistItems([]);
-    
+
     // Safety timeout: stop clearing lock after 3 seconds if no remote sync confirmed
     setTimeout(() => {
       isClearingRef.current = false;
@@ -172,14 +216,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
-  const totalPrice = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const totalPrice = items.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0,
+  );
 
   return (
-    <CartContext.Provider value={{ 
-      items, addItem, removeItem, updateQuantity, clearCart, 
-      totalItems, totalPrice,
-      isDrawerOpen, setDrawerOpen, isSyncing
-    }}>
+    <CartContext.Provider
+      value={{
+        items,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        totalItems,
+        totalPrice,
+        isDrawerOpen,
+        setDrawerOpen,
+        isSyncing,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
@@ -187,6 +243,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) throw new Error('useCart must be used within a CartProvider');
+  if (!context) throw new Error("useCart must be used within a CartProvider");
   return context;
 };

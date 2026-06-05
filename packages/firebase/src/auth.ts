@@ -1,8 +1,8 @@
-import { 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
   signOut,
-  User as FirebaseUser
+  User as FirebaseUser,
 } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { auth } from "./config";
@@ -21,7 +21,7 @@ export const useAuth = () => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       authInitialized = true;
-      
+
       // Nettoyer l'ancien abonnement au profil si nécessaire
       if (unsubscribeProfile) {
         unsubscribeProfile();
@@ -31,10 +31,14 @@ export const useAuth = () => {
       if (firebaseUser) {
         try {
           // Écoute en temps réel du document utilisateur
-          unsubscribeProfile = subscribeToDocument("users", firebaseUser.uid, (profileData) => {
-            setProfile(profileData);
-            setLoading(false); // On ne débloque le loading qu'après avoir reçu la donnée profil
-          });
+          unsubscribeProfile = subscribeToDocument(
+            "users",
+            firebaseUser.uid,
+            (profileData) => {
+              setProfile(profileData);
+              setLoading(false); // On ne débloque le loading qu'après avoir reçu la donnée profil
+            },
+          );
         } catch (error) {
           console.error("Error setting up profile listener:", error);
           setProfile(null);
@@ -52,7 +56,7 @@ export const useAuth = () => {
     };
   }, []);
 
-  return { user, profile, isAdmin: profile?.role === 'admin', loading };
+  return { user, profile, isAdmin: profile?.role === "admin", loading };
 };
 
 export const logout = () => signOut(auth);

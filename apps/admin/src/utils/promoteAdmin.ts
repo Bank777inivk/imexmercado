@@ -1,4 +1,10 @@
-import { auth, setDocument, getDocument, seedOrders, seedEmailTemplates } from "@imexmercado/firebase";
+import {
+  auth,
+  setDocument,
+  getDocument,
+  seedOrders,
+  seedEmailTemplates,
+} from "@imexmercado/firebase";
 
 /**
  * Utility to promote the currently logged-in user to Admin.
@@ -14,7 +20,7 @@ export async function promoteCurrentUser() {
     const profile = await getDocument("users", user.uid);
     await setDocument("users", user.uid, {
       ...profile,
-      role: 'admin'
+      role: "admin",
     });
     console.log("Promotion réussie ! Vous êtes maintenant Administrateur.");
     window.location.reload();
@@ -39,7 +45,7 @@ export async function seedDatabase() {
 }
 
 // Attach to window for easy console access
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   (window as any).promoteMe = promoteCurrentUser;
   (window as any).seedDatabase = seedDatabase;
 }

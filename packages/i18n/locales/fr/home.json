@@ -1,0 +1,66 @@
+{
+  "title": "Accueil",
+  "slider": {
+    "cta": "En savoir plus"
+  },
+  "promo_bar": "OFFRE SPÉCIALE DE LANCEMENT ! -20% SUR TOUT LE SITE",
+  "slides": {
+    "1": {
+      "title": "OFFRE DE LANCEMENT",
+      "subtitle": "Jusqu'à 20% de réduction sur Téléphones & Hi-Tech",
+      "ctaText": "VOIR LES PRODUITS"
+    },
+    "2": {
+      "title": "COSY & DESIGN",
+      "subtitle": "Transformez votre intérieur avec notre sélection Maison",
+      "ctaText": "DÉCOUVRIR LA COLLECTION"
+    },
+    "3": {
+      "title": "SAISON BBQ",
+      "subtitle": "Préparez vos soirées avec GrillMaster & Weber",
+      "ctaText": "VOIR LES OFFRES"
+    }
+  },
+  "mini_banners": {
+    "mb1": {
+      "label": "PROMOTION JUSQU'AU 21 AVRIL",
+      "title": "Jusqu'à -15% sur l'outillage de Bricolage",
+      "subtitle": "Promo Bricolage"
+    },
+    "mb2": {
+      "label": "SÉLECTION MAISON",
+      "title": "Jusqu'à 55% de réduction directe",
+      "subtitle": "Promo Maison"
+    }
+  },
+  "trust": {
+    "delivery": "Livraison Gratuite",
+    "delivery_sub": "Pour les achats supérieurs à 49€",
+    "security": "Paiement Sécurisé",
+    "security_sub": "100% protégé avec SSL",
+    "support": "Service Client",
+    "support_sub": "Réponse en moins de 24h",
+    "warranty": "Garantie 3 ans",
+    "warranty_sub": "Sur tous nos produits",
+    "protection": "Protection Commande",
+    "protection_sub": "Informations sécurisées",
+    "returns": "Retour 30 Jours",
+    "returns_sub": "Remboursement garanti"
+  },
+  "flash": {
+    "title": "Ventes Flash",
+    "ends_in": "Se termine dans"
+  },
+  "trending": {
+    "title": "Produits Populaires"
+  },
+  "new": {
+    "title": "Nouveautés"
+  },
+  "newsletter": {
+    "title": "Abonnez-vous à notre Newsletter",
+    "subtitle": "Recevez les dernières offres, nouveautés et coupons de réduction directement dans votre boîte mail.",
+    "placeholder": "Votre adresse e-mail",
+    "button": "S'abonner"
+  }
+}

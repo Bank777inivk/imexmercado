@@ -1,0 +1,44 @@
+{
+  "title": "Boutique",
+  "breadcrumb_home": "Accueil",
+  "breadcrumb_shop": "Boutique",
+  "mobile_filter_btn": "Filtrer & Trier",
+  "filters": {
+    "title": "Filtres",
+    "category": "Catégories",
+    "price": "Prix",
+    "brand": "Marques",
+    "color": "Couleurs",
+    "min": "Min",
+    "max": "Max",
+    "reset": "Réinitialiser les filtres",
+    "view_results": "Voir les résultats"
+  },
+  "sort": {
+    "label": "Trier par :",
+    "relevance": "Pertinence",
+    "price_asc": "Prix croissant",
+    "price_desc": "Prix décroissant",
+    "rating": "Mieux notés",
+    "newest": "Nouveautés",
+    "price_asc_detailed": "Prix : Moins chers d'abord",
+    "price_desc_detailed": "Prix : Plus chers d'abord",
+    "newest_detailed": "Nouveautés (Récent)",
+    "rating_detailed": "Mieux notés par les clients"
+  },
+  "no_products": "Aucun produit trouvé",
+  "no_products_desc": "Nous n'avons trouvé aucun article correspondant à vos critères de recherche.",
+  "results": "Affichage de <span class=\"font-bold text-gray-900\">{{count}}</span> produit",
+  "results_plural": "Affichage de <span class=\"font-bold text-gray-900\">{{count}}</span> produits",
+  "pagination_showing": "Affichage de {{start}}-{{end}} sur {{total}} produits",
+  "colors": {
+    "Noir": "Noir",
+    "Blanc": "Blanc",
+    "Gris": "Gris",
+    "Rouge": "Rouge",
+    "Bleu": "Bleu",
+    "Vert": "Vert",
+    "Bois": "Bois",
+    "Titane": "Titane"
+  }
+}

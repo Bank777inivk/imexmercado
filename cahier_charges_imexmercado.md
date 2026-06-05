@@ -1,21 +1,24 @@
 # CAHIER DES CHARGES — Plateforme E-Commerce
+
 # `imexmercado.pt`
+
 ### IMEXSULTING - Comércio Geral Import & Export., Lda
+
 **Version :** v2.0 — Avril 2026 | **Statut :** Confidentiel
 
 ---
 
 ## INFORMATIONS LÉGALES
 
-| Champ | Valeur |
-|---|---|
-| Raison sociale | IMEXSULTING - Comércio Geral Import & Export., Lda |
-| Date de création | 14 juin 2012 |
-| Forme juridique | Société à responsabilité limitée (Lda) |
-| Capital social | ~20 000 € |
-| Activité | Commerce de gros non spécialisé — Import-export multiproduits |
-| Siège | Rua dos Girassóis, Nº 1 e 1A — 2860-274 Alhos Vedros — Moita — Setúbal — PORTUGAL |
-| Domaine | imexmercado.pt |
+| Champ            | Valeur                                                                            |
+| ---------------- | --------------------------------------------------------------------------------- |
+| Raison sociale   | IMEXSULTING - Comércio Geral Import & Export., Lda                                |
+| Date de création | 14 juin 2012                                                                      |
+| Forme juridique  | Société à responsabilité limitée (Lda)                                            |
+| Capital social   | ~20 000 €                                                                         |
+| Activité         | Commerce de gros non spécialisé — Import-export multiproduits                     |
+| Siège            | Rua dos Girassóis, Nº 1 e 1A — 2860-274 Alhos Vedros — Moita — Setúbal — PORTUGAL |
+| Domaine          | imexmercado.pt                                                                    |
 
 ---
 
@@ -220,29 +223,29 @@ Breadcrumb : Accueil > Téléphones & Hi-Tech
 
 ### 3.1 Stack globale
 
-| Couche | Technologie | Version |
-|---|---|---|
-| Runtime build | Node.js | 20 LTS |
-| Framework UI | React | 18.x |
-| Bundler | Vite | 5.x |
-| Langage | TypeScript | 5.x |
-| Style | Tailwind CSS | 3.x |
-| Composants | shadcn/ui | latest |
-| State management | Zustand | 4.x |
-| Data fetching | TanStack Query (React Query) | 5.x |
-| Formulaires | React Hook Form + Zod | latest |
-| Routing | React Router | 6.x |
-| i18n | react-i18next | latest |
-| Animations | Framer Motion | latest |
-| Icons | Lucide React | latest |
-| Monorepo | Turborepo + pnpm workspaces | latest |
-| Auth | Firebase Authentication | 10.x |
-| Database | Cloud Firestore | 10.x |
-| Storage | Firebase Storage | 10.x |
-| Functions | Firebase Cloud Functions (Node 20) | 10.x |
-| Paiement | Stripe, Mollie, PayPlug, Square | latest |
-| Email | Resend (ou SendGrid) | latest |
-| Déploiement | Vercel | — |
+| Couche           | Technologie                        | Version |
+| ---------------- | ---------------------------------- | ------- |
+| Runtime build    | Node.js                            | 20 LTS  |
+| Framework UI     | React                              | 18.x    |
+| Bundler          | Vite                               | 5.x     |
+| Langage          | TypeScript                         | 5.x     |
+| Style            | Tailwind CSS                       | 3.x     |
+| Composants       | shadcn/ui                          | latest  |
+| State management | Zustand                            | 4.x     |
+| Data fetching    | TanStack Query (React Query)       | 5.x     |
+| Formulaires      | React Hook Form + Zod              | latest  |
+| Routing          | React Router                       | 6.x     |
+| i18n             | react-i18next                      | latest  |
+| Animations       | Framer Motion                      | latest  |
+| Icons            | Lucide React                       | latest  |
+| Monorepo         | Turborepo + pnpm workspaces        | latest  |
+| Auth             | Firebase Authentication            | 10.x    |
+| Database         | Cloud Firestore                    | 10.x    |
+| Storage          | Firebase Storage                   | 10.x    |
+| Functions        | Firebase Cloud Functions (Node 20) | 10.x    |
+| Paiement         | Stripe, Mollie, PayPlug, Square    | latest  |
+| Email            | Resend (ou SendGrid)               | latest  |
+| Déploiement      | Vercel                             | —       |
 
 ### 3.2 Vue d'ensemble architecture
 
@@ -392,65 +395,70 @@ imexmercado/
 
 ```css
 /* Couleurs principales */
---color-primary:        #CC0000;   /* Rouge principal — CTA, badges promo, accents */
---color-primary-dark:   #990000;   /* Rouge foncé — hover, actif */
---color-primary-light:  #FF3333;   /* Rouge clair — highlights */
+--color-primary: #cc0000; /* Rouge principal — CTA, badges promo, accents */
+--color-primary-dark: #990000; /* Rouge foncé — hover, actif */
+--color-primary-light: #ff3333; /* Rouge clair — highlights */
 
 /* Couleurs neutres */
---color-bg:             #FFFFFF;   /* Fond blanc dominant */
---color-bg-subtle:      #F5F5F5;   /* Fond gris très léger — sections alternées */
---color-bg-card:        #FFFFFF;   /* Fond cartes produit */
---color-border:         #E5E5E5;   /* Bordures fines */
+--color-bg: #ffffff; /* Fond blanc dominant */
+--color-bg-subtle: #f5f5f5; /* Fond gris très léger — sections alternées */
+--color-bg-card: #ffffff; /* Fond cartes produit */
+--color-border: #e5e5e5; /* Bordures fines */
 
 /* Textes */
---color-text-primary:   #1A1A1A;   /* Titres, textes forts */
---color-text-secondary: #666666;   /* Descriptions, sous-titres */
---color-text-muted:     #999999;   /* Textes secondaires, métadonnées */
+--color-text-primary: #1a1a1a; /* Titres, textes forts */
+--color-text-secondary: #666666; /* Descriptions, sous-titres */
+--color-text-muted: #999999; /* Textes secondaires, métadonnées */
 
 /* Sémantiques */
---color-success:        #00A651;   /* En stock, confirmé */
---color-warning:        #FF6600;   /* Stock bas, attention */
---color-error:          #CC0000;   /* Erreurs, rupture */
---color-info:           #0066CC;   /* Informations, liens */
+--color-success: #00a651; /* En stock, confirmé */
+--color-warning: #ff6600; /* Stock bas, attention */
+--color-error: #cc0000; /* Erreurs, rupture */
+--color-info: #0066cc; /* Informations, liens */
 
 /* Prix */
---color-price:          #CC0000;   /* Prix actuel — rouge comme Worten */
---color-price-old:      #999999;   /* Prix barré */
---color-badge-promo:    #CC0000;   /* Badge promotion */
---color-badge-new:      #00A651;   /* Badge nouveauté */
+--color-price: #cc0000; /* Prix actuel — rouge comme Worten */
+--color-price-old: #999999; /* Prix barré */
+--color-badge-promo: #cc0000; /* Badge promotion */
+--color-badge-new: #00a651; /* Badge nouveauté */
 ```
 
 ### 5.2 Typographie
 
 ```css
 /* Police principale */
-font-family: 'Inter', 'Roboto', system-ui, -apple-system, sans-serif;
+font-family:
+  "Inter",
+  "Roboto",
+  system-ui,
+  -apple-system,
+  sans-serif;
 
 /* Échelle typographique */
---text-xs:    12px;   /* Labels, badges, métadonnées */
---text-sm:    14px;   /* Corps secondaire, descriptions courtes */
---text-base:  16px;   /* Corps principal */
---text-lg:    18px;   /* Sous-titres, prix */
---text-xl:    20px;   /* Titres de section */
---text-2xl:   24px;   /* Titres H2 */
---text-3xl:   30px;   /* Titres H1 page */
---text-4xl:   36px;   /* Titres hero bannière */
+--text-xs: 12px; /* Labels, badges, métadonnées */
+--text-sm: 14px; /* Corps secondaire, descriptions courtes */
+--text-base: 16px; /* Corps principal */
+--text-lg: 18px; /* Sous-titres, prix */
+--text-xl: 20px; /* Titres de section */
+--text-2xl: 24px; /* Titres H2 */
+--text-3xl: 30px; /* Titres H1 page */
+--text-4xl: 36px; /* Titres hero bannière */
 
 /* Poids */
---font-normal:   400;
---font-medium:   500;
+--font-normal: 400;
+--font-medium: 500;
 --font-semibold: 600;
---font-bold:     700;
+--font-bold: 700;
 ```
 
 ### 5.3 Espacements & grille
 
 ```css
 /* Grille responsive */
---container-max: 1280px;     /* Largeur max contenu */
---container-px:  16px;       /* Padding horizontal mobile */
---container-px-md: 24px;     /* Padding horizontal tablet */
---container-px-lg: 32px;     /* Padding horizontal desktop */
+--container-max: 1280px; /* Largeur max contenu */
+--container-px: 16px; /* Padding horizontal mobile */
+--container-px-md: 24px; /* Padding horizontal tablet */
+--container-px-lg: 32px; /* Padding horizontal desktop */
 
 /* Grille produits */
 /* Mobile:  2 colonnes */
@@ -462,6 +470,7 @@ font-family: 'Inter', 'Roboto', system-ui, -apple-system, sans-serif;
 ### 5.4 Composants clés — Spécifications
 
 #### ProductCard
+
 ```
 Dimensions : largeur flexible, hauteur auto
 Image : ratio 1:1, object-fit: contain, fond blanc, padding 16px
@@ -473,6 +482,7 @@ Badge overlay : border-radius 4px, padding 4px 8px, font-size 12px bold
 ```
 
 #### Bouton CTA principal
+
 ```
 Background : --color-primary
 Text : blanc, 14px, bold
@@ -484,6 +494,7 @@ Icon optionnel : 🛒 gauche du texte
 ```
 
 #### Header sticky
+
 ```
 Height desktop : 60px top bar + 48px nav bar = 108px total
 Height mobile : 56px (hamburger + logo + panier)
@@ -498,33 +509,34 @@ Box-shadow au scroll : 0 2px 8px rgba(0,0,0,0.1)
 
 ### 6.1 Routes & pages
 
-| Route | Composant | Description |
-|---|---|---|
-| `/` | `Home` | Homepage complète style Worten |
-| `/:lang` | `Home` | Homepage version localisée (fr/de/it) |
-| `/c/:categorySlug` | `Category` | Page liste produits avec filtres |
-| `/p/:productSlug` | `Product` | Fiche produit détaillée |
-| `/recherche` | `Search` | Page résultats de recherche |
-| `/panier` | `Cart` | Page panier |
-| `/commande` | `Checkout` | Tunnel de commande multi-étapes |
-| `/commande/confirmation/:id` | `Confirmation` | Page confirmation commande |
-| `/compte` | `Account` | Dashboard compte client |
-| `/compte/commandes` | `Orders` | Historique commandes |
-| `/compte/commandes/:id` | `OrderDetail` | Détail commande |
-| `/compte/adresses` | `Addresses` | Gestion adresses |
-| `/compte/favoris` | `Favorites` | Liste de souhaits |
-| `/connexion` | `Login` | Authentification |
-| `/inscription` | `Register` | Création compte |
-| `/mot-de-passe-oublie` | `ForgotPassword` | Récupération mot de passe |
-| `/livraison` | `Shipping` | Informations livraison |
-| `/retours` | `Returns` | Politique retours |
-| `/cgv` | `CGV` | Conditions générales de vente |
-| `/confidentialite` | `Privacy` | Politique de confidentialité |
-| `/mentions-legales` | `Legal` | Mentions légales |
+| Route                        | Composant        | Description                           |
+| ---------------------------- | ---------------- | ------------------------------------- |
+| `/`                          | `Home`           | Homepage complète style Worten        |
+| `/:lang`                     | `Home`           | Homepage version localisée (fr/de/it) |
+| `/c/:categorySlug`           | `Category`       | Page liste produits avec filtres      |
+| `/p/:productSlug`            | `Product`        | Fiche produit détaillée               |
+| `/recherche`                 | `Search`         | Page résultats de recherche           |
+| `/panier`                    | `Cart`           | Page panier                           |
+| `/commande`                  | `Checkout`       | Tunnel de commande multi-étapes       |
+| `/commande/confirmation/:id` | `Confirmation`   | Page confirmation commande            |
+| `/compte`                    | `Account`        | Dashboard compte client               |
+| `/compte/commandes`          | `Orders`         | Historique commandes                  |
+| `/compte/commandes/:id`      | `OrderDetail`    | Détail commande                       |
+| `/compte/adresses`           | `Addresses`      | Gestion adresses                      |
+| `/compte/favoris`            | `Favorites`      | Liste de souhaits                     |
+| `/connexion`                 | `Login`          | Authentification                      |
+| `/inscription`               | `Register`       | Création compte                       |
+| `/mot-de-passe-oublie`       | `ForgotPassword` | Récupération mot de passe             |
+| `/livraison`                 | `Shipping`       | Informations livraison                |
+| `/retours`                   | `Returns`        | Politique retours                     |
+| `/cgv`                       | `CGV`            | Conditions générales de vente         |
+| `/confidentialite`           | `Privacy`        | Politique de confidentialité          |
+| `/mentions-legales`          | `Legal`          | Mentions légales                      |
 
 ### 6.2 Composants Header détaillé
 
 #### TopBar (bandeau promotionnel)
+
 ```tsx
 // Composant TopBar
 // - Fond couleur primaire (rouge) ou personnalisable depuis admin
@@ -534,21 +546,23 @@ Box-shadow au scroll : 0 2px 8px rgba(0,0,0,0.1)
 ```
 
 #### MainHeader
+
 ```tsx
-// Composant MainHeader  
+// Composant MainHeader
 // - Logo (SVG ou PNG — lien vers /)
 // - SearchBar centrale (80% de la largeur, 42px de hauteur)
 //   > Placeholder i18n par langue
 //   > Suggestions live (debounce 300ms → Firestore ou Algolia)
 //   > Overlay résultats avec thumbnail + nom + prix
 //   > Touche Échap pour fermer
-// - Zone droite : 
+// - Zone droite :
 //   > Sélecteur langue (dropdown drapeau + code)
 //   > Icône compte (dropdown si connecté : Mon compte / Commandes / Déconnexion)
 //   > Icône panier avec badge compteur (rouge, max "99+")
 ```
 
 #### NavBar (mega-menu)
+
 ```tsx
 // Composant NavBar
 // - 6 liens catégories
@@ -564,6 +578,7 @@ Box-shadow au scroll : 0 2px 8px rgba(0,0,0,0.1)
 ### 6.3 Homepage — Sections détaillées
 
 #### Section 1 : HeroSlider
+
 ```
 Composant : HeroSlider
 Hauteur desktop : 500px
@@ -583,6 +598,7 @@ Contrôles :
 ```
 
 #### Section 2 : PromoBar
+
 ```
 Composant : PromoBar
 Fond : --color-primary
@@ -592,6 +608,7 @@ Configurable depuis admin (texte, couleur, lien, visibility)
 ```
 
 #### Section 3 : CategoryGrid
+
 ```
 Composant : CategoryGrid
 Titre section : "Nos catégories" (i18n)
@@ -604,6 +621,7 @@ Chaque card :
 ```
 
 #### Section 4 : FlashSaleSection
+
 ```
 Composant : FlashSaleSection
 Titre : "Offres du jour" + Countdown timer (HH:MM:SS)
@@ -614,6 +632,7 @@ Cartes produit avec badge "-XX%"
 ```
 
 #### Section 5 : ProductGridSection (réutilisable)
+
 ```
 Props : title, products[], viewAllLink, columns (4 default)
 Titre de section avec lien "Voir tout →"
@@ -622,6 +641,7 @@ Maximum 8 produits affichés
 ```
 
 #### Section 6 : BannerCTA
+
 ```
 Composant : BannerCTA
 Image full-width avec overlay de couleur
@@ -631,6 +651,7 @@ Configurable depuis admin
 ```
 
 #### Section 7 : TrustBar
+
 ```
 Composant : TrustBar
 4 éléments en ligne (desktop) / grille 2×2 (mobile) :
@@ -684,6 +705,7 @@ Composant : TrustBar
 ### 6.5 Cart Drawer & Checkout
 
 #### Cart Drawer (panier latéral)
+
 ```
 - Slide depuis la droite (overlay semi-transparent)
 - Liste des articles : thumbnail + nom + quantité + prix
@@ -697,6 +719,7 @@ Composant : TrustBar
 ```
 
 #### Tunnel checkout (4 étapes)
+
 ```
 Étape 1 — Connexion/Identification
   - Continuer en tant qu'invité OU
@@ -765,16 +788,17 @@ Composant : TrustBar
 
 **KPIs en temps réel (Firestore listeners) :**
 
-| KPI | Description | Période |
-|---|---|---|
-| Chiffre d'affaires | Somme commandes confirmées | Aujourd'hui / Semaine / Mois |
-| Commandes | Nombre total | Même périodes |
-| Panier moyen | CA / nb commandes | Même périodes |
-| Clients actifs | Utilisateurs avec commande | Mois en cours |
-| Produits en rupture | Stock = 0 | Temps réel |
-| Stock faible | Stock < seuil alerte | Temps réel |
+| KPI                 | Description                | Période                      |
+| ------------------- | -------------------------- | ---------------------------- |
+| Chiffre d'affaires  | Somme commandes confirmées | Aujourd'hui / Semaine / Mois |
+| Commandes           | Nombre total               | Même périodes                |
+| Panier moyen        | CA / nb commandes          | Même périodes                |
+| Clients actifs      | Utilisateurs avec commande | Mois en cours                |
+| Produits en rupture | Stock = 0                  | Temps réel                   |
+| Stock faible        | Stock < seuil alerte       | Temps réel                   |
 
 **Graphiques :**
+
 - Ventes par jour (LineChart — 30 derniers jours)
 - Top 5 produits vendus (BarChart)
 - Répartition par catégorie (PieChart)
@@ -783,6 +807,7 @@ Composant : TrustBar
 ### 7.4 Module Produits
 
 #### Liste produits
+
 ```
 - Tableau avec colonnes : Image | SKU | Nom | Catégorie | Prix | Stock | Statut | Actions
 - Recherche full-text en temps réel
@@ -794,6 +819,7 @@ Composant : TrustBar
 ```
 
 #### Formulaire produit (Create/Edit)
+
 ```
 ONGLET 1 — Général
   - Noms par langue (PT/FR/DE/IT) — champs texte
@@ -982,19 +1008,19 @@ firestore/
 
 ### 8.2 Firebase Cloud Functions
 
-| Fonction | Trigger | Description |
-|---|---|---|
-| `onOrderCreated` | Firestore create | Décrémente stock, email confirmation client |
-| `onOrderStatusChanged` | Firestore update | Email client (expédié, livré), notif admin |
-| `stripeWebhook` | HTTP POST | Traite les events Stripe (succès/échec paiement) |
-| `createAdminUser` | HTTPS Callable | Attribue custom claim `admin: true` |
-| `generateDeliveryPDF` | HTTPS Callable | Génère bon livraison PDF → Storage |
-| `optimizeProductImage` | Storage onFinalize | Redimensionne + convertit en WebP |
-| `updateProductRating` | Firestore create (review) | Recalcule la note moyenne du produit |
-| `scheduledStockAlert` | Cron (daily 8h00) | Email admin liste produits stock < seuil |
-| `generateSitemap` | Cron (daily 4h00) | Génère sitemap XML 4 langues → Storage |
-| `cleanupOrphanMedia` | Cron (weekly) | Supprime images Storage non référencées |
-| `sendCartReminder` | Cron (hourly) | Relance panier abandonné (>24h, opt-in) |
+| Fonction               | Trigger                   | Description                                      |
+| ---------------------- | ------------------------- | ------------------------------------------------ |
+| `onOrderCreated`       | Firestore create          | Décrémente stock, email confirmation client      |
+| `onOrderStatusChanged` | Firestore update          | Email client (expédié, livré), notif admin       |
+| `stripeWebhook`        | HTTP POST                 | Traite les events Stripe (succès/échec paiement) |
+| `createAdminUser`      | HTTPS Callable            | Attribue custom claim `admin: true`              |
+| `generateDeliveryPDF`  | HTTPS Callable            | Génère bon livraison PDF → Storage               |
+| `optimizeProductImage` | Storage onFinalize        | Redimensionne + convertit en WebP                |
+| `updateProductRating`  | Firestore create (review) | Recalcule la note moyenne du produit             |
+| `scheduledStockAlert`  | Cron (daily 8h00)         | Email admin liste produits stock < seuil         |
+| `generateSitemap`      | Cron (daily 4h00)         | Génère sitemap XML 4 langues → Storage           |
+| `cleanupOrphanMedia`   | Cron (weekly)             | Supprime images Storage non référencées          |
+| `sendCartReminder`     | Cron (hourly)             | Relance panier abandonné (>24h, opt-in)          |
 
 ### 8.3 Règles de sécurité Firestore
 
@@ -1055,14 +1081,14 @@ service cloud.firestore {
 
 ### 9.1 Les 6 catégories
 
-| # | Catégorie | Slug PT | Produits | Exemples |
-|---|---|---|---|---|
-| 1 | 📱 Téléphones & Hi-Tech | `telefones-hitech` | 50 | Smartphones, tablettes, écouteurs, montres connectées, drones, accessoires |
-| 2 | 🏠 Maison & Décoration | `casa-decoracao` | 50 | Textiles maison, objets déco, miroirs, cadres, bougies, rideaux |
-| 3 | 🛋️ Meubles & Lampes | `moveis-candeeiros` | 50 | Canapés, tables, chaises, étagères, lampes de sol, appliques, plafonniers |
-| 4 | 🔧 Bricolage | `bricolage` | 50 | Outils électriques, quincaillerie, visserie, peinture, équipements sécurité |
-| 5 | 🔥 Barbecues & Planchas | `barbecues-planchas` | 50 | BBQ gaz/charbon/électrique, planchas inox, accessoires de cuisson |
-| 6 | 🏊 Piscines & Spas | `piscinas-spas` | 50 | Piscines hors-sol, spas gonflables, robots nettoyeurs, traitement eau |
+| #   | Catégorie               | Slug PT              | Produits | Exemples                                                                    |
+| --- | ----------------------- | -------------------- | -------- | --------------------------------------------------------------------------- |
+| 1   | 📱 Téléphones & Hi-Tech | `telefones-hitech`   | 50       | Smartphones, tablettes, écouteurs, montres connectées, drones, accessoires  |
+| 2   | 🏠 Maison & Décoration  | `casa-decoracao`     | 50       | Textiles maison, objets déco, miroirs, cadres, bougies, rideaux             |
+| 3   | 🛋️ Meubles & Lampes     | `moveis-candeeiros`  | 50       | Canapés, tables, chaises, étagères, lampes de sol, appliques, plafonniers   |
+| 4   | 🔧 Bricolage            | `bricolage`          | 50       | Outils électriques, quincaillerie, visserie, peinture, équipements sécurité |
+| 5   | 🔥 Barbecues & Planchas | `barbecues-planchas` | 50       | BBQ gaz/charbon/électrique, planchas inox, accessoires de cuisson           |
+| 6   | 🏊 Piscines & Spas      | `piscinas-spas`      | 50       | Piscines hors-sol, spas gonflables, robots nettoyeurs, traitement eau       |
 
 **Total : 300 produits au lancement**
 
@@ -1078,12 +1104,12 @@ service cloud.firestore {
 
 ### 10.1 Configuration
 
-| Code | Langue | Marché | URL | Currency |
-|---|---|---|---|---|
-| `pt` | Portugais | Portugal (marché principal) | `imexmercado.pt/` | EUR |
-| `fr` | Français | France | `imexmercado.pt/fr/` | EUR |
-| `de` | Allemand | Allemagne / Autriche | `imexmercado.pt/de/` | EUR |
-| `it` | Italien | Italie | `imexmercado.pt/it/` | EUR |
+| Code | Langue    | Marché                      | URL                  | Currency |
+| ---- | --------- | --------------------------- | -------------------- | -------- |
+| `pt` | Portugais | Portugal (marché principal) | `imexmercado.pt/`    | EUR      |
+| `fr` | Français  | France                      | `imexmercado.pt/fr/` | EUR      |
+| `de` | Allemand  | Allemagne / Autriche        | `imexmercado.pt/de/` | EUR      |
+| `it` | Italien   | Italie                      | `imexmercado.pt/it/` | EUR      |
 
 ### 10.2 Namespaces i18next
 
@@ -1162,35 +1188,39 @@ locales/
 
 ### 12.1 Objectifs Core Web Vitals
 
-| Métrique | Mobile | Desktop | Outil mesure |
-|---|---|---|---|
-| LCP (Largest Contentful Paint) | < 2,5s | < 1,5s | PageSpeed Insights |
-| INP (Interaction to Next Paint) | < 200ms | < 100ms | CrUX |
-| CLS (Cumulative Layout Shift) | < 0,1 | < 0,05 | Lighthouse |
-| TTFB (Time To First Byte) | < 800ms | < 200ms | WebPageTest |
-| Lighthouse Performance | > 85 | > 95 | Lighthouse CI |
+| Métrique                        | Mobile  | Desktop | Outil mesure       |
+| ------------------------------- | ------- | ------- | ------------------ |
+| LCP (Largest Contentful Paint)  | < 2,5s  | < 1,5s  | PageSpeed Insights |
+| INP (Interaction to Next Paint) | < 200ms | < 100ms | CrUX               |
+| CLS (Cumulative Layout Shift)   | < 0,1   | < 0,05  | Lighthouse         |
+| TTFB (Time To First Byte)       | < 800ms | < 200ms | WebPageTest        |
+| Lighthouse Performance          | > 85    | > 95    | Lighthouse CI      |
 
 ### 12.2 Stratégies d'optimisation
 
 **Images :**
+
 - Format WebP obligatoire (conversion automatique Cloud Function)
 - Tailles : 800×800 (standard), 1600×1600 (zoom), 200×200 (thumbnail)
 - `loading="lazy"` sauf image principale produit et hero slide 1
 - `fetchpriority="high"` sur les images above the fold
 
 **JavaScript :**
+
 - Code splitting par route (Vite — chunks automatiques)
 - Lazy loading des composants non critiques (`React.lazy`)
 - Tree-shaking agressif (Vite + TypeScript strict)
 - Pas de librairies tierces lourdes non essentielles
 
 **Data fetching :**
+
 - React Query avec `staleTime` adapté par type de données
 - Prefetch des données au hover sur les liens catégories
 - Pagination Firestore (cursor-based) — max 24 produits/page
 - Firebase Persistence pour cache offline
 
 **Réseau :**
+
 - Vercel CDN Edge Network (assets statiques en cache CDN mondial)
 - `preconnect` vers Firebase, Stripe, CDN images
 - Compression Brotli/gzip automatique (Vercel)
@@ -1215,15 +1245,16 @@ locales/
 
 ### 13.1 Environnements
 
-| Environnement | Client | Admin | Firebase |
-|---|---|---|---|
-| Local | `localhost:5173` | `localhost:5174` | Emulators suite |
-| Staging | `staging.imexmercado.pt` | `staging-admin.imexmercado.pt` | Firebase project staging |
-| Production | `imexmercado.pt` | `admin.imexmercado.pt` | Firebase project prod |
+| Environnement | Client                   | Admin                          | Firebase                 |
+| ------------- | ------------------------ | ------------------------------ | ------------------------ |
+| Local         | `localhost:5173`         | `localhost:5174`               | Emulators suite          |
+| Staging       | `staging.imexmercado.pt` | `staging-admin.imexmercado.pt` | Firebase project staging |
+| Production    | `imexmercado.pt`         | `admin.imexmercado.pt`         | Firebase project prod    |
 
 ### 13.2 Variables d'environnement
 
 **App Client (Vercel Project A) :**
+
 ```env
 VITE_FIREBASE_API_KEY=
 VITE_FIREBASE_AUTH_DOMAIN=
@@ -1236,6 +1267,7 @@ VITE_APP_URL=https://imexmercado.pt
 ```
 
 **App Admin (Vercel Project B) :**
+
 ```env
 VITE_FIREBASE_API_KEY=           # Même projet Firebase
 VITE_FIREBASE_PROJECT_ID=
@@ -1243,6 +1275,7 @@ VITE_ADMIN_URL=https://admin.imexmercado.pt
 ```
 
 **Firebase Functions :**
+
 ```env
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
@@ -1288,6 +1321,7 @@ jobs:
 ### 13.4 Vercel — Configuration
 
 **vercel.json (apps/client) :**
+
 ```json
 {
   "framework": "vite",
@@ -1314,16 +1348,16 @@ jobs:
 
 ### 14.1 Phases de développement
 
-| Phase | Durée | Contenu | Livrable |
-|---|---|---|---|
-| **Phase 0** | S1 | Setup monorepo, Turborepo, pnpm, CI/CD, Firebase init, design tokens, packages partagés | Repo fonctionnel + pipeline vert |
-| **Phase 1** | S2–S3 | Design System : composants UI de base (Button, Input, Card, Modal, Badge...) + documentation Storybook | Librairie composants |
-| **Phase 2** | S3–S5 | App Admin — Catalogue : CRUD produits complet, upload images, catégories, traductions | Admin v1 — Gestion catalogue |
-| **Phase 3** | S5–S8 | App Client — Catalogue : Homepage (toutes sections), page catégorie, page produit, recherche, i18n 4 langues | Client v1 — Vitrine produits |
-| **Phase 4** | S8–S11 | E-commerce core : panier, checkout 4 étapes, paiement Stripe/MBWay/PayPal, espace compte, emails | Fonctionnalité achat complète |
-| **Phase 5** | S11–S13 | App Admin — Avancé : dashboard KPIs, gestion commandes, clients, promotions, gestion homepage | Admin v2 — Back-office complet |
-| **Phase 6** | S13–S15 | QA & Performance : tests E2E Playwright, audits Lighthouse, RGPD, accessibilité, corrections, recette client | Site validé |
-| **Phase 7** | S16 | Lancement : mise en prod, import 300 produits, formation équipe, monitoring J+30 | 🚀 **GO LIVE** |
+| Phase       | Durée   | Contenu                                                                                                      | Livrable                         |
+| ----------- | ------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------- |
+| **Phase 0** | S1      | Setup monorepo, Turborepo, pnpm, CI/CD, Firebase init, design tokens, packages partagés                      | Repo fonctionnel + pipeline vert |
+| **Phase 1** | S2–S3   | Design System : composants UI de base (Button, Input, Card, Modal, Badge...) + documentation Storybook       | Librairie composants             |
+| **Phase 2** | S3–S5   | App Admin — Catalogue : CRUD produits complet, upload images, catégories, traductions                        | Admin v1 — Gestion catalogue     |
+| **Phase 3** | S5–S8   | App Client — Catalogue : Homepage (toutes sections), page catégorie, page produit, recherche, i18n 4 langues | Client v1 — Vitrine produits     |
+| **Phase 4** | S8–S11  | E-commerce core : panier, checkout 4 étapes, paiement Stripe/MBWay/PayPal, espace compte, emails             | Fonctionnalité achat complète    |
+| **Phase 5** | S11–S13 | App Admin — Avancé : dashboard KPIs, gestion commandes, clients, promotions, gestion homepage                | Admin v2 — Back-office complet   |
+| **Phase 6** | S13–S15 | QA & Performance : tests E2E Playwright, audits Lighthouse, RGPD, accessibilité, corrections, recette client | Site validé                      |
+| **Phase 7** | S16     | Lancement : mise en prod, import 300 produits, formation équipe, monitoring J+30                             | 🚀 **GO LIVE**                   |
 
 **Durée totale : 16 semaines (4 mois)**
 
@@ -1346,35 +1380,35 @@ Semaine 16 : 🚀 Mise en production imexmercado.pt
 
 ### 15.1 Infrastructure (récurrent)
 
-| Service | Plan | Coût mensuel |
-|---|---|---|
-| Vercel Pro (2 projets) | Pro | ~40 €/mois |
-| Firebase Blaze (pay-as-you-go) | Blaze | ~30–80 €/mois |
-| Resend (emails transactionnels) | Pro | ~20 €/mois |
-| Algolia Search (optionnel) | Starter | ~50 €/mois |
-| **Total infrastructure** | | **~90–190 €/mois** |
+| Service                         | Plan    | Coût mensuel       |
+| ------------------------------- | ------- | ------------------ |
+| Vercel Pro (2 projets)          | Pro     | ~40 €/mois         |
+| Firebase Blaze (pay-as-you-go)  | Blaze   | ~30–80 €/mois      |
+| Resend (emails transactionnels) | Pro     | ~20 €/mois         |
+| Algolia Search (optionnel)      | Starter | ~50 €/mois         |
+| **Total infrastructure**        |         | **~90–190 €/mois** |
 
 ### 15.2 Coûts one-shot
 
-| Poste | Estimation |
-|---|---|
-| Nom de domaine `imexmercado.pt` | ~15 €/an |
+| Poste                                 | Estimation  |
+| ------------------------------------- | ----------- |
+| Nom de domaine `imexmercado.pt`       | ~15 €/an    |
 | Traductions professionnelles FR/DE/IT | 800–1 500 € |
-| Photographie produits (si nécessaire) | Sur devis |
+| Photographie produits (si nécessaire) | Sur devis   |
 | Audit sécurité / Pentest (recommandé) | 500–1 500 € |
-| Formation équipe admin (2 jours) | Sur devis |
+| Formation équipe admin (2 jours)      | Sur devis   |
 
 ### 15.3 Commissions transactionnelles
 
-| Moyen de paiement | Commission |
-|---|---|
-| Mollie | Selon méthode (0.25€ + variable) |
-| PayPlug | Dès 0.8% + 0.15€ / transaction |
-| Square | 1.4% + 0.25€ / transaction |
-| Stripe (carte EU) | 1,4% + 0,25€ / transaction |
-| Stripe (carte non-EU) | 2,9% + 0,25€ / transaction |
-| PayPal | 3,49% + 0,35€ / transaction |
-| MBWay (via Stripe) | Inclus dans Stripe |
+| Moyen de paiement     | Commission                       |
+| --------------------- | -------------------------------- |
+| Mollie                | Selon méthode (0.25€ + variable) |
+| PayPlug               | Dès 0.8% + 0.15€ / transaction   |
+| Square                | 1.4% + 0.25€ / transaction       |
+| Stripe (carte EU)     | 1,4% + 0,25€ / transaction       |
+| Stripe (carte non-EU) | 2,9% + 0,25€ / transaction       |
+| PayPal                | 3,49% + 0,35€ / transaction      |
+| MBWay (via Stripe)    | Inclus dans Stripe               |
 
 ---
 
@@ -1413,5 +1447,5 @@ Semaine 16 : 🚀 Mise en production imexmercado.pt
 
 ---
 
-*Document confidentiel — IMEXSULTING Lda — imexmercado.pt — Avril 2026*
-*Toute reproduction interdite sans autorisation écrite*
+_Document confidentiel — IMEXSULTING Lda — imexmercado.pt — Avril 2026_
+_Toute reproduction interdite sans autorisation écrite_

@@ -1,5 +1,5 @@
-import type { Config } from 'tailwindcss';
-import sharedConfig from '../../packages/ui/tailwind.config';
+import type { Config } from "tailwindcss";
+import sharedConfig from "../../packages/ui/tailwind.config";
 
 export default {
   ...sharedConfig,

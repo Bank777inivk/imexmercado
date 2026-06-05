@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
-import { CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
-import { ShieldCheck, CreditCard } from '@phosphor-icons/react';
+import React, { useState } from "react";
+import {
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
+} from "@stripe/react-stripe-js";
+import { ShieldCheck, CreditCard } from "@phosphor-icons/react";
+import { useTranslation } from "react-i18next";
 
 // ─── Stripe Element Styling ───────────────────────────────────────────────────
 const stripeElementStyle = {
   style: {
     base: {
-      fontSize: '14px',
-      color: '#111827',
+      fontSize: "14px",
+      color: "#111827",
       fontFamily: '"Inter", system-ui, sans-serif',
-      fontWeight: '500',
-      letterSpacing: '0.02em',
-      fontSmoothing: 'antialiased',
-      '::placeholder': { color: '#9ca3af' },
+      fontWeight: "500",
+      letterSpacing: "0.02em",
+      fontSmoothing: "antialiased",
+      "::placeholder": { color: "#9ca3af" },
     },
-    invalid: { color: '#ef4444' },
+    invalid: { color: "#ef4444" },
   },
 };
 
@@ -22,18 +27,26 @@ const stripeCardNumberStyle = {
   style: {
     base: {
       ...stripeElementStyle.style.base,
-      fontSize: '15px',
-      letterSpacing: '0.08em',
+      fontSize: "15px",
+      letterSpacing: "0.08em",
     },
     invalid: stripeElementStyle.style.invalid,
   },
 };
 
 // ─── Shared field wrapper ─────────────────────────────────────────────────────
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">{label}</label>
+      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+        {label}
+      </label>
       <div className="bg-[#1F222A]/5 border border-[#1F222A] focus-within:border-gray-900 focus-within:ring-1 focus-within:ring-gray-900 rounded-xl px-4 py-3.5 transition-all">
         {children}
       </div>
@@ -43,25 +56,35 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export function StripePaymentForm() {
-  const [cardBrand, setCardBrand] = useState<string>('unknown');
+  const { t } = useTranslation("checkout");
+  const [cardBrand, setCardBrand] = useState<string>("unknown");
 
   return (
     <div className="space-y-4">
-
       {/* Card brand indicator */}
       <div className="flex items-center gap-2 mb-2">
         <CreditCard size={16} className="text-gray-400" weight="bold" />
         <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-          {cardBrand !== 'unknown' ? cardBrand.toUpperCase() : 'Carte bancaire'}
+          {cardBrand !== "unknown"
+            ? cardBrand.toUpperCase()
+            : t("card_brand_default")}
         </span>
         <div className="flex items-center gap-1.5 ml-auto opacity-70">
-          <img src="https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@master/logo/visa.svg" alt="Visa" className="h-3" />
-          <img src="https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@master/logo/mastercard.svg" alt="Mastercard" className="h-4" />
+          <img
+            src="https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@master/logo/visa.svg"
+            alt="Visa"
+            className="h-3"
+          />
+          <img
+            src="https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons@master/logo/mastercard.svg"
+            alt="Mastercard"
+            className="h-4"
+          />
         </div>
       </div>
 
       {/* Numéro de carte */}
-      <Field label="Numéro de carte">
+      <Field label={t("card_number")}>
         <CardNumberElement
           options={stripeCardNumberStyle}
           onChange={(e) => setCardBrand(e.brand)}
@@ -70,19 +93,19 @@ export function StripePaymentForm() {
 
       {/* Expiration + CVC */}
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Expiration">
+        <Field label={t("card_expiry")}>
           <CardExpiryElement options={stripeElementStyle} />
         </Field>
-        <Field label="CVC">
+        <Field label={t("card_cvc")}>
           <CardCvcElement options={stripeElementStyle} />
         </Field>
       </div>
 
       {/* Titulaire */}
-      <Field label="Titulaire de la carte">
+      <Field label={t("card_holder")}>
         <input
           type="text"
-          placeholder="Votre nom complet"
+          placeholder={t("card_holder_placeholder")}
           className="w-full bg-transparent outline-none border-none text-sm font-medium text-gray-900 placeholder:text-gray-400"
         />
       </Field>
@@ -90,9 +113,10 @@ export function StripePaymentForm() {
       {/* Badge sécurité */}
       <div className="flex items-center justify-center gap-2 pt-2">
         <ShieldCheck weight="fill" size={13} className="text-green-500" />
-        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Paiement chiffré SSL 256-bit</span>
+        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+          {t("ssl_encrypted_badge")}
+        </span>
       </div>
-
     </div>
   );
 }

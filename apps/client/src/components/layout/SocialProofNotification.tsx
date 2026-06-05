@@ -1,21 +1,43 @@
-import React, { useEffect, useState } from 'react';
-import { subscribeToCollection } from '@imexmercado/firebase';
-import { ShoppingBag, X } from '@phosphor-icons/react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { subscribeToCollection } from "@imexmercado/firebase";
+import { ShoppingBag, X } from "@phosphor-icons/react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "../../hooks/useLocale";
 
 const CITIES = [
-  'Lisboa', 'Porto', 'Braga', 'Coimbra', 'Setúbal', 'Faro', 'Aveiro', 'Funchal', 
-  'Viseu', 'Leiria', 'Évora', 'Guimarães', 'Albufeira', 'Portimão', 'Vila Real',
-  'Amadora', 'Queluz', 'Almada', 'Barreiro', 'Vila Nova de Gaia', 'Matosinhos'
+  "Lisboa",
+  "Porto",
+  "Braga",
+  "Coimbra",
+  "Setúbal",
+  "Faro",
+  "Aveiro",
+  "Funchal",
+  "Viseu",
+  "Leiria",
+  "Évora",
+  "Guimarães",
+  "Albufeira",
+  "Portimão",
+  "Vila Real",
+  "Amadora",
+  "Queluz",
+  "Almada",
+  "Barreiro",
+  "Vila Nova de Gaia",
+  "Matosinhos",
 ];
 
 export function SocialProofNotification() {
   const [products, setProducts] = useState<any[]>([]);
-  const [activeNotification, setActiveNotification] = useState<any | null>(null);
+  const [activeNotification, setActiveNotification] = useState<any | null>(
+    null,
+  );
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = subscribeToCollection('products', (data) => {
+    const unsubscribe = subscribeToCollection("products", (data) => {
       if (data && data.length > 0) {
         setProducts(data);
       }
@@ -27,14 +49,15 @@ export function SocialProofNotification() {
     if (products.length === 0) return;
 
     const triggerNotification = () => {
-      const randomProduct = products[Math.floor(Math.random() * products.length)];
+      const randomProduct =
+        products[Math.floor(Math.random() * products.length)];
       const randomCity = CITIES[Math.floor(Math.random() * CITIES.length)];
       const randomMinutes = Math.floor(Math.random() * 58) + 2; // Between 2 and 59 minutes
 
       setActiveNotification({
         product: randomProduct,
         city: randomCity,
-        minutes: randomMinutes
+        minutes: randomMinutes,
       });
       setVisible(true);
 
@@ -56,41 +79,80 @@ export function SocialProofNotification() {
     };
   }, [products]);
 
+  const { i18n } = useTranslation();
+  const { localLink } = useLocale();
+  const isFR = (i18n.language || "pt").startsWith("fr");
+
   if (!activeNotification) return null;
 
   const { product, city, minutes } = activeNotification;
-  const productSlug = product.id || product.name?.toLowerCase().replace(/\s+/g, '-');
+  const displayName = isFR ? product.nameFR || product.name : product.name;
+  const productSlug =
+    product.id || displayName?.toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <div 
+    <div
       className={`fixed top-4 md:top-auto md:bottom-6 left-4 right-4 md:right-6 md:left-auto z-[200] max-w-sm bg-white md:bg-[#1F222A] rounded-2xl shadow-2xl border border-gray-150 md:border-gray-800 p-4 transition-all duration-500 flex items-center gap-4 ${
-        visible 
-          ? 'opacity-100 translate-x-0 translate-y-0 scale-100' 
-          : 'opacity-0 -translate-x-full -translate-y-12 md:translate-x-0 md:translate-y-4 scale-75 md:scale-95 pointer-events-none'
+        visible
+          ? "opacity-100 translate-x-0 translate-y-0 scale-100"
+          : "opacity-0 -translate-x-full -translate-y-12 md:translate-x-0 md:translate-y-4 scale-75 md:scale-95 pointer-events-none"
       }`}
     >
       {/* Product Image */}
-      <div className="w-12 h-12 rounded-xl bg-[#1F222A] md:bg-white flex-shrink-0 overflow-hidden border border-gray-800 md:border-gray-200 flex items-center justify-center">
-        <img 
-          src={product.image} 
-          alt={product.name} 
-          className="w-full h-full object-contain p-1" 
+      <Link
+        to={localLink(`/?product=${product.id}`)}
+        className="w-12 h-12 rounded-xl bg-[#1F222A] md:bg-white flex-shrink-0 overflow-hidden border border-gray-800 md:border-gray-200 flex items-center justify-center hover:scale-105 transition-transform"
+      >
+        <img
+          src={product.image}
+          alt={displayName}
+          className="w-full h-full object-contain p-1"
         />
-      </div>
+      </Link>
 
       {/* Text Info */}
       <div className="flex-1 min-w-0 pr-2">
         <div className="flex items-center gap-1 text-[9px] font-black text-primary uppercase tracking-widest mb-0.5">
           <ShoppingBag size={12} weight="fill" />
-          <span>Nova Venda</span>
+          <span>{isFR ? "Achat récent" : "Nova Venda"}</span>
         </div>
-        <p className="text-[11px] font-medium text-gray-600 md:text-gray-300 leading-tight">
-          Um cliente de <strong className="text-gray-900 md:text-white font-black">{city}</strong> acabou de comprar <Link to={`/?product=${product.id}`} className="text-primary hover:underline font-bold inline">{product.name}</Link> há {minutes} minutes.
+        <p className="text-[11px] font-medium text-gray-600 md:text-gray-300 leading-tight text-left">
+          {isFR ? (
+            <>
+              Un client de{" "}
+              <strong className="text-gray-900 md:text-white font-black">
+                {city}
+              </strong>{" "}
+              vient d'acheter{" "}
+              <Link
+                to={localLink(`/?product=${product.id}`)}
+                className="text-primary hover:underline font-bold inline"
+              >
+                {displayName}
+              </Link>{" "}
+              il y a {minutes} minutes.
+            </>
+          ) : (
+            <>
+              Um cliente de{" "}
+              <strong className="text-gray-900 md:text-white font-black">
+                {city}
+              </strong>{" "}
+              acabou de comprar{" "}
+              <Link
+                to={localLink(`/?product=${product.id}`)}
+                className="text-primary hover:underline font-bold inline"
+              >
+                {displayName}
+              </Link>{" "}
+              há {minutes} minutos.
+            </>
+          )}
         </p>
       </div>
 
       {/* Close button */}
-      <button 
+      <button
         onClick={() => setVisible(false)}
         className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 md:bg-gray-800 md:hover:bg-gray-700 md:text-gray-400 hover:text-gray-700 md:hover:text-white transition-colors flex items-center justify-center flex-shrink-0"
         aria-label="Fechar"

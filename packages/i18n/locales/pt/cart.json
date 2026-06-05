@@ -1,0 +1,16 @@
+{
+  "drawer": {
+    "title": "O Meu Carrinho",
+    "items_count_one": "{{count}} artigo selecionado",
+    "items_count_other": "{{count}} artigos selecionados",
+    "free_shipping_success": "Portes gratuitos!",
+    "free_shipping_remaining": "Faltam apenas <span class=\"text-primary\">{{remaining}}€</span>",
+    "empty": "O seu carrinho está vazio",
+    "per_unit": "€{{price}} / unidade",
+    "clear_cart": "Limpar carrinho",
+    "recommendations_title": "Complete o seu carrinho",
+    "total_label": "Total c/ IVA",
+    "secure_label": "Pagamento 100% seguro",
+    "btn_checkout": "Finalizar Compra"
+  }
+}

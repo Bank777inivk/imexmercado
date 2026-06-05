@@ -1,5 +1,5 @@
-import React from 'react';
-import { ProductCard } from './ProductCard';
+import React from "react";
+import { ProductCard } from "./ProductCard";
 
 interface ProductGridSectionProps {
   title: string;
@@ -10,16 +10,27 @@ interface ProductGridSectionProps {
   onViewDetails?: (product: any) => void;
 }
 
-export function ProductGridSection({ title, emoji = '', products, viewAllLink = '#', bgClass = 'bg-bg-subtle', onViewDetails }: ProductGridSectionProps) {
+export function ProductGridSection({
+  title,
+  emoji = "",
+  products,
+  viewAllLink = "#",
+  bgClass = "bg-bg-subtle",
+  onViewDetails,
+}: ProductGridSectionProps) {
   return (
     <section className={`${bgClass} py-8 border-b border-gray-100`}>
       <div className="w-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-text-primary">
-            {emoji && <span className="mr-2">{emoji}</span>}{title}
+            {emoji && <span className="mr-2">{emoji}</span>}
+            {title}
           </h2>
-          <a href={viewAllLink} className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
+          <a
+            href={viewAllLink}
+            className="text-sm font-semibold text-primary hover:underline flex items-center gap-1"
+          >
             Voir tout <span>&rarr;</span>
           </a>
         </div>

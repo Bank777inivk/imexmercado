@@ -13,31 +13,27 @@ export function cn(...inputs: ClassValue[]) {
  *
  * Les URLs non-Cloudinary (Unsplash, placehold.co...) sont retournées intactes.
  */
-export function getOptimizedImageUrl(
-  url: string,
-  width: number = 800
-): string {
-  if (!url) return '';
+export function getOptimizedImageUrl(url: string, width: number = 800): string {
+  if (!url) return "";
   // Si ce n'est pas une URL Cloudinary, on ne touche à rien
-  if (!url.includes('res.cloudinary.com')) return url;
+  if (!url.includes("res.cloudinary.com")) return url;
 
   // Si des transformations sont déjà présentes, ne pas en ajouter
-  if (url.includes('/f_auto') || url.includes(',f_auto')) return url;
+  if (url.includes("/f_auto") || url.includes(",f_auto")) return url;
 
   // Injecter les transformations après /upload/
-  return url.replace(
-    '/upload/',
-    `/upload/f_auto,q_auto,w_${width}/`
-  );
+  return url.replace("/upload/", `/upload/f_auto,q_auto,w_${width}/`);
 }
 
 export const hexToRgb = (hex: string) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null;
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
 };
 
 export const rgbToHex = (r: number, g: number, b: number) => {

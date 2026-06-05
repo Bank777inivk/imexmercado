@@ -1,0 +1,44 @@
+{
+  "breadcrumb_home": "Início",
+  "breadcrumb_current": "A Nossa Casa",
+  "title_prefix": "IMEXSULTING",
+  "title_accent": "O EXPERT EM IMPORTAÇÃO",
+  "description": "Desde 2012, construímos pontes comerciais invisíveis mas robustes entre os mercados mundiais e os lares europeus.",
+  "origins": {
+    "subtitle": "A Origem | 2012",
+    "title": "Uma visão nascida em Alhos Vedros",
+    "p1": "Em 14 de junho de 2012, a IMEXSULTING - Comércio Geral Import & Export., Lda nasceu com uma ambição clara: normalizar a excelência. O que começou apenas como uma estrutura de comércio especializada em Portugal tornou-se rapidamente um pilar da importação-exportação na Europa.",
+    "p2": "Estrategicamente localizados em Alhos Vedros, passámos a primeira década a aperfeiçoar as nossas cadeias logísticas, a selecionar parceiros de confiança e a compreender as necessidades profundas de um mercado em constante mutação.",
+    "experience_years": "Anos de Experiência"
+  },
+  "growth": {
+    "subtitle": "Crescimento | Europa",
+    "title": "Uma pegada sem fronteiras",
+    "p1": "Graças a um domínio profundo de Portugal, França, Alemanha e Itália, a IMEXSULTING soube impor-se como uma ligação entre os continentes. A nossa experiência não se limita ao transporte de mercadorias.",
+    "p2": "Analisamos os mercados, certificamos a conformidade europeia de cada referência e garantimos uma qualidade sem concessões. Este rigor permitiu-nos fornecer milhares de profissionais antes de decidirmos abrir os nossos serviços ao público em geral."
+  },
+  "expertise": {
+    "step1_num": "01 / SELEÇÃO",
+    "step1_title": "Rigor Absoluto",
+    "step1_desc": "Não nos limitamos a importar. Auditamos as fábricas, testamos os materiais e rejeitamos 80% dos produtos que não cumprem os nossos critérios de durabilidade.",
+    "step2_num": "02 / QUALIDADE",
+    "step2_title": "Controlo Nativo",
+    "step2_desc": "Cada artigo que passa pelos nossos armazéns em Alhos Vedros é submetido a uma inspeção final. A sua satisfação baseia-se nesta etapa de verificação humana e técnica.",
+    "step3_num": "03 / ENTREGA",
+    "step3_title": "Fiabilidade Direta",
+    "step3_desc": "Ao eliminar os intermediários desnecessários, reduzimos não só os custos, mas também a pegada de carbono e os riscos de danos durante o trânsito."
+  },
+  "tomorrow": {
+    "title_main": "O amanhã constrói-se",
+    "title_sub": "com a ImexMercado",
+    "p1": "Porquê guardar a nossa experiência apenas para os profissionais? Esta foi a pergunta que deu origem a imexmercado.pt. Num mundo saturé de produtos descartáveis e intermediários, escolhemos a transparência.",
+    "p2": "Hoje, qualquer particular pode aceder ao catálogo rigoroso da IMEXSULTING com as mesmas garantias de preço, serviço e qualidade que os maiores operadores do comércio mundial.",
+    "cta": "Explorar a Coleção"
+  },
+  "stats": {
+    "foundation": "Fundação",
+    "countries": "Países",
+    "articles": "Artigos",
+    "clients": "Clientes"
+  }
+}

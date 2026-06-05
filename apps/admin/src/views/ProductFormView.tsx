@@ -1,10 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { 
-  ArrowLeft, Check, Plus, Trash, Tag, ListBullets, X, Sparkle
-} from '@phosphor-icons/react';
-import { setDocument, getDocument, updateDocument, subscribeToCollection } from '@imexmercado/firebase';
-import { CloudinaryUploader } from '../components/CloudinaryUploader';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  Check,
+  Plus,
+  Trash,
+  Tag,
+  ListBullets,
+  X,
+  Sparkle,
+} from "@phosphor-icons/react";
+import {
+  setDocument,
+  getDocument,
+  updateDocument,
+  subscribeToCollection,
+} from "@imexmercado/firebase";
+import { CloudinaryUploader } from "../components/CloudinaryUploader";
 
 interface Category {
   id: string;
@@ -13,12 +25,36 @@ interface Category {
 }
 
 const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'hitech', name: 'Téléphones & Hi-Tech', subCategories: ['Smartphones', 'Tablettes', 'Audio', 'Accessoires'] },
-  { id: 'maison', name: 'Maison & Décoration', subCategories: ['Cuisine', 'Salon', 'Déco', 'Rangement'] },
-  { id: 'meubles', name: 'Meubles & Lampes', subCategories: ['Chambre', 'Salon', 'Bureau', 'Éclairage'] },
-  { id: 'bricolage', name: 'Bricolage', subCategories: ['Outillage', 'Peinture', 'Électricité', 'Jardinage'] },
-  { id: 'barbecues', name: 'Barbecues & Planchas', subCategories: ['Gaz', 'Charbon', 'Électrique', 'Accessoires'] },
-  { id: 'piscines', name: 'Piscines & Spas', subCategories: ['Hors-sol', 'Spas', 'Entretien', 'Accessoires'] },
+  {
+    id: "hitech",
+    name: "Téléphones & Hi-Tech",
+    subCategories: ["Smartphones", "Tablettes", "Audio", "Accessoires"],
+  },
+  {
+    id: "maison",
+    name: "Maison & Décoration",
+    subCategories: ["Cuisine", "Salon", "Déco", "Rangement"],
+  },
+  {
+    id: "meubles",
+    name: "Meubles & Lampes",
+    subCategories: ["Chambre", "Salon", "Bureau", "Éclairage"],
+  },
+  {
+    id: "bricolage",
+    name: "Bricolage",
+    subCategories: ["Outillage", "Peinture", "Électricité", "Jardinage"],
+  },
+  {
+    id: "barbecues",
+    name: "Barbecues & Planchas",
+    subCategories: ["Gaz", "Charbon", "Électrique", "Accessoires"],
+  },
+  {
+    id: "piscines",
+    name: "Piscines & Spas",
+    subCategories: ["Hors-sol", "Spas", "Entretien", "Accessoires"],
+  },
 ];
 
 interface Spec {
@@ -30,49 +66,55 @@ export function ProductFormView() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = !!id;
-  
+
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEdit);
-  const [tagInput, setTagInput] = useState('');
-  
+  const [tagInput, setTagInput] = useState("");
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  
+  const [newCategoryName, setNewCategoryName] = useState("");
+
   const [isAddingSubCategory, setIsAddingSubCategory] = useState(false);
-  const [newSubCategoryName, setNewSubCategoryName] = useState('');
+  const [newSubCategoryName, setNewSubCategoryName] = useState("");
 
   const [formData, setFormData] = useState({
-    name: '',
-    category: '',
-    subCategory: '',
-    brand: '',
-    price: '',
-    oldPrice: '',
-    stock: '10',
-    badge: '',
-    description: '',
-    image: '',
+    name: "",
+    nameFR: "",
+    category: "",
+    subCategory: "",
+    brand: "",
+    price: "",
+    oldPrice: "",
+    stock: "10",
+    badge: "",
+    badgeFR: "",
+    description: "",
+    descriptionFR: "",
+    image: "",
     images: [] as string[],
     tags: [] as string[],
     specs: [] as Spec[],
+    specsFR: [] as Spec[],
     isNew: false,
     featured: false,
     isFlashSale: false,
     isTrending: false,
     isSelection: false,
     published: true,
-    metaTitle: '',
-    metaDescription: '',
+    metaTitle: "",
+    metaDescription: "",
   });
 
   useEffect(() => {
-    const unsubscribe = subscribeToCollection('categories', (data) => {
-      setCategories(data.map(c => ({
-        id: c.id,
-        name: c.name,
-        subCategories: c.subCategories || []
-      })));
+    const unsubscribe = subscribeToCollection("categories", (data) => {
+      setCategories(
+        data.map((c) => ({
+          id: c.id,
+          name: c.name,
+          subCategories: c.subCategories || [],
+        })),
+      );
     });
     return () => unsubscribe();
   }, []);
@@ -81,34 +123,38 @@ export function ProductFormView() {
     if (isEdit) {
       (async () => {
         try {
-          const data = await getDocument('products', id!);
+          const data = await getDocument("products", id!);
           if (data) {
             setFormData({
-              name: data.name || '',
-              category: data.category || '',
-              subCategory: data.subCategory || '',
-              brand: data.brand || '',
-              price: data.price?.toString() || '',
-              oldPrice: data.oldPrice?.toString() || '',
-              stock: data.stock?.toString() || '0',
-              badge: data.badge || '',
-              description: data.description || '',
-              image: data.image || '',
+              name: data.name || "",
+              nameFR: data.nameFR || "",
+              category: data.category || "",
+              subCategory: data.subCategory || "",
+              brand: data.brand || "",
+              price: data.price?.toString() || "",
+              oldPrice: data.oldPrice?.toString() || "",
+              stock: data.stock?.toString() || "0",
+              badge: data.badge || "",
+              badgeFR: data.badgeFR || "",
+              description: data.description || "",
+              descriptionFR: data.descriptionFR || "",
+              image: data.image || "",
               images: data.images || [],
               tags: data.tags || [],
               specs: data.specs || [],
+              specsFR: data.specsFR || [],
               isNew: data.isNew || false,
               featured: data.featured || false,
               isFlashSale: data.isFlashSale || false,
               isTrending: data.isTrending || false,
               isSelection: data.isSelection || false,
               published: data.published !== false,
-              metaTitle: data.metaTitle || '',
-              metaDescription: data.metaDescription || '',
+              metaTitle: data.metaTitle || "",
+              metaDescription: data.metaDescription || "",
             });
           }
         } catch (error) {
-          console.error('Error fetching product:', error);
+          console.error("Error fetching product:", error);
         } finally {
           setInitialLoading(false);
         }
@@ -117,36 +163,74 @@ export function ProductFormView() {
   }, [id, isEdit]);
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
-  const set = (field: string, value: any) => setFormData(prev => ({ ...prev, [field]: value }));
+  const set = (field: string, value: any) =>
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
   const addTag = () => {
     const t = tagInput.trim().toLowerCase();
     if (t && !formData.tags.includes(t)) {
-      set('tags', [...formData.tags, t]);
+      set("tags", [...formData.tags, t]);
     }
-    setTagInput('');
+    setTagInput("");
   };
 
-  const removeTag = (tag: string) => set('tags', formData.tags.filter(t => t !== tag));
+  const removeTag = (tag: string) =>
+    set(
+      "tags",
+      formData.tags.filter((t) => t !== tag),
+    );
 
-  const addSpec = () => set('specs', [...formData.specs, { key: '', value: '' }]);
+  const addSpec = () =>
+    set("specs", [...formData.specs, { key: "", value: "" }]);
 
-  const updateSpec = (i: number, field: 'key' | 'value', val: string) => {
-    const updated = formData.specs.map((s, idx) => idx === i ? { ...s, [field]: val } : s);
-    set('specs', updated);
+  const updateSpec = (i: number, field: "key" | "value", val: string) => {
+    const updated = formData.specs.map((s, idx) =>
+      idx === i ? { ...s, [field]: val } : s,
+    );
+    set("specs", updated);
   };
 
-  const removeSpec = (i: number) => set('specs', formData.specs.filter((_, idx) => idx !== i));
+  const removeSpec = (i: number) =>
+    set(
+      "specs",
+      formData.specs.filter((_, idx) => idx !== i),
+    );
+
+  const addSpecFR = () =>
+    set("specsFR", [...(formData.specsFR || []), { key: "", value: "" }]);
+
+  const updateSpecFR = (i: number, field: "key" | "value", val: string) => {
+    const updated = (formData.specsFR || []).map((s, idx) =>
+      idx === i ? { ...s, [field]: val } : s,
+    );
+    set("specsFR", updated);
+  };
+
+  const removeSpecFR = (i: number) =>
+    set(
+      "specsFR",
+      (formData.specsFR || []).filter((_, idx) => idx !== i),
+    );
 
   const extractSpecsFromText = (text: string) => {
     if (!text) return [];
     const extracted: Spec[] = [];
-    const regex = /(?:\n|^)(?:\*\*)?([^*:\n\r]{2,35})(?:\*\*)?\s*[:]\s*([^\n\r]+)/g;
+    const regex =
+      /(?:\n|^)(?:\*\*)?([^*:\n\r]{2,35})(?:\*\*)?\s*[:]\s*([^\n\r]+)/g;
     let match;
     while ((match = regex.exec(text)) !== null) {
       const key = match[1].trim();
       let value = match[2].trim();
-      const isKeyword = ['Palavras-chave', 'Keywords', 'Mots-clés', 'Description', 'Garantie', 'Identificação', 'Imagens', 'Preço'].some(k => key.toLowerCase().includes(k.toLowerCase()));
+      const isKeyword = [
+        "Palavras-chave",
+        "Keywords",
+        "Mots-clés",
+        "Description",
+        "Garantie",
+        "Identificação",
+        "Imagens",
+        "Preço",
+      ].some((k) => key.toLowerCase().includes(k.toLowerCase()));
       if (key.length > 2 && value.length > 0 && key.length < 40 && !isKeyword) {
         extracted.push({ key, value });
       }
@@ -161,8 +245,11 @@ export function ProductFormView() {
       return;
     }
 
-    const newSpecs = extracted.filter(ext => 
-      !formData.specs.find(s => s.key.toLowerCase() === ext.key.toLowerCase())
+    const newSpecs = extracted.filter(
+      (ext) =>
+        !formData.specs.find(
+          (s) => s.key.toLowerCase() === ext.key.toLowerCase(),
+        ),
     );
 
     if (newSpecs.length === 0) {
@@ -170,48 +257,55 @@ export function ProductFormView() {
       return;
     }
 
-    set('specs', [...formData.specs, ...newSpecs]);
+    set("specs", [...formData.specs, ...newSpecs]);
   };
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
-    const catId = newCategoryName.toLowerCase().replace(/\s+/g, '-');
-    await setDocument('categories', catId, { 
-      name: newCategoryName, 
-      id: catId, 
+    const catId = newCategoryName.toLowerCase().replace(/\s+/g, "-");
+    await setDocument("categories", catId, {
+      name: newCategoryName,
+      id: catId,
       order: categories.length,
-      subCategories: []
+      subCategories: [],
     });
-    set('category', newCategoryName);
-    setNewCategoryName('');
+    set("category", newCategoryName);
+    setNewCategoryName("");
     setIsAddingCategory(false);
   };
 
   const handleAddSubCategory = async () => {
     if (!newSubCategoryName.trim() || !formData.category) return;
-    const currentCat = categories.find(c => c.name === formData.category);
+    const currentCat = categories.find((c) => c.name === formData.category);
     if (!currentCat) return;
 
-    const updatedSubCats = [...(currentCat.subCategories || []), newSubCategoryName];
-    await updateDocument('categories', currentCat.id, { subCategories: updatedSubCats });
-    set('subCategory', newSubCategoryName);
-    setNewSubCategoryName('');
+    const updatedSubCats = [
+      ...(currentCat.subCategories || []),
+      newSubCategoryName,
+    ];
+    await updateDocument("categories", currentCat.id, {
+      subCategories: updatedSubCats,
+    });
+    set("subCategory", newSubCategoryName);
+    setNewSubCategoryName("");
     setIsAddingSubCategory(false);
   };
 
-  const selectedCategoryData = categories.find(c => c.name.toLowerCase() === formData.category.toLowerCase());
+  const selectedCategoryData = categories.find(
+    (c) => c.name.toLowerCase() === formData.category.toLowerCase(),
+  );
   const subCategoryOptions = selectedCategoryData?.subCategories || [];
 
   const handleSeedDefaults = async () => {
     setLoading(true);
     try {
       for (const cat of DEFAULT_CATEGORIES) {
-        await setDocument('categories', cat.id, {
+        await setDocument("categories", cat.id, {
           id: cat.id,
           name: cat.name,
           subCategories: cat.subCategories,
           order: DEFAULT_CATEGORIES.indexOf(cat),
-          isActive: true
+          isActive: true,
         });
       }
       alert("✅ Catégories initialisées avec succès !");
@@ -226,12 +320,12 @@ export function ProductFormView() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.image) {
-      alert('⚠️ Veuillez ajouter au moins une image principale.');
+      alert("⚠️ Veuillez ajouter au moins une image principale.");
       return;
     }
     setLoading(true);
     try {
-      const productId = isEdit ? id! : 'p' + Date.now();
+      const productId = isEdit ? id! : "p" + Date.now();
       const productData: any = {
         ...formData,
         id: productId,
@@ -244,13 +338,13 @@ export function ProductFormView() {
         productData.createdAt = new Date().toISOString();
         productData.rating = 5.0;
         productData.reviewCount = 0;
-        await setDocument('products', productId, productData);
+        await setDocument("products", productId, productData);
       } else {
-        await updateDocument('products', productId, productData);
+        await updateDocument("products", productId, productData);
       }
-      navigate('/produits');
+      navigate("/produits");
     } catch (error) {
-      console.error('Error saving product:', error);
+      console.error("Error saving product:", error);
       alert("Erreur lors de l'enregistrement.");
     } finally {
       setLoading(false);
@@ -262,34 +356,41 @@ export function ProductFormView() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Chargement du produit...</p>
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+          Chargement du produit...
+        </p>
       </div>
     );
   }
 
   // ─── Discount calc ──────────────────────────────────────────────────────────
-  const discountPct = formData.price && formData.oldPrice
-    ? Math.round((1 - parseFloat(formData.price) / parseFloat(formData.oldPrice)) * 100)
-    : null;
+  const discountPct =
+    formData.price && formData.oldPrice
+      ? Math.round(
+          (1 - parseFloat(formData.price) / parseFloat(formData.oldPrice)) *
+            100,
+        )
+      : null;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-28 md:pb-10">
-
       {/* ── Top Bar ── */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 text-left">
           <button
-            onClick={() => navigate('/produits')}
+            onClick={() => navigate("/produits")}
             className="p-3 bg-white border border-gray-200 rounded-2xl text-gray-400 hover:text-gray-900 transition-all shadow-sm active:scale-90"
           >
             <ArrowLeft size={20} weight="bold" />
           </button>
           <div>
             <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">
-              {isEdit ? 'Modifier le produit' : 'Nouveau produit'}
+              {isEdit ? "Modifier le produit" : "Nouveau produit"}
             </h2>
             <p className="text-sm font-medium text-gray-400">
-              {isEdit ? `ID: ${id?.substring(0, 8)}` : 'Remplissez tous les champs ci-dessous.'}
+              {isEdit
+                ? `ID: ${id?.substring(0, 8)}`
+                : "Remplissez tous les champs ci-dessous."}
             </p>
           </div>
         </div>
@@ -299,48 +400,72 @@ export function ProductFormView() {
           disabled={loading}
           className="hidden md:flex items-center gap-2 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-8 py-4 rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-all disabled:opacity-50"
         >
-          {loading
-            ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            : <Check size={18} weight="bold" />}
-          {isEdit ? 'Enregistrer' : 'Publier'}
+          {loading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Check size={18} weight="bold" />
+          )}
+          {isEdit ? "Enregistrer" : "Publier"}
         </button>
       </div>
 
-      <form id="product-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
+      <form
+        id="product-form"
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+      >
         {/* ══════════════════════════════════════════════
             LEFT COLUMN — Info, Prix, Specs, Tags
         ══════════════════════════════════════════════ */}
         <div className="lg:col-span-2 space-y-6">
-
           {/* Information Générales */}
           <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm space-y-5 text-left">
-            <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Informations Générales</h3>
+            <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">
+              Informations Générales
+            </h3>
 
             <div>
-              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Nom du produit *</label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">
+                Nom du produit (Portugais par défaut) *
+              </label>
               <input
-                type="text" required
+                type="text"
+                required
                 className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none transition-all"
-                placeholder="Ex: Samsung Galaxy S24 Ultra 256 Go"
+                placeholder="Ex: Samsung Galaxy S24 Ultra 256 Go (em português)"
                 value={formData.name}
-                onChange={e => set('name', e.target.value)}
+                onChange={(e) => set("name", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">
+                Nom du produit (Français)
+              </label>
+              <input
+                type="text"
+                className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none transition-all"
+                placeholder="Ex: Samsung Galaxy S24 Ultra 256 Go (en français)"
+                value={formData.nameFR || ""}
+                onChange={(e) => set("nameFR", e.target.value)}
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <div className="flex items-center justify-between mb-2 ml-1">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">Catégorie *</label>
-                  <button 
+                  <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                    Catégorie *
+                  </label>
+                  <button
                     type="button"
                     onClick={() => setIsAddingCategory(!isAddingCategory)}
                     className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline"
                   >
-                    {isAddingCategory ? 'Annuler' : '+ Nouveau'}
+                    {isAddingCategory ? "Annuler" : "+ Nouveau"}
                   </button>
                 </div>
-                
+
                 {isAddingCategory ? (
                   <div className="flex gap-2">
                     <input
@@ -348,7 +473,7 @@ export function ProductFormView() {
                       className="flex-1 bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
                       placeholder="Nom de la catégorie"
                       value={newCategoryName}
-                      onChange={e => setNewCategoryName(e.target.value)}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
                     />
                     <button
                       type="button"
@@ -363,37 +488,49 @@ export function ProductFormView() {
                     required
                     className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium text-gray-700 focus:ring-4 focus:ring-primary/5 outline-none appearance-none cursor-pointer"
                     value={formData.category}
-                    onChange={e => {
-                      set('category', e.target.value);
-                      set('subCategory', '');
+                    onChange={(e) => {
+                      set("category", e.target.value);
+                      set("subCategory", "");
                     }}
                   >
                     <option value="">Sélectionner...</option>
-                    {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
                 )}
-                {((categories.length === 0) || (formData.category && subCategoryOptions.length === 0)) && !isAddingCategory && (
-                  <button 
-                    type="button" 
-                    onClick={handleSeedDefaults}
-                    className="mt-2 text-[8px] font-black text-primary uppercase tracking-widest hover:opacity-70 transition-all flex items-center gap-1"
-                  >
-                    <Sparkle size={12} weight="fill" /> 
-                    {categories.length === 0 ? "Initialiser les catégories par défaut" : "Ajouter les sous-catégories prédéfinies"}
-                  </button>
-                )}
+                {(categories.length === 0 ||
+                  (formData.category && subCategoryOptions.length === 0)) &&
+                  !isAddingCategory && (
+                    <button
+                      type="button"
+                      onClick={handleSeedDefaults}
+                      className="mt-2 text-[8px] font-black text-primary uppercase tracking-widest hover:opacity-70 transition-all flex items-center gap-1"
+                    >
+                      <Sparkle size={12} weight="fill" />
+                      {categories.length === 0
+                        ? "Initialiser les catégories par défaut"
+                        : "Ajouter les sous-catégories prédéfinies"}
+                    </button>
+                  )}
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-2 ml-1">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">Sous-catégorie</label>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                    Sous-catégorie
+                  </label>
                   {formData.category && (
-                    <button 
+                    <button
                       type="button"
-                      onClick={() => setIsAddingSubCategory(!isAddingSubCategory)}
+                      onClick={() =>
+                        setIsAddingSubCategory(!isAddingSubCategory)
+                      }
                       className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline"
                     >
-                      {isAddingSubCategory ? 'Annuler' : '+ Nouveau'}
+                      {isAddingSubCategory ? "Annuler" : "+ Nouveau"}
                     </button>
                   )}
                 </div>
@@ -405,7 +542,7 @@ export function ProductFormView() {
                       className="flex-1 bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
                       placeholder="Nom de la sous-catégorie"
                       value={newSubCategoryName}
-                      onChange={e => setNewSubCategoryName(e.target.value)}
+                      onChange={(e) => setNewSubCategoryName(e.target.value)}
                     />
                     <button
                       type="button"
@@ -420,10 +557,14 @@ export function ProductFormView() {
                     disabled={!formData.category}
                     className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium text-gray-700 focus:ring-4 focus:ring-primary/5 outline-none appearance-none cursor-pointer disabled:opacity-50"
                     value={formData.subCategory}
-                    onChange={e => set('subCategory', e.target.value)}
+                    onChange={(e) => set("subCategory", e.target.value)}
                   >
                     <option value="">Sélectionner...</option>
-                    {subCategoryOptions.map(sc => <option key={sc} value={sc}>{sc}</option>)}
+                    {subCategoryOptions.map((sc) => (
+                      <option key={sc} value={sc}>
+                        {sc}
+                      </option>
+                    ))}
                   </select>
                 )}
               </div>
@@ -431,71 +572,102 @@ export function ProductFormView() {
 
             <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
               <div>
-                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Marque</label>
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">
+                  Marque
+                </label>
                 <input
                   type="text"
                   className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
                   placeholder="Ex: Apple, Samsung..."
                   value={formData.brand}
-                  onChange={e => set('brand', e.target.value)}
+                  onChange={(e) => set("brand", e.target.value)}
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Description complète</label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">
+                Description complète (Portugais par défaut)
+              </label>
               <textarea
                 rows={5}
                 className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none resize-none"
                 placeholder="Décrivez les caractéristiques clés, avantages et usages du produit..."
                 value={formData.description}
-                onChange={e => set('description', e.target.value)}
+                onChange={(e) => set("description", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">
+                Description complète (Français)
+              </label>
+              <textarea
+                rows={5}
+                className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none resize-none"
+                placeholder="Décrivez le produit en français..."
+                value={formData.descriptionFR || ""}
+                onChange={(e) => set("descriptionFR", e.target.value)}
               />
             </div>
           </div>
 
           {/* SEO & Métadonnées */}
           <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm space-y-5 text-left">
-            <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Référencement (SEO)</h3>
-            <p className="text-[10px] text-gray-400 font-medium">Configurez les balises pour les moteurs de recherche et les réseaux sociaux.</p>
-            
+            <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">
+              Référencement (SEO)
+            </h3>
+            <p className="text-[10px] text-gray-400 font-medium">
+              Configurez les balises pour les moteurs de recherche et les
+              réseaux sociaux.
+            </p>
+
             <div>
-              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Meta Title</label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">
+                Meta Title
+              </label>
               <input
                 type="text"
                 className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
                 placeholder="Laisser vide pour utiliser le nom du produit par défaut"
                 value={formData.metaTitle}
-                onChange={e => set('metaTitle', e.target.value)}
+                onChange={(e) => set("metaTitle", e.target.value)}
               />
             </div>
-            
+
             <div>
-              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Meta Description</label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">
+                Meta Description
+              </label>
               <textarea
                 rows={3}
                 className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none resize-none"
                 placeholder="Laisser vide pour utiliser un extrait de la description"
                 value={formData.metaDescription}
-                onChange={e => set('metaDescription', e.target.value)}
+                onChange={(e) => set("metaDescription", e.target.value)}
               />
             </div>
           </div>
 
           {/* Prix & Stock */}
           <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm space-y-5 text-left">
-            <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Prix & Stock</h3>
+            <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">
+              Prix & Stock
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
               <div>
-                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Ancien prix (€)</label>
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">
+                  Ancien prix (€)
+                </label>
                 <input
-                  type="number" step="0.01"
+                  type="number"
+                  step="0.01"
                   className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
                   placeholder="0.00"
                   value={formData.oldPrice}
-                  onChange={e => {
+                  onChange={(e) => {
                     const oldPrice = parseFloat(e.target.value);
-                    set('oldPrice', e.target.value);
+                    set("oldPrice", e.target.value);
                     // Retain current discount % if both prices exist
                     if (oldPrice > 0 && formData.price) {
                       // Just re-calculate the percentage for display
@@ -505,42 +677,51 @@ export function ProductFormView() {
               </div>
 
               <div>
-                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1 text-primary">Remise (%)</label>
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1 text-primary">
+                  Remise (%)
+                </label>
                 <input
                   type="number"
                   className="w-full bg-primary/5 border-none rounded-2xl py-4 px-5 text-sm font-black text-primary focus:ring-4 focus:ring-primary/10 outline-none"
                   placeholder="0"
-                  value={discountPct || ''}
-                  onChange={e => {
+                  value={discountPct || ""}
+                  onChange={(e) => {
                     const pct = parseFloat(e.target.value);
                     if (pct >= 0 && pct <= 100 && formData.oldPrice) {
                       const oldP = parseFloat(formData.oldPrice);
                       const newP = (oldP * (1 - pct / 100)).toFixed(2);
-                      set('price', newP);
+                      set("price", newP);
                     }
                   }}
                 />
               </div>
 
               <div>
-                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Prix de vente (€) *</label>
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">
+                  Prix de vente (€) *
+                </label>
                 <input
-                  type="number" step="0.01" required
+                  type="number"
+                  step="0.01"
+                  required
                   className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
                   placeholder="0.00"
                   value={formData.price}
-                  onChange={e => set('price', e.target.value)}
+                  onChange={(e) => set("price", e.target.value)}
                 />
               </div>
 
               <div>
-                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Stock actuel *</label>
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">
+                  Stock actuel *
+                </label>
                 <input
-                  type="number" required
+                  type="number"
+                  required
                   className="w-full bg-gray-50 border-none rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 outline-none"
                   placeholder="0"
                   value={formData.stock}
-                  onChange={e => set('stock', e.target.value)}
+                  onChange={(e) => set("stock", e.target.value)}
                 />
               </div>
             </div>
@@ -550,43 +731,89 @@ export function ProductFormView() {
               <div className="flex items-center justify-between">
                 <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-1">
                   Badge personnalisé
-                  <span className="ml-2 text-gray-300 normal-case font-medium">(optionnel — remplace le calcul automatique -XX%)</span>
+                  <span className="ml-2 text-gray-300 normal-case font-medium">
+                    (optionnel — remplace le calcul automatique -XX%)
+                  </span>
                 </label>
                 {formData.badge && (
-                  <button type="button" onClick={() => set('badge', '')} className="text-[9px] text-gray-300 hover:text-red-400 font-black uppercase tracking-widest transition-colors">✕ Effacer</button>
+                  <button
+                    type="button"
+                    onClick={() => set("badge", "")}
+                    className="text-[9px] text-gray-300 hover:text-red-400 font-black uppercase tracking-widest transition-colors"
+                  >
+                    ✕ Effacer
+                  </button>
                 )}
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                {['TOP', 'PROMO', 'EXCLU', 'SOLDES', 'NOUVEAU', '⭐ COUP DE CŒUR'].map(preset => (
+                {[
+                  "TOP",
+                  "PROMO",
+                  "EXCLU",
+                  "SOLDES",
+                  "NOUVEAU",
+                  "⭐ COUP DE CŒUR",
+                ].map((preset) => (
                   <button
                     key={preset}
                     type="button"
-                    onClick={() => set('badge', formData.badge === preset ? '' : preset)}
+                    onClick={() =>
+                      set("badge", formData.badge === preset ? "" : preset)
+                    }
                     className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl border transition-all ${
                       formData.badge === preset
-                        ? 'bg-primary text-white border-primary shadow-md'
-                        : 'bg-gray-50 text-gray-400 border-gray-100 hover:border-primary/30 hover:text-primary'
+                        ? "bg-primary text-white border-primary shadow-md"
+                        : "bg-gray-50 text-gray-400 border-gray-100 hover:border-primary/30 hover:text-primary"
                     }`}
                   >
                     {preset}
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-3">
-                <input
-                  type="text"
-                  maxLength={15}
-                  className="flex-1 bg-gray-50 border-none rounded-2xl py-3 px-5 text-sm font-black focus:ring-4 focus:ring-primary/5 outline-none uppercase tracking-widest"
-                  placeholder="Ou écrivez un texte libre..."
-                  value={formData.badge}
-                  onChange={e => set('badge', e.target.value.toUpperCase())}
-                />
-                {formData.badge && (
-                  <div className="flex-shrink-0 bg-primary text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-md">
-                    {formData.badge}
-                  </div>
-                )}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 space-y-1">
+                  <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                    Badge (Portugais par défaut)
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={15}
+                    className="w-full bg-gray-50 border-none rounded-2xl py-3 px-5 text-sm font-black focus:ring-4 focus:ring-primary/5 outline-none uppercase tracking-widest"
+                    placeholder="Ou écrivez un texte libre..."
+                    value={formData.badge}
+                    onChange={(e) => set("badge", e.target.value.toUpperCase())}
+                  />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                    Badge (Français)
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={15}
+                    className="w-full bg-gray-50 border-none rounded-2xl py-3 px-5 text-sm font-black focus:ring-4 focus:ring-primary/5 outline-none uppercase tracking-widest"
+                    placeholder="Badge en français..."
+                    value={formData.badgeFR || ""}
+                    onChange={(e) =>
+                      set("badgeFR", e.target.value.toUpperCase())
+                    }
+                  />
+                </div>
               </div>
+              {(formData.badge || formData.badgeFR) && (
+                <div className="flex gap-2 mt-2">
+                  {formData.badge && (
+                    <div className="bg-primary text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-md">
+                      PT: {formData.badge}
+                    </div>
+                  )}
+                  {formData.badgeFR && (
+                    <div className="bg-emerald-600 text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-md">
+                      FR: {formData.badgeFR}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -595,11 +822,17 @@ export function ProductFormView() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-gray-50 rounded-xl flex items-center justify-center">
-                  <ListBullets size={18} className="text-gray-400" weight="bold" />
+                  <ListBullets
+                    size={18}
+                    className="text-gray-400"
+                    weight="bold"
+                  />
                 </div>
-                <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Caractéristiques Techniques</h3>
+                <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">
+                  Caractéristiques Techniques
+                </h3>
               </div>
-               <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={handleAutoExtract}
@@ -607,51 +840,116 @@ export function ProductFormView() {
                 >
                   <Sparkle size={14} weight="fill" /> Extraire du texte
                 </button>
-                <button
-                  type="button"
-                  onClick={addSpec}
-                  className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1 hover:text-primary transition-colors"
-                >
-                  <Plus size={14} weight="bold" /> Ajouter manuel
-                </button>
               </div>
             </div>
 
-            {formData.specs.length === 0 ? (
-              <div className="text-center py-8 text-gray-300">
-                <ListBullets size={36} className="mx-auto mb-2" weight="thin" />
-                <p className="text-[10px] font-black uppercase tracking-widest">Aucune caractéristique</p>
-                <button type="button" onClick={addSpec} className="mt-3 text-primary text-[10px] font-black uppercase tracking-widest">+ Ajouter la première</button>
+            {/* Português Specs */}
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">
+                  Portugais (par défaut)
+                </span>
+                <button
+                  type="button"
+                  onClick={addSpec}
+                  className="text-[9px] font-black text-primary uppercase tracking-widest flex items-center gap-1 hover:opacity-75"
+                >
+                  <Plus size={14} weight="bold" /> Ajouter
+                </button>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {formData.specs.map((spec, i) => (
-                  <div key={i} className="flex gap-3 items-center">
-                    <input
-                      type="text"
-                      placeholder="Ex: Écran"
-                      className="flex-1 bg-gray-50 border-none rounded-xl py-3 px-4 text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none"
-                      value={spec.key}
-                      onChange={e => updateSpec(i, 'key', e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Ex: 6.8 pouces AMOLED"
-                      className="flex-[2] bg-gray-50 border-none rounded-xl py-3 px-4 text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none"
-                      value={spec.value}
-                      onChange={e => updateSpec(i, 'value', e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeSpec(i)}
-                      className="p-2.5 text-red-400 bg-red-50 rounded-xl hover:bg-red-100 transition-colors active:scale-90"
+
+              {formData.specs.length === 0 ? (
+                <p className="text-[10px] text-gray-300 font-bold py-2 text-center uppercase">
+                  Aucune caractéristique en portugais
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {formData.specs.map((spec, i) => (
+                    <div
+                      key={`spec-pt-${i}`}
+                      className="flex gap-3 items-center"
                     >
-                      <Trash size={16} weight="bold" />
-                    </button>
-                  </div>
-                ))}
+                      <input
+                        type="text"
+                        placeholder="Ex: Ecrã (PT)"
+                        className="flex-1 bg-gray-50 border-none rounded-xl py-3 px-4 text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none"
+                        value={spec.key}
+                        onChange={(e) => updateSpec(i, "key", e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Ex: 6.8 polegadas (PT)"
+                        className="flex-[2] bg-gray-50 border-none rounded-xl py-3 px-4 text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none"
+                        value={spec.value}
+                        onChange={(e) => updateSpec(i, "value", e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeSpec(i)}
+                        className="p-2.5 text-red-400 bg-red-50 rounded-xl hover:bg-red-100 transition-colors active:scale-90"
+                      >
+                        <Trash size={16} weight="bold" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Français Specs */}
+            <div className="space-y-4 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between pb-2">
+                <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">
+                  Français
+                </span>
+                <button
+                  type="button"
+                  onClick={addSpecFR}
+                  className="text-[9px] font-black text-primary uppercase tracking-widest flex items-center gap-1 hover:opacity-75"
+                >
+                  <Plus size={14} weight="bold" /> Ajouter
+                </button>
               </div>
-            )}
+
+              {(formData.specsFR || []).length === 0 ? (
+                <p className="text-[10px] text-gray-300 font-bold py-2 text-center uppercase">
+                  Aucune caractéristique en français
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {(formData.specsFR || []).map((spec, i) => (
+                    <div
+                      key={`spec-fr-${i}`}
+                      className="flex gap-3 items-center"
+                    >
+                      <input
+                        type="text"
+                        placeholder="Ex: Écran (FR)"
+                        className="flex-1 bg-gray-50 border-none rounded-xl py-3 px-4 text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none"
+                        value={spec.key}
+                        onChange={(e) => updateSpecFR(i, "key", e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Ex: 6.8 pouces (FR)"
+                        className="flex-[2] bg-gray-50 border-none rounded-xl py-3 px-4 text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none"
+                        value={spec.value}
+                        onChange={(e) =>
+                          updateSpecFR(i, "value", e.target.value)
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeSpecFR(i)}
+                        className="p-2.5 text-red-400 bg-red-50 rounded-xl hover:bg-red-100 transition-colors active:scale-90"
+                      >
+                        <Trash size={16} weight="bold" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Tags */}
@@ -660,7 +958,9 @@ export function ProductFormView() {
               <div className="w-8 h-8 bg-gray-50 rounded-xl flex items-center justify-center">
                 <Tag size={18} className="text-gray-400" weight="bold" />
               </div>
-              <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Tags & Mots-clés</h3>
+              <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">
+                Tags & Mots-clés
+              </h3>
             </div>
 
             <div className="flex gap-2">
@@ -669,8 +969,13 @@ export function ProductFormView() {
                 className="flex-1 bg-gray-50 border-none rounded-2xl py-3 px-5 text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none"
                 placeholder="Ex: samsung, smartphone, 5g..."
                 value={tagInput}
-                onChange={e => setTagInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTag();
+                  }
+                }}
               />
               <button
                 type="button"
@@ -683,13 +988,17 @@ export function ProductFormView() {
 
             {formData.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {formData.tags.map(tag => (
+                {formData.tags.map((tag) => (
                   <span
                     key={tag}
                     className="flex items-center gap-1.5 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl border border-primary/10"
                   >
                     {tag}
-                    <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500 transition-colors">
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="hover:text-red-500 transition-colors"
+                    >
                       <X size={12} weight="bold" />
                     </button>
                   </span>
@@ -703,45 +1012,100 @@ export function ProductFormView() {
             RIGHT COLUMN — Visibilité, Image
         ══════════════════════════════════════════════ */}
         <div className="space-y-6">
-
           {/* Options — en premier pour visibilité immédiate */}
           <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm text-left">
             <div className="mb-5">
-              <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Options de visibilité</h3>
-              <p className="text-[10px] text-gray-400 font-medium mt-1">Contrôlez comment ce produit apparaît sur le site.</p>
+              <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">
+                Options de visibilité
+              </h3>
+              <p className="text-[10px] text-gray-400 font-medium mt-1">
+                Contrôlez comment ce produit apparaît sur le site.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
-              {([
-                { key: 'published', label: 'En Ligne', desc: 'Visible sur la boutique client', color: 'green' },
-                { key: 'featured', label: 'Mis en avant', desc: 'Affiché dans la section vedette de l\'accueil', color: 'primary' },
-                { key: 'isNew', label: 'Badge Nouveau', desc: 'Affiche le badge vert "NOUVEAU" sur la carte', color: 'blue' },
-                { key: 'isFlashSale', label: 'Offre du Jour', desc: 'Apparaît dans le carrousel "Offres Flash"', color: 'orange' },
-                { key: 'isTrending', label: 'Produit Tendance', desc: 'Inclus dans la section "Tendances"', color: 'purple' },
-                { key: 'isSelection', label: 'Sélection Boutique', desc: 'Mis en avant dans la sélection éditoriale', color: 'teal' },
-              ] as { key: keyof typeof formData; label: string; desc: string; color: string }[]).map(({ key, label, desc, color }) => {
+              {(
+                [
+                  {
+                    key: "published",
+                    label: "En Ligne",
+                    desc: "Visible sur la boutique client",
+                    color: "green",
+                  },
+                  {
+                    key: "featured",
+                    label: "Mis en avant",
+                    desc: "Affiché dans la section vedette de l'accueil",
+                    color: "primary",
+                  },
+                  {
+                    key: "isNew",
+                    label: "Badge Nouveau",
+                    desc: 'Affiche le badge vert "NOUVEAU" sur la carte',
+                    color: "blue",
+                  },
+                  {
+                    key: "isFlashSale",
+                    label: "Offre du Jour",
+                    desc: 'Apparaît dans le carrousel "Offres Flash"',
+                    color: "orange",
+                  },
+                  {
+                    key: "isTrending",
+                    label: "Produit Tendance",
+                    desc: 'Inclus dans la section "Tendances"',
+                    color: "purple",
+                  },
+                  {
+                    key: "isSelection",
+                    label: "Sélection Boutique",
+                    desc: "Mis en avant dans la sélection éditoriale",
+                    color: "teal",
+                  },
+                ] as {
+                  key: keyof typeof formData;
+                  label: string;
+                  desc: string;
+                  color: string;
+                }[]
+              ).map(({ key, label, desc, color }) => {
                 const isOn = !!formData[key];
-                const activeClass = 
-                  color === 'green' ? 'bg-green-50 border-green-100' :
-                  color === 'orange' ? 'bg-orange-50 border-orange-100' :
-                  color === 'purple' ? 'bg-purple-50 border-purple-100' :
-                  color === 'teal' ? 'bg-teal-50 border-teal-100' :
-                  color === 'primary' ? 'bg-primary/5 border-primary/10' :
-                  'bg-blue-50 border-blue-100';
-                const activeText = 
-                  color === 'green' ? 'text-green-700' :
-                  color === 'orange' ? 'text-orange-700' :
-                  color === 'purple' ? 'text-purple-700' :
-                  color === 'teal' ? 'text-teal-700' :
-                  color === 'primary' ? 'text-primary' :
-                  'text-blue-600';
-                const toggleColor = 
-                  color === 'green' ? 'bg-green-500' :
-                  color === 'orange' ? 'bg-orange-500' :
-                  color === 'purple' ? 'bg-purple-500' :
-                  color === 'teal' ? 'bg-teal-500' :
-                  color === 'primary' ? 'bg-primary' :
-                  'bg-blue-500';
+                const activeClass =
+                  color === "green"
+                    ? "bg-green-50 border-green-100"
+                    : color === "orange"
+                      ? "bg-orange-50 border-orange-100"
+                      : color === "purple"
+                        ? "bg-purple-50 border-purple-100"
+                        : color === "teal"
+                          ? "bg-teal-50 border-teal-100"
+                          : color === "primary"
+                            ? "bg-primary/5 border-primary/10"
+                            : "bg-blue-50 border-blue-100";
+                const activeText =
+                  color === "green"
+                    ? "text-green-700"
+                    : color === "orange"
+                      ? "text-orange-700"
+                      : color === "purple"
+                        ? "text-purple-700"
+                        : color === "teal"
+                          ? "text-teal-700"
+                          : color === "primary"
+                            ? "text-primary"
+                            : "text-blue-600";
+                const toggleColor =
+                  color === "green"
+                    ? "bg-green-500"
+                    : color === "orange"
+                      ? "bg-orange-500"
+                      : color === "purple"
+                        ? "bg-purple-500"
+                        : color === "teal"
+                          ? "bg-teal-500"
+                          : color === "primary"
+                            ? "bg-primary"
+                            : "bg-blue-500";
 
                 return (
                   <button
@@ -749,15 +1113,27 @@ export function ProductFormView() {
                     type="button"
                     onClick={() => set(key, !formData[key])}
                     className={`w-full flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all text-left ${
-                      isOn ? `${activeClass} ${activeText}` : 'bg-gray-50 border-gray-100 text-gray-400'
+                      isOn
+                        ? `${activeClass} ${activeText}`
+                        : "bg-gray-50 border-gray-100 text-gray-400"
                     }`}
                   >
                     <div className="min-w-0">
-                      <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">{label}</p>
-                      <p className={`text-[9px] font-medium leading-tight truncate ${isOn ? 'opacity-70' : 'text-gray-300'}`}>{desc}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">
+                        {label}
+                      </p>
+                      <p
+                        className={`text-[9px] font-medium leading-tight truncate ${isOn ? "opacity-70" : "text-gray-300"}`}
+                      >
+                        {desc}
+                      </p>
                     </div>
-                    <div className={`flex-shrink-0 w-11 h-6 rounded-full relative transition-all ${isOn ? toggleColor : 'bg-gray-200'}`}>
-                      <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-all duration-200 ${isOn ? 'right-1' : 'left-1'}`} />
+                    <div
+                      className={`flex-shrink-0 w-11 h-6 rounded-full relative transition-all ${isOn ? toggleColor : "bg-gray-200"}`}
+                    >
+                      <div
+                        className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-all duration-200 ${isOn ? "right-1" : "left-1"}`}
+                      />
                     </div>
                   </button>
                 );
@@ -767,10 +1143,12 @@ export function ProductFormView() {
 
           {/* Upload Image Principale */}
           <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm text-left">
-            <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em] mb-6">Média Principal</h3>
+            <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em] mb-6">
+              Média Principal
+            </h3>
             <CloudinaryUploader
               value={formData.image}
-              onChange={(url) => set('image', url)}
+              onChange={(url) => set("image", url)}
               label="Image principale *"
             />
           </div>
@@ -779,13 +1157,17 @@ export function ProductFormView() {
           <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-200 shadow-sm text-left space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Galerie</h3>
-                <p className="text-[9px] text-gray-300 font-medium mt-0.5">Jusqu'à 15 vues supplémentaires</p>
+                <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">
+                  Galerie
+                </h3>
+                <p className="text-[9px] text-gray-300 font-medium mt-0.5">
+                  Jusqu'à 15 vues supplémentaires
+                </p>
               </div>
               {formData.images.length < 15 && (
                 <button
                   type="button"
-                  onClick={() => set('images', [...formData.images, ''])}
+                  onClick={() => set("images", [...formData.images, ""])}
                   className="text-[9px] font-black text-primary uppercase tracking-widest flex items-center gap-1"
                 >
                   <Plus size={12} weight="bold" /> Ajouter
@@ -793,7 +1175,9 @@ export function ProductFormView() {
               )}
             </div>
             {formData.images.length === 0 ? (
-              <p className="text-[10px] text-gray-300 font-bold text-center py-4">Aucune image de galerie</p>
+              <p className="text-[10px] text-gray-300 font-bold text-center py-4">
+                Aucune image de galerie
+              </p>
             ) : (
               <div className="space-y-3">
                 {formData.images.map((img, i) => (
@@ -803,7 +1187,7 @@ export function ProductFormView() {
                     onChange={(url) => {
                       const updated = [...formData.images];
                       updated[i] = url;
-                      set('images', updated);
+                      set("images", updated);
                     }}
                     label={`Vue ${i + 2}`}
                   />
@@ -822,10 +1206,12 @@ export function ProductFormView() {
           disabled={loading}
           className="flex-1 bg-primary text-white text-[10px] font-black uppercase tracking-widest py-5 rounded-[1.5rem] shadow-xl shadow-primary/20 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {loading
-            ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            : <Check size={18} weight="bold" />}
-          {isEdit ? 'Enregistrer les modifications' : 'Publier le produit'}
+          {loading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Check size={18} weight="bold" />
+          )}
+          {isEdit ? "Enregistrer les modifications" : "Publier le produit"}
         </button>
       </div>
     </div>

@@ -1,9 +1,14 @@
-import { getDocument, addDocument } from '@imexmercado/firebase';
+import { getDocument, addDocument } from "@imexmercado/firebase";
 
 export interface EmailData {
   customerName: string;
   orderId?: string;
-  items?: Array<{ name: string; price: number; quantity: number; image?: string }>;
+  items?: Array<{
+    name: string;
+    price: number;
+    quantity: number;
+    image?: string;
+  }>;
   totalPrice?: string;
   checkoutUrl?: string;
   retryUrl?: string;
@@ -28,7 +33,7 @@ const DEFAULT_TEMPLATES: Record<string, { subject: string; body: string }> = {
   <div style="text-align: center; margin-bottom: 40px;">
     <a href="{checkout_url}" style="display: inline-block; background-color: #1F222A; color: #FFFFFF; padding: 16px 36px; border-radius: 14px; font-size: 13px; font-weight: 900; text-decoration: none; text-transform: uppercase;">Finaliser ma commande</a>
   </div>
-</div>`
+</div>`,
   },
   payment_cancelled: {
     subject: "Problème lors du règlement de votre commande ⚠️",
@@ -43,7 +48,7 @@ const DEFAULT_TEMPLATES: Record<string, { subject: string; body: string }> = {
   <div style="text-align: center; margin: 30px 0;">
     <a href="{retry_url}" style="display: inline-block; background-color: #EF4444; color: #FFFFFF; padding: 16px 36px; border-radius: 14px; font-size: 13px; font-weight: 900; text-decoration: none; text-transform: uppercase;">Retenter le paiement</a>
   </div>
-</div>`
+</div>`,
   },
   order_confirmation: {
     subject: "Merci pour votre commande chez IMEX MERCADO ! 🎉",
@@ -61,7 +66,7 @@ const DEFAULT_TEMPLATES: Record<string, { subject: string; body: string }> = {
       Total : {total_price}
     </div>
   </div>
-</div>`
+</div>`,
   },
   order_shipped: {
     subject: "Bonne nouvelle ! Votre commande {order_id} a été expédiée 🚚",
@@ -77,26 +82,30 @@ const DEFAULT_TEMPLATES: Record<string, { subject: string; body: string }> = {
     <p style="font-weight: 800; color: #1E40AF; margin-bottom: 10px;">Numéro de suivi : {tracking_number}</p>
     <a href="{tracking_link}" style="display: inline-block; background-color: #3B82F6; color: #FFFFFF; padding: 14px 28px; border-radius: 12px; font-size: 12px; font-weight: 900; text-decoration: none;">Suivre mon colis</a>
   </div>
-</div>`
-  }
+</div>`,
+  },
 };
 
 export async function sendAutomatedEmail(
-  type: 'abandoned_cart' | 'payment_cancelled' | 'order_confirmation' | 'order_shipped',
+  type:
+    | "abandoned_cart"
+    | "payment_cancelled"
+    | "order_confirmation"
+    | "order_shipped",
   recipientEmail: string,
-  data: EmailData
+  data: EmailData,
 ) {
   try {
-    const emailTemplatesDoc = await getDocument('settings', 'email_templates');
+    const emailTemplatesDoc = await getDocument("settings", "email_templates");
     const template = emailTemplatesDoc?.[type] || DEFAULT_TEMPLATES[type];
-    
+
     let subject = template.subject || DEFAULT_TEMPLATES[type].subject;
     let body = template.body || DEFAULT_TEMPLATES[type].body;
 
-    let itemsHtml = '';
+    let itemsHtml = "";
     if (data.items && data.items.length > 0) {
       itemsHtml = `<table style="width: 100%; border-collapse: collapse;">`;
-      data.items.forEach(item => {
+      data.items.forEach((item) => {
         itemsHtml += `
           <tr style="border-bottom: 1px solid #F3F4F6;">
             <td style="padding: 10px 0; font-weight: 800; color: #1F222A;">${item.name} <span style="font-weight: 500; color: #6B7280;">x${item.quantity}</span></td>
@@ -108,50 +117,53 @@ export async function sendAutomatedEmail(
     }
 
     const replacements: Record<string, string> = {
-      '{customer_name}': data.customerName,
-      '{order_id}': data.orderId || '',
-      '{total_price}': data.totalPrice || '',
-      '{checkout_url}': data.checkoutUrl || '',
-      '{retry_url}': data.retryUrl || '',
-      '{tracking_number}': data.trackingNumber || '',
-      '{tracking_link}': data.trackingLink || '',
-      '{cart_items}': itemsHtml,
-      '{order_items}': itemsHtml
+      "{customer_name}": data.customerName,
+      "{order_id}": data.orderId || "",
+      "{total_price}": data.totalPrice || "",
+      "{checkout_url}": data.checkoutUrl || "",
+      "{retry_url}": data.retryUrl || "",
+      "{tracking_number}": data.trackingNumber || "",
+      "{tracking_link}": data.trackingLink || "",
+      "{cart_items}": itemsHtml,
+      "{order_items}": itemsHtml,
     };
 
-    Object.keys(replacements).forEach(key => {
+    Object.keys(replacements).forEach((key) => {
       subject = subject.replaceAll(key, replacements[key]);
       body = body.replaceAll(key, replacements[key]);
     });
 
     // Call serverless API to send real SMTP email via Nodemailer
     try {
-      await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           recipientEmail,
           subject,
-          body
-        })
+          body,
+        }),
       });
     } catch (apiErr) {
-      console.warn("Failed to dispatch real email via Vercel serverless API:", apiErr);
+      console.warn(
+        "Failed to dispatch real email via Vercel serverless API:",
+        apiErr,
+      );
     }
 
-    await addDocument('email_logs', {
+    await addDocument("email_logs", {
       type,
       recipientEmail,
       subject,
       body,
       sentAt: new Date().toISOString(),
-      status: 'Sent'
+      status: "Sent",
     });
 
     console.log(`📧 Simulated Admin Email Sent [${type}] to ${recipientEmail}`);
     return true;
   } catch (error) {
-    console.error('Error simulating automated email:', error);
+    console.error("Error simulating automated email:", error);
     return false;
   }
 }
