@@ -29,6 +29,44 @@ import frAuth from "../locales/fr/auth.json";
 import frWishlist from "../locales/fr/wishlist.json";
 import frCart from "../locales/fr/cart.json";
 
+const SUPPORTED_LANGS = ["pt", "fr"] as const;
+type SupportedLang = (typeof SUPPORTED_LANGS)[number];
+
+/**
+ * Determine the initial language to use:
+ * 1. Language embedded in the current URL path (/pt/... or /fr/...)
+ * 2. Language saved in localStorage
+ * 3. Browser navigator language (first match)
+ * 4. Default: "pt"
+ */
+function detectInitialLanguage(): SupportedLang {
+  // 1. Try to read from the URL path first (most authoritative)
+  try {
+    const pathLang = window.location.pathname.split("/")[1] as SupportedLang;
+    if (SUPPORTED_LANGS.includes(pathLang)) {
+      return pathLang;
+    }
+  } catch (_) { /* ignore */ }
+
+  // 2. Try localStorage
+  try {
+    const saved = localStorage.getItem("imex_lang") as SupportedLang | null;
+    if (saved && SUPPORTED_LANGS.includes(saved)) {
+      return saved;
+    }
+  } catch (_) { /* ignore (private mode) */ }
+
+  // 3. Try browser language
+  try {
+    const navLang = (navigator.language || "").toLowerCase();
+    if (navLang.startsWith("fr")) return "fr";
+    if (navLang.startsWith("pt")) return "pt";
+  } catch (_) { /* ignore */ }
+
+  // 4. Default
+  return "pt";
+}
+
 const resources = {
   pt: {
     common: ptCommon,
@@ -60,9 +98,11 @@ const resources = {
   },
 };
 
+const initialLang = detectInitialLanguage();
+
 i18n.use(initReactI18next).init({
   resources,
-  lng: "pt",
+  lng: initialLang,
   fallbackLng: "pt",
   ns: [
     "common",
@@ -82,6 +122,15 @@ i18n.use(initReactI18next).init({
   interpolation: {
     escapeValue: false,
   },
+});
+
+// Persist language to localStorage whenever it changes
+i18n.on("languageChanged", (lng: string) => {
+  try {
+    if (SUPPORTED_LANGS.includes(lng as SupportedLang)) {
+      localStorage.setItem("imex_lang", lng);
+    }
+  } catch (_) { /* ignore private mode */ }
 });
 
 export default i18n;

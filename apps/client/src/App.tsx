@@ -192,6 +192,15 @@ const ProductRedirect = () => {
   return <Navigate to={`/${lang || "pt"}/?product=${id}`} replace />;
 };
 
+const RootRedirect = () => {
+  let savedLang = "pt";
+  try {
+    const stored = localStorage.getItem("imex_lang");
+    if (stored === "fr" || stored === "pt") savedLang = stored;
+  } catch (_) {}
+  return <Navigate to={`/${savedLang}`} replace />;
+};
+
 const HomeRedirect = () => {
   const { lang } = useParams();
   return <Navigate to={`/${lang || "pt"}/${lang === "fr" ? "accueil" : "inicio"}`} replace />;
@@ -328,8 +337,8 @@ function App() {
 
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          {/* Redirect / to /pt */}
-          <Route path="/" element={<Navigate to="/pt" replace />} />
+          {/* Redirect / to saved language or /pt */}
+          <Route path="/" element={<RootRedirect />} />
 
           {/* Wrapper for routing prefix language */}
           <Route path="/:lang" element={<LanguageWrapper />}>
