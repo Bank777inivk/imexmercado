@@ -90,5 +90,22 @@
     "Fitness & Musculation": "Fitness & Musculação",
     "Camping & Randonnée": "Camping & Caminhada",
     "Bagagerie de voyage": "Bagagem de viagem"
+  },
+  "cookies": {
+    "title": "Respeito pela sua privacidade (RGPD)",
+    "description": "Utilizamos cookies para otimizar a sua experiência, analisar o tráfego do site (Google Analytics) e sugerir publicidade direcionada nas redes sociais (Meta Pixel). Os cookies não essenciais são bloqueados por padrão até que faça a sua escolha. Pode alterar as suas preferências a qualquer momento.",
+    "customize": "Personalizar",
+    "hide": "Ocultar",
+    "refuse_all": "Recusar todos",
+    "accept_all": "Aceitar todos",
+    "necessary": "Necessários",
+    "always_active": "Sempre Activo",
+    "necessary_desc": "Indispensáveis para o funcionamento do site, gestão do carrinho e início de sessão seguro. Não recolhem quaisquer dados pessoais.",
+    "analytics": "Analíticos",
+    "analytics_desc": "Ajudam-nos a compreender como os visitantes interagem com a loja (ex: páginas mais visitadas, tempo gasto) através do Google Analytics.",
+    "marketing": "Publicidade & Marketing",
+    "marketing_desc": "Permitem acompanhar a eficácia da publicidade no Facebook, Instagram (Meta Pixel) e TikTok para lhe sugerir produtos relevantes.",
+    "save_choices": "Gravar as minhas escolhas",
+    "hover_title": "Definições de Cookies"
   }
 }

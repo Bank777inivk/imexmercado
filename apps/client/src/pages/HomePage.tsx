@@ -156,6 +156,7 @@ export function HomePage({ isSidebarOpen }: HomePageProps) {
         <HomeSidebar
           latestProducts={sections.newArrivals}
           popularProducts={sections.trending}
+          onViewDetails={handleViewDetails}
         />
         <div className="flex-1 w-full min-w-0 flex flex-col gap-10">
           <FlashSaleSection

@@ -54,7 +54,7 @@ export function HeroSlider({
       subtitle: "Promo Bricolage",
       image: "",
       color: "#5d3b8e",
-      link: "/boutique?filter=promo",
+      link: "/boutique?category=Bricolage",
       isActive: true,
     },
     {
@@ -64,7 +64,7 @@ export function HeroSlider({
       subtitle: "Promo Maison",
       image: "",
       color: "#111111",
-      link: "/boutique?category=Maison",
+      link: "/boutique?category=Maison & Décoration",
       isActive: true,
     },
   ]);
@@ -144,7 +144,7 @@ export function HeroSlider({
             className={`flex-1 flex flex-col md:flex-row gap-0 ${isSidebarOpen ? "lg:pl-2" : ""} h-auto lg:min-h-[400px]`}
           >
             {/* Main Slider (Center) */}
-            <div className="relative flex-[2] h-[250px] sm:h-[350px] lg:h-auto overflow-hidden group bg-black">
+            <div className="relative flex-[2] h-[320px] sm:h-[380px] lg:h-auto overflow-hidden group bg-black">
               <div
                 className="flex transition-transform duration-500 ease-out h-full"
                 style={{ transform: `translateX(-${current * 100}%)` }}
@@ -168,17 +168,17 @@ export function HeroSlider({
                         className="w-full h-full object-cover"
                       />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
-                    <div className="absolute inset-0 flex flex-col justify-center items-start p-6 md:p-14 text-white max-w-sm md:max-w-lg">
-                      <p className="text-[9px] md:text-sm font-black uppercase tracking-widest text-primary mb-2">
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent"></div>
+                    <div className="absolute inset-0 flex flex-col justify-center items-start p-7 md:p-14 text-white max-w-sm md:max-w-lg">
+                      <p className="text-[10px] md:text-sm font-black uppercase tracking-[0.2em] text-primary mb-2.5">
                         {slide.title}
                       </p>
-                      <h2 className="text-white text-xl md:text-3xl lg:text-5xl font-extrabold leading-tight mb-4 md:mb-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                      <h2 className="text-white text-2xl md:text-3xl lg:text-5xl font-black leading-tight mb-5 md:mb-8 drop-shadow-md">
                         {slide.subtitle}
                       </h2>
                       <Link
                         to={localLink(slide.link || "/boutique")}
-                        className="bg-white text-black font-black uppercase py-2 md:py-2.5 px-4 md:px-6 rounded-full md:hover:bg-gray-100 transition-colors shadow-lg text-[10px] md:text-sm active:scale-95 inline-block text-center"
+                        className="bg-white text-gray-900 font-black uppercase py-3 px-6 rounded-2xl shadow-lg hover:scale-105 active:scale-95 transition-all text-[10px] md:text-xs tracking-wider inline-block text-center"
                       >
                         {slide.ctaText}
                       </Link>
@@ -202,12 +202,12 @@ export function HeroSlider({
               </button>
 
               {/* Dots */}
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 md:gap-2">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/25 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/10">
                 {slides.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setCurrent(idx)}
-                    className={`h-1.5 md:h-1.5 rounded-full transition-all ${current === idx ? "w-6 md:w-8 bg-white" : "w-2 bg-white/50"}`}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${current === idx ? "w-6 bg-white" : "w-1.5 bg-white/40"}`}
                   />
                 ))}
               </div>
@@ -216,9 +216,9 @@ export function HeroSlider({
             {/* Dynamic Mini Banners (Right) */}
             <div className="hidden md:flex flex-1 flex-col gap-2 h-auto lg:h-auto">
               {localizedMiniBanners.slice(0, 2).map((b: any, i: number) => (
-                <a
+                <Link
                   key={b.id}
-                  href={b.link || "#"}
+                  to={localLink(b.link || "/boutique")}
                   className={`relative w-full flex-1 overflow-hidden group cursor-pointer block ${i === 0 ? "rounded-tr-md" : "rounded-br-md"}`}
                   style={{ backgroundColor: b.color || "#333" }}
                 >
@@ -245,7 +245,7 @@ export function HeroSlider({
                       </span>
                     </div>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           </div>

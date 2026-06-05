@@ -88,22 +88,24 @@ export function TrustBar() {
   }, [dbItems, currentLang, t]);
 
   return (
-    <div className="bg-white border-b border-gray-200 py-3 w-full px-4 md:px-8 lg:px-12">
-      <div className="w-full grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-200">
+    <div className="bg-white border-b border-gray-100 py-6 w-full px-4 md:px-8 lg:px-12">
+      <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-0 lg:divide-x lg:divide-gray-100">
         {items.map((item, idx) => {
           const Icon = ICON_MAP[item.icon] || Star;
           return (
-            <div key={idx} className="flex items-center gap-3 px-4 py-2">
-              <Icon
-                size={28}
-                className="text-primary flex-shrink-0"
-                weight="regular"
-              />
-              <div>
-                <p className="text-xs font-bold text-gray-800">
+            <div key={idx} className="flex items-center gap-3 p-3.5 bg-gray-50/50 lg:bg-transparent rounded-2xl border border-gray-100/50 lg:border-none lg:px-6">
+              <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary flex-shrink-0">
+                <Icon
+                  size={20}
+                  className="text-primary"
+                  weight="duotone"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-black text-gray-900 leading-tight uppercase tracking-tight">
                   {item.title || (item as any).text}
                 </p>
-                <p className="text-[11px] text-gray-500">
+                <p className="text-[10px] text-gray-400 font-semibold mt-0.5">
                   {item.subtitle || (item as any).subtext}
                 </p>
               </div>

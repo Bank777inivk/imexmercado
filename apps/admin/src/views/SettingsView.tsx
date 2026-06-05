@@ -12,11 +12,16 @@ import {
   PaypalLogo,
   Gear,
   Megaphone,
+  Ticket,
+  Plus,
+  Trash,
 } from "@phosphor-icons/react";
 import {
   subscribeToDocument,
   setDocument,
   seedReviewsForExistingProducts,
+  subscribeToCollection,
+  deleteDocument,
 } from "@imexmercado/firebase";
 
 // ─── Types & Defaults ──────────────────────────────────────────────────────────
@@ -104,6 +109,13 @@ const TABS = [
     icon: Globe,
     color: "text-indigo-600",
     bg: "bg-indigo-50",
+  },
+  {
+    id: "coupons",
+    label: "Codes Promo",
+    icon: Ticket,
+    color: "text-rose-600",
+    bg: "bg-rose-50",
   },
 ];
 
@@ -289,6 +301,17 @@ export function SettingsView() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<any>(DEFAULT_PAYMENT_CONFIG);
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState<any>(null);
+  const [couponSaving, setCouponSaving] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToCollection("coupons", (data) => {
+      setCoupons(data);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = subscribeToDocument(
@@ -518,8 +541,8 @@ export function SettingsView() {
   const currentTab = TABS.find((t) => t.id === activeTab)!;
   const terminalConfig =
     config[activeTab] ||
-    DEFAULT_PAYMENT_CONFIG[activeTab as keyof typeof DEFAULT_PAYMENT_CONFIG];
-  const mode = terminalConfig.mode;
+    DEFAULT_PAYMENT_CONFIG[activeTab as keyof typeof DEFAULT_PAYMENT_CONFIG] || {};
+  const mode = terminalConfig?.mode || "test";
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20 text-left">
@@ -633,7 +656,7 @@ export function SettingsView() {
             </div>
           </div>
           <div className="flex flex-col items-end gap-3">
-            {activeTab !== "marketing" && (
+            {!["marketing", "seo", "inventory", "shipping_zones", "coupons"].includes(activeTab) && (
               <div className="flex items-center gap-3">
                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                   Activer le terminal
@@ -1129,6 +1152,127 @@ export function SettingsView() {
               </div>
             </div>
           )}
+
+          {/* COUPONS */}
+          {activeTab === "coupons" && (
+            <div className="col-span-full space-y-6">
+              <div className="p-5 bg-gray-50 rounded-2xl space-y-4 text-left">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-gray-900 text-sm">
+                      Codes Promo / Réductions
+                    </span>
+                    <p className="text-xs text-gray-400 mt-1 font-medium">
+                      Créez et gérez les codes de réduction applicables lors du paiement.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingCoupon({
+                        code: "",
+                        type: "percent",
+                        value: 10,
+                        minPurchase: 0,
+                        isActive: true,
+                      });
+                      setIsCouponModalOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl hover:scale-105 transition-all active:scale-95 shadow-md shadow-gray-200"
+                  >
+                    <Plus size={14} weight="bold" />
+                    Ajouter un code
+                  </button>
+                </div>
+
+                {/* Coupons List */}
+                <div className="overflow-x-auto border border-gray-100 rounded-2xl bg-white mt-4">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50/50">
+                        <th className="py-3 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400">Code</th>
+                        <th className="py-3 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400">Type</th>
+                        <th className="py-3 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400">Valeur</th>
+                        <th className="py-3 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400">Min. Achat</th>
+                        <th className="py-3 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400">Statut</th>
+                        <th className="py-3 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {coupons.map((coupon) => (
+                        <tr key={coupon.id} className="hover:bg-gray-50/30 transition-colors">
+                          <td className="py-4 px-4 font-black text-gray-900 text-sm">{coupon.id}</td>
+                          <td className="py-4 px-4">
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg ${coupon.type === "percent" ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600"}`}>
+                              {coupon.type === "percent" ? "Pourcentage %" : "Montant fixe €"}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4 font-bold text-gray-700 text-sm">
+                            {coupon.type === "percent" ? `${coupon.value}%` : `${coupon.value.toFixed(2)}€`}
+                          </td>
+                          <td className="py-4 px-4 font-medium text-gray-400 text-sm">
+                            {coupon.minPurchase > 0 ? `${coupon.minPurchase.toFixed(2)}€` : "Aucun"}
+                          </td>
+                          <td className="py-4 px-4">
+                            <Toggle
+                              value={coupon.isActive}
+                              onChange={async (v) => {
+                                try {
+                                  await setDocument("coupons", coupon.id, {
+                                    ...coupon,
+                                    isActive: v,
+                                  });
+                                } catch (e) {
+                                  console.error("Error toggling coupon status:", e);
+                                  alert("Erreur de modification.");
+                                }
+                              }}
+                            />
+                          </td>
+                          <td className="py-4 px-4 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingCoupon(coupon);
+                                  setIsCouponModalOpen(true);
+                                }}
+                                className="text-xs font-bold text-primary hover:underline"
+                              >
+                                Modifier
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (!confirm(`Voulez-vous vraiment supprimer le code ${coupon.id} ?`)) return;
+                                  try {
+                                    await deleteDocument("coupons", coupon.id);
+                                  } catch (e) {
+                                    console.error("Error deleting coupon:", e);
+                                    alert("Erreur lors de la suppression.");
+                                  }
+                                }}
+                                className="p-1.5 text-red-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                              >
+                                <Trash size={16} weight="bold" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {coupons.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="text-center py-8 text-xs text-gray-300 font-bold italic">
+                            Aucun code promo créé pour le moment.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Global Protection Advice */}
@@ -1151,6 +1295,163 @@ export function SettingsView() {
           </div>
         </div>
       </div>
+
+      {isCouponModalOpen && editingCoupon && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+            onClick={() => setIsCouponModalOpen(false)}
+          />
+          <div className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-8 md:p-10 max-h-[85vh] overflow-y-auto">
+              <h3 className="text-2xl font-black text-gray-900 mb-2">
+                {editingCoupon.id ? "Modifier le code promo" : "Nouveau code promo"}
+              </h3>
+              <p className="text-sm text-gray-500 mb-8 font-medium">
+                Définissez les règles de votre code promo.
+              </p>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                    Code de réduction (ex: BIENVENUE10)
+                  </label>
+                  <input
+                    type="text"
+                    disabled={!!editingCoupon.id}
+                    className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="SUMMER20"
+                    value={editingCoupon.code || editingCoupon.id || ""}
+                    onChange={(e) =>
+                      setEditingCoupon({ ...editingCoupon, code: e.target.value.toUpperCase().replace(/\s+/g, "") })
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                      Type de réduction
+                    </label>
+                    <select
+                      className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all appearance-none cursor-pointer"
+                      value={editingCoupon.type}
+                      onChange={(e) =>
+                        setEditingCoupon({ ...editingCoupon, type: e.target.value })
+                      }
+                    >
+                      <option value="percent">Pourcentage (%)</option>
+                      <option value="fixed">Montant fixe (€)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                      Valeur de réduction
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      step="any"
+                      className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                      value={editingCoupon.value}
+                      onChange={(e) =>
+                        setEditingCoupon({
+                          ...editingCoupon,
+                          value: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block ml-1">
+                    Minimum d'achat requis (€)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="any"
+                    className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-sm font-bold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                    placeholder="0.00 (Aucun)"
+                    value={editingCoupon.minPurchase || ""}
+                    onChange={(e) =>
+                      setEditingCoupon({
+                        ...editingCoupon,
+                        minPurchase: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-2xl">
+                  <div className="flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">
+                      Code promo actif
+                    </p>
+                    <p className="text-[10px] text-primary/60 font-medium">
+                      Sera utilisable par vos clients lors du paiement.
+                    </p>
+                  </div>
+                  <Toggle
+                    value={editingCoupon.isActive}
+                    onChange={(v) =>
+                      setEditingCoupon({
+                        ...editingCoupon,
+                        isActive: v,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="mt-10 flex gap-4">
+                <button
+                  onClick={() => setIsCouponModalOpen(false)}
+                  className="flex-1 bg-gray-100 text-gray-500 font-black uppercase text-[10px] tracking-widest py-5 rounded-2xl hover:bg-gray-200 transition-all"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={async () => {
+                    const codeId = (editingCoupon.code || editingCoupon.id || "").toUpperCase().trim();
+                    if (!codeId) return alert("Le code promo est obligatoire");
+                    if (editingCoupon.value <= 0) return alert("La valeur de réduction doit être supérieure à 0");
+                    setCouponSaving(true);
+                    try {
+                      const finalCouponData = {
+                        id: codeId,
+                        type: editingCoupon.type,
+                        value: editingCoupon.value,
+                        minPurchase: editingCoupon.minPurchase || 0,
+                        isActive: editingCoupon.isActive,
+                        updatedAt: new Date().toISOString(),
+                      };
+                      await setDocument("coupons", codeId, finalCouponData);
+                      setIsCouponModalOpen(false);
+                      setEditingCoupon(null);
+                    } catch (err) {
+                      console.error(err);
+                      alert("Erreur lors de la sauvegarde du coupon");
+                    } finally {
+                      setCouponSaving(false);
+                    }
+                  }}
+                  disabled={couponSaving}
+                  className="flex-1 bg-gray-900 text-white font-black uppercase text-[10px] tracking-widest py-5 rounded-2xl shadow-xl shadow-gray-200 hover:scale-105 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {couponSaving ? (
+                    <ArrowClockwise size={18} className="animate-spin mx-auto" />
+                  ) : (
+                    "Enregistrer"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

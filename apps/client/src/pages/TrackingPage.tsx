@@ -32,6 +32,8 @@ export function TrackingPage() {
     // Silently ignore if not nested inside the Account Dashboard
   }
 
+  const isInDashboard = !!(dashboardContext && typeof dashboardContext.orders !== "undefined");
+
   // Fallback to direct useAuth if accessed via public route but user is logged in
   const authContext = useAuth();
   const currentUser = dashboardContext?.user || authContext?.user;
@@ -109,7 +111,7 @@ export function TrackingPage() {
   // 3. Trigger auto-search once when pre-filled fields are successfully populated
   React.useEffect(() => {
     if (
-      dashboardContext &&
+      isInDashboard &&
       orderIdInput &&
       emailInput &&
       !searched &&
@@ -119,7 +121,7 @@ export function TrackingPage() {
       performSearch(orderIdInput, emailInput);
     }
   }, [
-    dashboardContext,
+    isInDashboard,
     orderIdInput,
     emailInput,
     searched,
@@ -194,14 +196,35 @@ export function TrackingPage() {
                   <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">
                     {t("tracking:fields.order_number")}
                   </label>
-                  <input
-                    type="text"
-                    value={orderIdInput}
-                    onChange={(e) => setOrderIdInput(e.target.value)}
-                    placeholder={t("tracking:fields.placeholder_order")}
-                    required
-                    className="w-full bg-gray-50 border border-[#2F333F]/35 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-bold text-sm"
-                  />
+                  {isInDashboard && userOrders.length > 0 ? (
+                    <select
+                      value={orderIdInput}
+                      onChange={(e) => {
+                        setOrderIdInput(e.target.value);
+                        performSearch(e.target.value, emailInput);
+                      }}
+                      required
+                      className="w-full bg-gray-50 border border-[#2F333F]/35 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-bold text-sm cursor-pointer"
+                    >
+                      <option value="" disabled>
+                        {t("tracking:fields.placeholder_order")}
+                      </option>
+                      {userOrders.map((order: any) => (
+                        <option key={order.id} value={order.id.toUpperCase()}>
+                          IMX-{order.id.slice(-6).toUpperCase()} ({order.total?.toFixed(2)}€ - {new Date(order.createdAt).toLocaleDateString()})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={orderIdInput}
+                      onChange={(e) => setOrderIdInput(e.target.value)}
+                      placeholder={t("tracking:fields.placeholder_order")}
+                      required
+                      className="w-full bg-gray-50 border border-[#2F333F]/35 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-bold text-sm"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">
@@ -231,7 +254,14 @@ export function TrackingPage() {
 
             {/* Right Column: Information & Timeline Visual */}
             <div className="bg-gray-50/50 p-6 md:p-16 flex flex-col justify-center">
-              {foundOrder ? (
+              {loading || (isInDashboard && !orderIdInput && !searched) ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    {t("tracking:fields.btn_searching")}
+                  </p>
+                </div>
+              ) : foundOrder ? (
                 <div className="space-y-8">
                   <div className="bg-green-50 border border-green-200 p-6 rounded-2xl flex gap-4 items-start shadow-sm">
                     <div className="bg-green-100 text-green-600 p-2 rounded-lg shrink-0 mt-1">

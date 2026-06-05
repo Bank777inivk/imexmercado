@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Cookie, Check, X, ShieldCheck } from "@phosphor-icons/react";
+import { useTranslation } from "react-i18next";
 
 export function CookieBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
+  const { t } = useTranslation(["common"]);
 
   useEffect(() => {
     const consent = localStorage.getItem("imex_cookie_consent");
@@ -48,7 +50,7 @@ export function CookieBanner() {
           }
           setShowBanner(true);
         }}
-        title="Paramètres des Cookies"
+        title={t("common:cookies.hover_title")}
         className="fixed bottom-4 left-4 z-40 bg-white hover:bg-gray-100 text-gray-700 w-10 h-10 rounded-full flex items-center justify-center shadow-lg border border-gray-200 hover:scale-110 active:scale-95 transition-all"
       >
         <Cookie size={20} weight="bold" className="text-primary" />
@@ -67,16 +69,12 @@ export function CookieBanner() {
               className="text-primary animate-pulse"
               weight="fill"
             />
-            <h3 className="font-bold text-base md:text-lg tracking-tight">
-              Respect de votre vie privée (RGPD)
+            <h3 className="font-bold text-base md:text-lg tracking-tight text-white">
+              {t("common:cookies.title")}
             </h3>
           </div>
-          <p className="text-xs text-gray-300 leading-relaxed max-w-4xl">
-            Nous utilisons des cookies pour optimiser votre expérience, analyser
-            le trafic du site (Google Analytics) et vous proposer des publicités
-            ciblées sur les réseaux sociaux (Meta Pixel). Les cookies non
-            essentiels sont bloqués par défaut tant que vous n'avez pas fait
-            votre choix. Vous pouvez modifier vos préférences à tout moment.
+          <p className="text-xs text-gray-300 leading-relaxed max-w-4xl font-sans">
+            {t("common:cookies.description")}
           </p>
         </div>
 
@@ -86,19 +84,19 @@ export function CookieBanner() {
             onClick={() => setShowDetails(!showDetails)}
             className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-gray-300 hover:text-white transition-colors"
           >
-            {showDetails ? "Masquer" : "Personnaliser"}
+            {showDetails ? t("common:cookies.hide") : t("common:cookies.customize")}
           </button>
           <button
             onClick={handleRefuseAll}
             className="px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-[#2D3039] hover:bg-[#3E424B] text-gray-200 rounded-xl transition-all"
           >
-            Refuser tout
+            {t("common:cookies.refuse_all")}
           </button>
           <button
             onClick={handleAcceptAll}
             className="px-6 py-2.5 text-xs font-black uppercase tracking-wider bg-primary hover:bg-primary-dark text-white rounded-xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
           >
-            Tout accepter
+            {t("common:cookies.accept_all")}
           </button>
         </div>
       </div>
@@ -110,16 +108,14 @@ export function CookieBanner() {
           <div className="p-4 bg-[#2D3039]/50 rounded-2xl space-y-2 relative border border-[#2D3039]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-white">
-                Nécessaires
+                {t("common:cookies.necessary")}
               </span>
               <span className="text-[10px] font-black text-green-500 uppercase">
-                Toujours Actif
+                {t("common:cookies.always_active")}
               </span>
             </div>
-            <p className="text-[11px] text-gray-400 leading-relaxed">
-              Indispensables au fonctionnement du site, à la gestion du panier
-              et à la connexion sécurisée. Ils ne collectent aucune donnée
-              personnelle.
+            <p className="text-[11px] text-gray-400 leading-relaxed font-sans">
+              {t("common:cookies.necessary_desc")}
             </p>
           </div>
 
@@ -127,7 +123,7 @@ export function CookieBanner() {
           <div className="p-4 bg-[#2D3039]/50 rounded-2xl space-y-3 border border-[#2D3039]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-white">
-                Analytiques
+                {t("common:cookies.analytics")}
               </span>
               <button
                 type="button"
@@ -139,10 +135,8 @@ export function CookieBanner() {
                 />
               </button>
             </div>
-            <p className="text-[11px] text-gray-400 leading-relaxed">
-              Nous aident à comprendre comment les visiteurs interagissent avec
-              la boutique (ex : pages les plus visitées, temps passé) grâce à
-              Google Analytics.
+            <p className="text-[11px] text-gray-400 leading-relaxed font-sans">
+              {t("common:cookies.analytics_desc")}
             </p>
           </div>
 
@@ -150,7 +144,7 @@ export function CookieBanner() {
           <div className="p-4 bg-[#2D3039]/50 rounded-2xl space-y-3 border border-[#2D3039]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-white">
-                Publicité & Marketing
+                {t("common:cookies.marketing")}
               </span>
               <button
                 type="button"
@@ -162,10 +156,8 @@ export function CookieBanner() {
                 />
               </button>
             </div>
-            <p className="text-[11px] text-gray-400 leading-relaxed">
-              Permettent de suivre l'efficacité des publicités sur Facebook,
-              Instagram (Meta Pixel) et TikTok afin de vous suggérer des
-              produits pertinents.
+            <p className="text-[11px] text-gray-400 leading-relaxed font-sans">
+              {t("common:cookies.marketing_desc")}
             </p>
           </div>
 
@@ -175,7 +167,7 @@ export function CookieBanner() {
               onClick={handleSaveCustom}
               className="px-6 py-2.5 text-xs font-black uppercase tracking-wider bg-white text-gray-900 rounded-xl hover:bg-gray-100 transition-all flex items-center gap-2"
             >
-              <Check size={16} weight="bold" /> Enregistrer mes choix
+              <Check size={16} weight="bold" /> {t("common:cookies.save_choices")}
             </button>
           </div>
         </div>

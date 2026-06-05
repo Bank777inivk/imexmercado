@@ -2,9 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Star, Quotes } from "@phosphor-icons/react";
 import { subscribeToDocument, getCollection } from "@imexmercado/firebase";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import { useLocale } from "../../hooks/useLocale";
 
 export function VerticalAdBanner({ ads = [] }: { ads?: any[] }) {
   const [current, setCurrent] = React.useState(0);
+  const { localLink } = useLocale();
 
   const displayAds =
     ads.length > 0
@@ -16,6 +19,7 @@ export function VerticalAdBanner({ ads = [] }: { ads?: any[] }) {
             title: "Interior Design",
             subtitle: "Shop now",
             bgColor: "#00000033",
+            link: "/boutique?category=Maison & Décoration",
           },
           {
             image:
@@ -23,6 +27,7 @@ export function VerticalAdBanner({ ads = [] }: { ads?: any[] }) {
             title: "Living Room",
             subtitle: "Collection 2026",
             bgColor: "#0000FF1a",
+            link: "/boutique?category=Maison & Décoration",
           },
           {
             image:
@@ -30,6 +35,7 @@ export function VerticalAdBanner({ ads = [] }: { ads?: any[] }) {
             title: "Office Style",
             subtitle: "Up to -30%",
             bgColor: "#0080001a",
+            link: "/boutique?category=Meubles & Lampes",
           },
         ];
 
@@ -44,9 +50,10 @@ export function VerticalAdBanner({ ads = [] }: { ads?: any[] }) {
   return (
     <div className="relative w-full h-[450px] overflow-hidden group mb-6">
       {displayAds.map((slide, idx) => (
-        <div
+        <Link
           key={idx}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${current === idx ? "opacity-100 z-10" : "opacity-0 z-0"}`}
+          to={localLink(slide.link || "/boutique")}
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out block ${current === idx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"}`}
         >
           <img
             src={slide.image}
@@ -72,14 +79,13 @@ export function VerticalAdBanner({ ads = [] }: { ads?: any[] }) {
               <br />
               {slide.title.split(" ")[1] || ""}
             </h3>
-            <a
-              href="#"
+            <span
               className="text-white text-xs font-bold underline hover:no-underline transition-all text-left w-fit"
             >
               {slide.subtitle}
-            </a>
+            </span>
           </div>
-        </div>
+        </Link>
       ))}
 
       {displayAds.length > 1 && (
@@ -103,9 +109,11 @@ export function VerticalAdBanner({ ads = [] }: { ads?: any[] }) {
 export function LatestProductsSidebar({
   products,
   title = "Derniers Produits",
+  onViewDetails,
 }: {
   products: any[];
   title?: string;
+  onViewDetails?: (product: any) => void;
 }) {
   const [index, setIndex] = React.useState(0);
   const { i18n } = useTranslation();
@@ -162,6 +170,7 @@ export function LatestProductsSidebar({
               <div
                 key={product.id}
                 className="flex gap-3 group cursor-pointer text-left"
+                onClick={() => onViewDetails?.(product)}
               >
                 <div className="w-16 h-16 bg-gray-50 flex-shrink-0 flex items-center justify-center border border-gray-100 group-hover:border-primary transition-colors">
                   <img
@@ -208,9 +217,11 @@ export function LatestProductsSidebar({
 export function PopularProductsSidebar({
   products,
   title = "Populaires",
+  onViewDetails,
 }: {
   products: any[];
   title?: string;
+  onViewDetails?: (product: any) => void;
 }) {
   const [index, setIndex] = React.useState(0);
   const { i18n } = useTranslation();
@@ -264,7 +275,11 @@ export function PopularProductsSidebar({
             }`}
           >
             {chunk.map((product: any) => (
-              <div key={product.id} className="flex gap-3 group cursor-pointer">
+              <div
+                key={product.id}
+                className="flex gap-3 group cursor-pointer"
+                onClick={() => onViewDetails?.(product)}
+              >
                 <div className="w-16 h-16 bg-gray-50 flex-shrink-0 flex items-center justify-center border border-gray-100 group-hover:border-secondary transition-colors">
                   <img
                     src={product.image}
@@ -464,9 +479,11 @@ export function TestimonialSidebar() {
 export function HomeSidebar({
   latestProducts,
   popularProducts,
+  onViewDetails,
 }: {
   latestProducts: any[];
   popularProducts: any[];
+  onViewDetails?: (product: any) => void;
 }) {
   const [settings, setSettings] = useState<any>(null);
   const { i18n } = useTranslation();
@@ -546,10 +563,15 @@ export function HomeSidebar({
     <aside className="w-[250px] hidden lg:block flex-shrink-0">
       <div className="sticky top-20">
         <VerticalAdBanner ads={verticalAds} />
-        <LatestProductsSidebar products={latestProducts} title={latestTitle} />
+        <LatestProductsSidebar
+          products={latestProducts}
+          title={latestTitle}
+          onViewDetails={onViewDetails}
+        />
         <PopularProductsSidebar
           products={popularProducts}
           title={popularTitle}
+          onViewDetails={onViewDetails}
         />
         <EngagementSidebar stats={engagementStats} />
         <TestimonialSidebar />

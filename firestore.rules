@@ -86,5 +86,12 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if isAdmin();
     }
+
+    // Coupons : Lecture (get seulement) publique pour la vérification au checkout, list et write réservés aux admins
+    match /coupons/{couponId} {
+      allow get: if true;
+      allow list, write: if isAdmin();
+    }
   }
 }
+

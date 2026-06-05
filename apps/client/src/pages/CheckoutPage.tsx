@@ -6,6 +6,7 @@ import {
   useAuth,
   subscribeToDocument,
   deleteDocument,
+  getDocument,
 } from "@imexmercado/firebase";
 console.log(
   "CheckoutPage.tsx Module Loaded - setDocument exists:",
@@ -163,6 +164,14 @@ export function CheckoutPage() {
   const [shippingPrice, setShippingPrice] = useState(0);
   const [shippingZones, setShippingZones] = useState<any[]>([]);
 
+  // Coupons states
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponSuccess, setCouponSuccess] = useState<string | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const [authMode, setAuthMode] = useState<"guest" | "login" | "register">(
     "guest",
@@ -270,7 +279,36 @@ export function CheckoutPage() {
     }
   }, [formData.country, selectedAddressId, profile, shippingZones]);
 
-  const finalTotal = totalPrice + shippingPrice;
+  // Recalculate coupon discount if totalPrice changes
+  useEffect(() => {
+    if (!appliedCoupon) {
+      setDiscountAmount(0);
+      return;
+    }
+
+    if (appliedCoupon.minPurchase && totalPrice < appliedCoupon.minPurchase) {
+      setAppliedCoupon(null);
+      setDiscountAmount(0);
+      setCouponSuccess(null);
+      setCouponError(
+        txt(
+          `Code annulé : achat minimum de ${appliedCoupon.minPurchase}€ requis.`,
+          `Código cancelado: compra mínima de ${appliedCoupon.minPurchase}€ necessária.`,
+        )
+      );
+      return;
+    }
+
+    let calculatedDiscount = 0;
+    if (appliedCoupon.type === "percent") {
+      calculatedDiscount = totalPrice * (appliedCoupon.value / 100);
+    } else {
+      calculatedDiscount = appliedCoupon.value;
+    }
+    setDiscountAmount(Math.min(calculatedDiscount, totalPrice));
+  }, [totalPrice, appliedCoupon]);
+
+  const finalTotal = Math.max(0, totalPrice - discountAmount) + shippingPrice;
 
   // Sync abandoned carts to Firestore
   useEffect(() => {
@@ -448,6 +486,69 @@ export function CheckoutPage() {
     }
   };
 
+  const applyCoupon = async () => {
+    const code = couponInput.toUpperCase().trim();
+    if (!code) return;
+
+    setIsValidatingCoupon(true);
+    setCouponError(null);
+    setCouponSuccess(null);
+
+    try {
+      const couponDoc = await getDocument("coupons", code);
+      if (!couponDoc) {
+        setCouponError(
+          txt(
+            "Code promo invalide.",
+            "Código de desconto inválido."
+          )
+        );
+        setAppliedCoupon(null);
+        return;
+      }
+
+      if (!couponDoc.isActive) {
+        setCouponError(
+          txt(
+            "Code promo expiré ou inactif.",
+            "Código de desconto expirado ou inativo."
+          )
+        );
+        setAppliedCoupon(null);
+        return;
+      }
+
+      if (couponDoc.minPurchase && totalPrice < couponDoc.minPurchase) {
+        setCouponError(
+          txt(
+            `Achat minimum de ${couponDoc.minPurchase}€ requis pour ce code.`,
+            `Compra mínima de ${couponDoc.minPurchase}€ necessária.`
+          )
+        );
+        setAppliedCoupon(null);
+        return;
+      }
+
+      setAppliedCoupon(couponDoc);
+      setCouponSuccess(
+        txt(
+          `Code promo appliqué : ${code}`,
+          `Código de desconto aplicado: ${code}`
+        )
+      );
+    } catch (e) {
+      console.error("Error validating coupon:", e);
+      setCouponError(
+        txt(
+          "Erreur lors de la validation du code.",
+          "Erro ao validar o código."
+        )
+      );
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
   const saveOrder = async (gateway: string, paymentData: any = {}) => {
     try {
       const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
@@ -466,6 +567,14 @@ export function CheckoutPage() {
         })),
         shippingPrice,
         total: finalTotal,
+        discountAmount,
+        coupon: appliedCoupon
+          ? {
+              code: appliedCoupon.id,
+              type: appliedCoupon.type,
+              value: appliedCoupon.value,
+            }
+          : null,
         status: "Processing",
         shippingAddress: {
           address: formData.address,
@@ -3185,7 +3294,7 @@ export function CheckoutPage() {
                       </div>
                     </div>
 
-                    {/* Promo Code Field */}
+                     {/* Promo Code Field */}
                     <div className="bg-white p-5 rounded-2xl border border-[#2F333F] shadow-sm mb-8">
                       <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">
                         {t("checkout:coupon")}
@@ -3193,13 +3302,29 @@ export function CheckoutPage() {
                       <div className="flex gap-2 items-center">
                         <input
                           type="text"
+                          value={couponInput}
+                          onChange={(e) => setCouponInput(e.target.value)}
                           placeholder={t("checkout:coupon_placeholder")}
-                          className="flex-1 min-w-0 bg-white border border-gray-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl px-3 py-3 text-sm font-medium outline-none transition-all placeholder:text-gray-400"
+                          className="flex-1 min-w-0 bg-white border border-gray-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl px-3 py-3 text-sm font-medium outline-none transition-all placeholder:text-gray-400 uppercase"
                         />
-                        <button className="flex-shrink-0 bg-primary text-white font-black text-[10px] px-4 py-3 rounded-xl uppercase tracking-widest transition-all hover:bg-primary/90 shadow-md shadow-primary/10 active:scale-95">
-                          {t("checkout:coupon_btn")}
+                        <button
+                          onClick={applyCoupon}
+                          disabled={isValidatingCoupon || !couponInput.trim()}
+                          className="flex-shrink-0 bg-primary text-white font-black text-[10px] px-4 py-3 rounded-xl uppercase tracking-widest transition-all hover:bg-primary/90 shadow-md shadow-primary/10 active:scale-95 disabled:opacity-50"
+                        >
+                          {isValidatingCoupon ? "..." : t("checkout:coupon_btn")}
                         </button>
                       </div>
+                      {couponError && (
+                        <p className="text-[10px] font-bold text-red-500 mt-2 ml-1">
+                          {couponError}
+                        </p>
+                      )}
+                      {couponSuccess && (
+                        <p className="text-[10px] font-bold text-success mt-2 ml-1">
+                          {couponSuccess}
+                        </p>
+                      )}
                     </div>
 
                     {/* Price breakdown */}
@@ -3212,6 +3337,30 @@ export function CheckoutPage() {
                           {totalPrice.toFixed(2)}€
                         </span>
                       </div>
+                      {appliedCoupon && (
+                        <div className="flex justify-between items-center pt-4 border-t border-dashed border-gray-200">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-success">
+                              {txt("Remise", "Desconto")} ({appliedCoupon.id})
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAppliedCoupon(null);
+                                setCouponInput("");
+                                setCouponSuccess(null);
+                              }}
+                              className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors"
+                              title={txt("Retirer le code", "Remover código")}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          <span className="font-black text-success">
+                            -{discountAmount.toFixed(2)}€
+                          </span>
+                        </div>
+                      )}
                       <div className="flex justify-between items-center pt-4 border-t border-[#2F333F]">
                         <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
                           {t("checkout:shipping")}

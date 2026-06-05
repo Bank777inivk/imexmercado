@@ -74,7 +74,13 @@ export function ShopPage() {
     const found = categoriesList.find(
       (cat) =>
         cat.name?.toLowerCase() === term.toLowerCase() ||
-        cat.namePT?.toLowerCase() === term.toLowerCase(),
+        cat.namePT?.toLowerCase() === term.toLowerCase() ||
+        cat.short?.toLowerCase() === term.toLowerCase() ||
+        cat.shortPT?.toLowerCase() === term.toLowerCase() ||
+        (term.length >= 4 && (
+          cat.name?.toLowerCase().includes(term.toLowerCase()) ||
+          cat.namePT?.toLowerCase().includes(term.toLowerCase())
+        ))
     );
     return found ? found.name : term;
   }, [categorySlug, searchParams, categoriesList]);

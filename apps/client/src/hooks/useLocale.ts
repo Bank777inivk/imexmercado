@@ -21,6 +21,7 @@ const pathTranslations: Record<string, Record<string, string>> = {
     "/confidentialite": "/privacidade",
     "/livraison": "/envios",
     "/retours": "/devolucoes",
+    "/accueil": "/inicio",
   },
   fr: {
     "/loja": "/boutique",
@@ -42,6 +43,7 @@ const pathTranslations: Record<string, Record<string, string>> = {
     "/privacidade": "/confidentialite",
     "/envios": "/livraison",
     "/devolucoes": "/retours",
+    "/inicio": "/accueil",
   },
 };
 
@@ -77,7 +79,9 @@ export function useLocale() {
     const translations = pathTranslations[currentLang] || {};
     let targetRoute = baseRoute;
 
-    if (translations[baseRoute]) {
+    if (baseRoute === "/") {
+      targetRoute = currentLang === "pt" ? "/inicio" : "/accueil";
+    } else if (translations[baseRoute]) {
       targetRoute = translations[baseRoute];
     } else {
       // Check if it's currently in the other language's value and map it

@@ -192,6 +192,21 @@ const ProductRedirect = () => {
   return <Navigate to={`/${lang || "pt"}/?product=${id}`} replace />;
 };
 
+const HomeRedirect = () => {
+  const { lang } = useParams();
+  return <Navigate to={`/${lang || "pt"}/${lang === "fr" ? "accueil" : "inicio"}`} replace />;
+};
+
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
 const LanguageWrapper = () => {
   const { lang } = useParams();
   const { i18n } = useTranslation();
@@ -275,6 +290,7 @@ function App() {
 
   return (
     <>
+      <ScrollToTop />
       <TrackingManager />
       <CookieBanner />
 
@@ -325,7 +341,9 @@ function App() {
 
             {/* ─── Public & Shop Universe ─── */}
             <Route element={<StoreLayout />}>
-              <Route index element={<HomePage isSidebarOpen={true} />} />
+              <Route index element={<HomeRedirect />} />
+              <Route path="accueil" element={<HomePage isSidebarOpen={true} />} />
+              <Route path="inicio" element={<HomePage isSidebarOpen={true} />} />
               <Route path="boutique" element={<ShopPage />} />
               <Route path="loja" element={<ShopPage />} />
               <Route path="category/:categorySlug" element={<ShopPage />} />
