@@ -8,6 +8,8 @@
   ],
   "scripts": {
     "dev": "turbo dev",
+    "dev:client:vercel": "pnpm --filter @imexmercado/client dev:vercel",
+    "dev:admin:vercel": "pnpm --filter @imexmercado/admin dev:vercel",
     "build": "turbo build",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
