@@ -54,6 +54,12 @@ export function CartDrawer() {
     setDrawerOpen(false);
     // Use localLink so French users go to /fr/commande, Portuguese to /pt/finalizar-compra
     navigate(localLink("/commande"));
+    // Force scroll to top — the drawer closing can leave scroll position mid-page
+    setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 50);
   };
 
   return (

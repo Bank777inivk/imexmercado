@@ -104,11 +104,8 @@ const NotFoundPage = lazy(() =>
 );
 
 const LoadingFallback = () => (
-  <div className="flex flex-col items-center justify-center py-40 min-h-[50vh]">
-    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-      Chargement en cours...
-    </p>
+  <div className="fixed inset-0 flex items-center justify-center z-50 bg-transparent pointer-events-none">
+    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
   </div>
 );
 
@@ -210,7 +207,10 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   React.useEffect(() => {
-    window.scrollTo(0, 0);
+    // Force scroll to absolute top on every route change
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }, [pathname]);
 
   return null;

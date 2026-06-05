@@ -86,6 +86,10 @@ export function DashboardLayout() {
   useEffect(() => {
     // Fermer la sidebar sur mobile en cas de changement de route
     setIsSidebarOpen(false);
+    // Remonter en haut de page à chaque changement d'onglet dashboard
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }, [location.pathname]);
 
   const handleLogout = async () => {

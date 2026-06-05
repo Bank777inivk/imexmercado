@@ -25,7 +25,7 @@ export function WishlistPage() {
             </p>
           </div>
           <Link
-            to="/boutique"
+            to={localLink("/boutique")}
             className="inline-flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:border-primary hover:text-primary transition-all shadow-sm"
           >
             {t("wishlist:continue_shopping")}
@@ -91,7 +91,7 @@ export function WishlistPage() {
               {t("wishlist:empty_desc")}
             </p>
             <Link
-              to="/boutique"
+              to={localLink("/boutique")}
               className="inline-block bg-primary text-white text-xs font-black uppercase tracking-widest px-10 py-5 rounded-2xl hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 active:scale-95"
             >
               {t("wishlist:empty_cta")}
