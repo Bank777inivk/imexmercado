@@ -33,6 +33,7 @@ export function ShopPage() {
   const { categorySlug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const promoFilter = searchParams.get("filter") === "promo";
+  const newFilter = searchParams.get("filter") === "new";
   const { t, i18n } = useTranslation(["shop"]);
   const isFR = (i18n.language || "pt").startsWith("fr");
 
@@ -173,7 +174,7 @@ export function ShopPage() {
   // Reset to page 1 when any filter or sort changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeFilters, sortValue, promoFilter, categorySlug, searchParams]);
+  }, [activeFilters, sortValue, promoFilter, newFilter, categorySlug, searchParams]);
 
   const handleViewDetails = (product: any) => {
     setSelectedProduct(product);
@@ -261,6 +262,10 @@ export function ShopPage() {
       result = result.filter((p) => p.oldPrice && p.oldPrice > p.price);
     }
 
+    if (newFilter) {
+      result = result.filter((p) => p.isNew);
+    }
+
     const searchQuery = searchParams.get("search");
     if (searchQuery) {
       result = result.filter((p) =>
@@ -297,7 +302,7 @@ export function ShopPage() {
       result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
 
     return result;
-  }, [products, activeFilters, sortValue, promoFilter, inventoryConfig]);
+  }, [products, activeFilters, sortValue, promoFilter, newFilter, inventoryConfig]);
 
   // Pagination Logic
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
