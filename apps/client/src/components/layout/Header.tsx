@@ -59,6 +59,8 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   const desktopRef = React.useRef<HTMLFormElement>(null);
   const mobileRef = React.useRef<HTMLFormElement>(null);
+  const mobileInputRef = React.useRef<HTMLInputElement>(null);
+  const [dropdownPos, setDropdownPos] = React.useState<{ top: number; left: number; width: number } | null>(null);
 
   React.useEffect(() => {
     const unsubscribe = subscribeToCollection("categories", (data) => {
@@ -85,6 +87,18 @@ export function Header({ onMenuClick }: HeaderProps) {
     return () => unsubscribe();
   }, []);
 
+  // Recalculate dropdown position when keyboard opens/closes or page scrolls
+  const updateDropdownPos = React.useCallback(() => {
+    if (mobileInputRef.current) {
+      const rect = mobileInputRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  }, []);
+
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -99,6 +113,21 @@ export function Header({ onMenuClick }: HeaderProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Recalculate dropdown position when virtual keyboard opens/closes (mobile)
+  React.useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onViewportChange = () => {
+      updateDropdownPos();
+    };
+    vv.addEventListener("resize", onViewportChange);
+    vv.addEventListener("scroll", onViewportChange);
+    return () => {
+      vv.removeEventListener("resize", onViewportChange);
+      vv.removeEventListener("scroll", onViewportChange);
+    };
+  }, [updateDropdownPos]);
 
   const filteredCategories = React.useMemo(() => {
     if (!searchQuery.trim()) return [];
@@ -557,16 +586,21 @@ export function Header({ onMenuClick }: HeaderProps) {
             ref={mobileRef}
           >
             <input
+              ref={mobileInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setIsOpen(true);
                 setSelectedIndex(-1);
+                updateDropdownPos();
               }}
               onFocus={() => {
                 setIsOpen(true);
                 setSelectedIndex(-1);
+                // Small delay to let keyboard animate open before measuring
+                setTimeout(updateDropdownPos, 100);
+                setTimeout(updateDropdownPos, 350);
               }}
               onKeyDown={handleKeyDown}
               placeholder={t("header.search_placeholder")}
@@ -578,14 +612,23 @@ export function Header({ onMenuClick }: HeaderProps) {
             >
               <MagnifyingGlass size={16} weight="bold" className="text-white" />
             </button>
-
-            {/* Suggestions Dropdown Mobile */}
-            {isOpen && searchQuery.trim().length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-[#1F222A] border border-[#2D3039] rounded-xl shadow-2xl z-50 max-h-[320px] overflow-y-auto overflow-x-hidden text-sm search-suggestions-scrollbar">
-                {renderDropdownContent()}
-              </div>
-            )}
           </form>
+
+          {/* Suggestions Dropdown Mobile — position:fixed so it stays below input even with keyboard open */}
+          {isOpen && searchQuery.trim().length > 0 && dropdownPos && (
+            <div
+              style={{
+                position: "fixed",
+                top: dropdownPos.top,
+                left: dropdownPos.left,
+                width: dropdownPos.width,
+                zIndex: 9999,
+              }}
+              className="bg-[#1F222A] border border-[#2D3039] rounded-xl shadow-2xl max-h-[45vh] overflow-y-auto overflow-x-hidden text-sm search-suggestions-scrollbar"
+            >
+              {renderDropdownContent()}
+            </div>
+          )}
         </div>
       </div>
     </header>
