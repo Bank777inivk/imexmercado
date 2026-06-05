@@ -259,7 +259,12 @@ export function ShopPage() {
     }
 
     if (promoFilter) {
-      result = result.filter((p) => p.oldPrice && p.oldPrice > p.price);
+      result = result.filter(
+        (p) =>
+          p.oldPrice &&
+          Number(p.oldPrice) > 0 &&
+          Number(p.oldPrice) > Number(p.price),
+      );
     }
 
     if (newFilter) {
