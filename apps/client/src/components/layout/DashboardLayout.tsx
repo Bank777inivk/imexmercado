@@ -148,14 +148,14 @@ export function DashboardLayout() {
 
       {/* Sidebar - Premium Dark Design */}
       <aside
-        className={`fixed inset-y-0 left-0 w-[280px] flex flex-col z-[70] border-r border-white/5 transform transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarOpen ? "translate-x-0 shadow-[20px_0_60px_rgba(0,0,0,0.3)]" : "-translate-x-full"} lg:relative lg:translate-x-0`}
+        className={`fixed inset-y-0 left-0 w-[240px] lg:w-[280px] flex flex-col z-[70] border-r border-white/5 transform transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarOpen ? "translate-x-0 shadow-[20px_0_60px_rgba(0,0,0,0.3)]" : "-translate-x-full"} lg:relative lg:translate-x-0`}
         style={{ backgroundColor: "var(--client-sidebar-bg, #0F1115)" }}
       >
         {/* Logo Section */}
-        <div className="p-8 pb-12 flex items-center justify-between">
+        <div className="px-5 py-4 pb-6 lg:p-8 lg:pb-12 flex items-center justify-between">
           <Link to={localLink("/")} className="group">
             <h1
-              className="text-2xl font-bold tracking-tighter leading-none"
+              className="text-lg lg:text-2xl font-bold tracking-tighter leading-none"
               style={{ color: "var(--client-sidebar-active-text, #FFFFFF)" }}
             >
               IMEX
@@ -164,7 +164,7 @@ export function DashboardLayout() {
               </span>
             </h1>
             <p
-              className="text-[10px] font-bold uppercase tracking-[0.2em] mt-2 opacity-60 group-hover:opacity-100 transition-opacity"
+              className="text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.2em] mt-1 opacity-60 group-hover:opacity-100 transition-opacity"
               style={{ color: "var(--client-sidebar-text, #9CA3AF)" }}
             >
               {t("sidebar.espace_prive")}
@@ -174,7 +174,7 @@ export function DashboardLayout() {
             className="lg:hidden text-white/50 hover:text-white transition-colors"
             onClick={() => setIsSidebarOpen(false)}
           >
-            <X size={24} weight="bold" />
+            <X size={20} weight="bold" />
           </button>
         </div>
 
@@ -189,7 +189,7 @@ export function DashboardLayout() {
                 to={item.path}
                 onMouseEnter={() => setHoveredPath(item.path)}
                 onMouseLeave={() => setHoveredPath(null)}
-                className={`sidebar-link-item flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 relative group overflow-hidden ${
+                className={`sidebar-link-item flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-5 lg:py-4 rounded-xl lg:rounded-2xl transition-all duration-300 relative group overflow-hidden ${
                   active
                     ? "active-link bg-gradient-to-r from-primary to-orange-500 text-white shadow-[0_8px_20px_-4px_rgba(255,92,0,0.35)] scale-[1.02]"
                     : "text-gray-400 hover:scale-[1.01]"
@@ -201,9 +201,9 @@ export function DashboardLayout() {
                 )}
 
                 <item.icon
-                  size={22}
+                  size={18}
                   weight={active || isHovered ? "fill" : "bold"}
-                  className={`transition-transform duration-300 group-hover:scale-110`}
+                  className={`transition-transform duration-300 group-hover:scale-110 lg:text-[22px]`}
                   style={{
                     color:
                       active || isHovered
@@ -212,7 +212,7 @@ export function DashboardLayout() {
                   }}
                 />
                 <span
-                  className="text-[13px] font-bold uppercase tracking-widest"
+                  className="text-[11px] lg:text-[13px] font-bold uppercase tracking-wider lg:tracking-widest"
                   style={{
                     color:
                       active || isHovered
@@ -228,30 +228,30 @@ export function DashboardLayout() {
         </nav>
 
         {/* Footer Sidebar */}
-        <div className="p-6 mt-auto">
-          <div className="bg-white/5 rounded-3xl p-5 mb-4 border border-white/5">
+        <div className="px-4 py-4 lg:p-6 mt-auto">
+          <div className="bg-white/5 rounded-2xl lg:rounded-3xl p-3 lg:p-5 mb-3 lg:mb-4 border border-white/5">
             <p
-              className="text-[10px] font-black uppercase tracking-widest mb-3"
+              className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest mb-2 lg:mb-3"
               style={{ color: "var(--client-sidebar-text, #9CA3AF)" }}
             >
               {t("sidebar.need_help")}
             </p>
             <Link
               to={localLink("/compte/aide")}
-              className="text-xs font-bold hover:text-primary transition-colors flex items-center gap-2"
+              className="text-[11px] lg:text-xs font-bold hover:text-primary transition-colors flex items-center gap-2"
               style={{ color: "var(--client-sidebar-active-text, #FFFFFF)" }}
             >
               {t("sidebar.client_support")}{" "}
-              <CaretRight size={12} weight="bold" />
+              <CaretRight size={11} weight="bold" />
             </Link>
           </div>
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-all font-black text-[11px] uppercase tracking-widest group"
+            className="w-full flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-5 lg:py-4 rounded-xl lg:rounded-2xl text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-all font-black text-[10px] lg:text-[11px] uppercase tracking-widest group"
           >
             <SignOut
-              size={22}
+              size={18}
               weight="bold"
               className="group-hover:-translate-x-1 transition-transform"
             />
