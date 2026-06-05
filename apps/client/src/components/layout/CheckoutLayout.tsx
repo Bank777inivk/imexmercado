@@ -10,10 +10,12 @@ import {
 import { CartDrawer } from "./CartDrawer";
 import { useCart } from "../../context/CartContext";
 import { useTranslation } from "react-i18next";
+import { useLocale } from "../../hooks/useLocale";
 
 export function CheckoutLayout() {
   const { t } = useTranslation("checkout");
   const { setDrawerOpen } = useCart();
+  const { localLink } = useLocale();
   const [showSecurityInfo, setShowSecurityInfo] = useState(false);
   const securityRef = useRef<HTMLDivElement>(null);
 
@@ -43,7 +45,7 @@ export function CheckoutLayout() {
           <div className="flex justify-start lg:w-auto">
             {/* Mobile: Home Icon */}
             <Link
-              to="/boutique"
+              to={localLink("/boutique")}
               className="lg:hidden group flex items-center gap-2 text-white hover:text-white/80 transition-all ml-1"
               title={t("back_to_shop")}
             >
@@ -54,7 +56,7 @@ export function CheckoutLayout() {
 
             {/* Desktop: Brand Logo (Positioned Left) */}
             <Link
-              to="/boutique"
+              to={localLink("/boutique")}
               className="hidden lg:block text-xl lg:text-2xl font-black tracking-tighter text-white group"
             >
               IMEX
@@ -67,7 +69,7 @@ export function CheckoutLayout() {
           {/* Center: Brand Identity (Mobile Only) */}
           <div className="flex justify-center lg:hidden">
             <Link
-              to="/"
+              to={localLink("/")}
               className="text-xl font-black tracking-tighter text-white group"
             >
               IMEX

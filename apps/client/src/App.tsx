@@ -220,45 +220,41 @@ const LanguageWrapper = () => {
   const { lang } = useParams();
   const { i18n } = useTranslation();
   const location = useLocation();
-  const [frenchEnabled, setFrenchEnabled] = React.useState<boolean | null>(
-    null,
-  );
+  // Start as true (optimistic) — only flip to false if Firestore says so explicitly
+  const [frenchEnabled, setFrenchEnabled] = React.useState<boolean>(true);
+  const [frenchChecked, setFrenchChecked] = React.useState<boolean>(false);
 
+  // Set language IMMEDIATELY and synchronously from URL — no waiting for Firestore
+  React.useLayoutEffect(() => {
+    if (lang === "pt" || lang === "fr") {
+      if (i18n.language !== lang) {
+        i18n.changeLanguage(lang);
+      }
+    }
+  }, [lang, i18n]);
+
+  // Check Firestore in background — only used to disable FR if needed
   React.useEffect(() => {
     const unsubscribe = subscribeToDocument(
       "settings",
       "homepage",
       (data: any) => {
         setFrenchEnabled(data?.isFrenchEnabled !== false);
+        setFrenchChecked(true);
       },
     );
     return () => unsubscribe();
   }, []);
 
-  React.useEffect(() => {
-    if (lang && (lang === "pt" || lang === "fr")) {
-      if (lang === "fr" && frenchEnabled === false) {
-        return;
-      }
-      i18n.changeLanguage(lang);
-    }
-  }, [lang, frenchEnabled, i18n]);
-
-  if (frenchEnabled === null) {
-    return (
-      <div className="flex flex-col items-center justify-center py-40 min-h-[50vh]">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-      </div>
-    );
-  }
-
+  // Invalid lang prefix → redirect to /pt
   if (lang !== "pt" && lang !== "fr") {
     return (
       <Navigate to={`/pt${location.pathname}${location.search}`} replace />
     );
   }
 
-  if (lang === "fr" && !frenchEnabled) {
+  // French explicitly disabled and Firestore confirmed → redirect to PT
+  if (lang === "fr" && frenchChecked && !frenchEnabled) {
     const newPath = location.pathname.replace(/^\/fr(\/|$)/, "/pt$1");
     return <Navigate to={newPath + location.search} replace />;
   }
