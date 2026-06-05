@@ -15,6 +15,7 @@ import {
 import { useCart } from "../../context/CartContext";
 import { subscribeToCollection } from "@imexmercado/firebase";
 import { useTranslation } from "react-i18next";
+import { useLocale } from "../../hooks/useLocale";
 
 export function CartDrawer() {
   const {
@@ -32,6 +33,7 @@ export function CartDrawer() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation(["cart"]);
   const isFR = (i18n.language || "pt").startsWith("fr");
+  const { localLink } = useLocale();
   const [allProducts, setAllProducts] = React.useState<any[]>([]);
 
   React.useEffect(() => {
@@ -50,7 +52,8 @@ export function CartDrawer() {
 
   const handleCheckout = () => {
     setDrawerOpen(false);
-    navigate("/commande");
+    // Use localLink so French users go to /fr/commande, Portuguese to /pt/finalizar-compra
+    navigate(localLink("/commande"));
   };
 
   return (

@@ -14,6 +14,14 @@ console.log(
 );
 import { sendAutomatedEmail } from "../utils/emailHelper";
 import { Link, useNavigate } from "react-router-dom";
+
+// Helper: build a language-aware checkout URL for emails
+function checkoutUrl(email: string): string {
+  const lang = window.location.pathname.split("/")[1];
+  const validLang = lang === "fr" || lang === "pt" ? lang : "pt";
+  const path = validLang === "fr" ? "commande" : "finalizar-compra";
+  return `${window.location.origin}/${validLang}/${path}?email=${encodeURIComponent(email)}`;
+}
 import {
   User,
   Truck,
@@ -102,10 +110,7 @@ function StripePaymentInner({
             await sendAutomatedEmail("payment_cancelled", formData.email, {
               customerName: formData.firstName,
               orderId: `ORD-${Date.now().toString().slice(-6).toUpperCase()}`,
-              retryUrl:
-                window.location.origin +
-                "/commande?email=" +
-                encodeURIComponent(formData.email),
+              retryUrl: checkoutUrl(formData.email),
             });
           } catch (e) {
             console.error("Error sending cancelled payment email:", e);
@@ -121,10 +126,7 @@ function StripePaymentInner({
           await sendAutomatedEmail("payment_cancelled", formData.email, {
             customerName: formData.firstName,
             orderId: `ORD-${Date.now().toString().slice(-6).toUpperCase()}`,
-            retryUrl:
-              window.location.origin +
-              "/commande?email=" +
-              encodeURIComponent(formData.email),
+            retryUrl: checkoutUrl(formData.email),
           });
         } catch (e) {
           console.error("Error sending cancelled payment email:", e);
@@ -335,9 +337,7 @@ export function CheckoutPage() {
           total: finalTotal,
           updatedAt: new Date().toISOString(),
           checkoutUrl:
-            window.location.origin +
-            "/commande?email=" +
-            encodeURIComponent(formData.email),
+            checkoutUrl(formData.email),
         });
       } catch (err) {
         console.error("Error syncing abandoned cart:", err);
