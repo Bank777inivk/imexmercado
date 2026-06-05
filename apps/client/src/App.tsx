@@ -299,8 +299,8 @@ function App() {
       <TrackingManager />
       <CookieBanner />
 
-      {/* Visual Email Simulation Toast */}
-      {simulatedEmail && (
+      {/* Visual Email Simulation Toast (dev only) */}
+      {import.meta.env.DEV && simulatedEmail && (
         <div className="fixed bottom-6 right-6 z-[9999] max-w-sm w-full bg-slate-900 text-white p-5 rounded-2xl shadow-2xl border border-slate-800 animate-in slide-in-from-bottom duration-300 flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <span className="animate-ping w-2.5 h-2.5 bg-amber-400 rounded-full inline-block"></span>
