@@ -31,6 +31,7 @@ export function DashboardLayout() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
+  const mainRef = React.useRef<HTMLElement>(null);
 
   const { t } = useTranslation("account");
   const { localLink } = useLocale();
@@ -87,9 +88,13 @@ export function DashboardLayout() {
     // Fermer la sidebar sur mobile en cas de changement de route
     setIsSidebarOpen(false);
     // Remonter en haut de page à chaque changement d'onglet dashboard
+    // Le conteneur scrollable est <main>, pas window — d'où le ref
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
   }, [location.pathname]);
 
   const handleLogout = async () => {
@@ -308,7 +313,7 @@ export function DashboardLayout() {
         </header>
 
         {/* Scrollable Content */}
-        <main className="p-4 md:p-8 lg:p-12 pb-12 flex-grow overflow-y-auto">
+        <main ref={mainRef} className="p-4 md:p-8 lg:p-12 pb-12 flex-grow overflow-y-auto">
           <Outlet context={{ user, profile, orders }} />
 
           <footer className="mt-12 text-center text-sm font-medium text-gray-400 border-t border-gray-100 pt-8 pb-4">
