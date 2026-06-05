@@ -144,40 +144,42 @@ export function TrackingPage() {
   const isDeliveredDone = status === "delivered";
 
   return (
-    <div className="bg-bg min-h-screen font-sans selection:bg-primary/10 pb-24">
+    <div className={isInDashboard ? "" : "bg-bg min-h-screen font-sans selection:bg-primary/10 pb-24"}>
       {/* ─── Breadcrumbs ─── */}
-      <div className="bg-white border-b border-gray-50">
-        <div className="container mx-auto px-4 py-4 md:py-6 flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-gray-400 font-black">
-          <Link to="/" className="hover:text-primary transition-colors">
-            {t("tracking:breadcrumb_home")}
-          </Link>
-          <span className="text-gray-200">/</span>
-          <span className="text-gray-900">
-            {t("tracking:breadcrumb_current")}
-          </span>
+      {!isInDashboard && (
+        <div className="bg-white border-b border-gray-50">
+          <div className="container mx-auto px-4 py-4 md:py-6 flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-gray-400 font-black">
+            <Link to="/" className="hover:text-primary transition-colors">
+              {t("tracking:breadcrumb_home")}
+            </Link>
+            <span className="text-gray-200">/</span>
+            <span className="text-gray-900">
+              {t("tracking:breadcrumb_current")}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ─── Main Unified Card ─── */}
-      <section className="container mx-auto px-4 pt-6 md:pt-12">
+      <section className={isInDashboard ? "pt-2" : "container mx-auto px-4 pt-6 md:pt-12"}>
         <motion.div
           {...fadeIn}
-          className="bg-white rounded-3xl border-2 border-[#2F333F]/35 shadow-xl overflow-hidden"
+          className={`bg-white rounded-3xl overflow-hidden ${isInDashboard ? "border border-[#2F333F]/15 shadow-sm" : "border-2 border-[#2F333F]/35 shadow-xl"}`}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2">
             {/* Left Column: Tracking Form */}
-            <div className="p-6 md:p-16 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-gray-100 relative">
+            <div className="p-5 xs:p-8 md:p-16 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-gray-100 relative text-left">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-bl-full -mr-16 -mt-16 pointer-events-none opacity-50" />
 
-              <div className="bg-primary/10 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 text-primary shadow-inner relative z-10">
-                <MagnifyingGlass size={32} weight="duotone" />
+              <div className="bg-primary/10 w-12 h-12 xs:w-16 xs:h-16 rounded-2xl flex items-center justify-center mb-6 xs:mb-8 text-primary shadow-inner relative z-10">
+                <MagnifyingGlass size={isInDashboard ? 24 : 32} weight="duotone" />
               </div>
 
-              <h1 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter mb-4 relative z-10 leading-tight">
+              <h1 className="text-xl xs:text-2xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter mb-3 xs:mb-4 relative z-10 leading-tight">
                 {t("tracking:title_main")} <br />
                 <span className="text-primary">{t("tracking:title_sub")}</span>
               </h1>
-              <p className="text-sm md:text-base text-gray-500 max-w-md leading-relaxed font-medium mb-10 relative z-10">
+              <p className="text-xs xs:text-sm md:text-base text-gray-500 max-w-md leading-relaxed font-medium mb-6 xs:mb-10 relative z-10">
                 {t("tracking:description")}
               </p>
 
@@ -204,7 +206,7 @@ export function TrackingPage() {
                         performSearch(e.target.value, emailInput);
                       }}
                       required
-                      className="w-full bg-gray-50 border border-[#2F333F]/35 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-bold text-sm cursor-pointer"
+                      className="w-full bg-gray-50 border border-[#2F333F]/15 rounded-xl p-3.5 sm:p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-bold text-sm cursor-pointer"
                     >
                       <option value="" disabled>
                         {t("tracking:fields.placeholder_order")}
@@ -222,7 +224,7 @@ export function TrackingPage() {
                       onChange={(e) => setOrderIdInput(e.target.value)}
                       placeholder={t("tracking:fields.placeholder_order")}
                       required
-                      className="w-full bg-gray-50 border border-[#2F333F]/35 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-bold text-sm"
+                      className="w-full bg-gray-50 border border-[#2F333F]/15 rounded-xl p-3.5 sm:p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-bold text-sm"
                     />
                   )}
                 </div>
@@ -236,14 +238,14 @@ export function TrackingPage() {
                     onChange={(e) => setEmailInput(e.target.value)}
                     placeholder="votre@email.com"
                     required
-                    className="w-full bg-gray-50 border border-[#2F333F]/35 rounded-xl p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-bold text-sm"
+                    className="w-full bg-gray-50 border border-[#2F333F]/15 rounded-xl p-3.5 sm:p-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-bold text-sm"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-primary transition-all shadow-lg active:scale-95 text-xs mt-4 disabled:opacity-50 cursor-pointer"
+                  className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-3.5 sm:py-4 rounded-xl hover:bg-primary transition-all shadow-lg active:scale-95 text-xs mt-4 disabled:opacity-50 cursor-pointer"
                 >
                   {loading
                     ? t("tracking:fields.btn_searching")

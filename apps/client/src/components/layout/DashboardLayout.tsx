@@ -194,7 +194,7 @@ export function DashboardLayout() {
                 to={item.path}
                 onMouseEnter={() => setHoveredPath(item.path)}
                 onMouseLeave={() => setHoveredPath(null)}
-                className={`sidebar-link-item flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-5 lg:py-4 rounded-xl lg:rounded-2xl transition-all duration-300 relative group overflow-hidden ${
+                className={`sidebar-link-item flex items-center gap-2 lg:gap-4 px-2.5 py-2 lg:px-5 lg:py-4 rounded-xl lg:rounded-2xl transition-all duration-300 relative group overflow-hidden ${
                   active
                     ? "active-link bg-gradient-to-r from-primary to-orange-500 text-white shadow-[0_8px_20px_-4px_rgba(255,92,0,0.35)] scale-[1.02]"
                     : "text-gray-400 hover:scale-[1.01]"
@@ -217,7 +217,7 @@ export function DashboardLayout() {
                   }}
                 />
                 <span
-                  className="text-[11px] lg:text-[13px] font-bold uppercase tracking-wider lg:tracking-widest"
+                  className="text-[9.5px] lg:text-[13px] font-bold uppercase tracking-wide lg:tracking-widest whitespace-nowrap"
                   style={{
                     color:
                       active || isHovered

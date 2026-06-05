@@ -468,7 +468,7 @@ const GdprTools = ({ profile, user }: any) => {
   return (
     <div className="pt-8 border-t border-gray-100 text-left space-y-8">
       <div>
-        <h2 className="text-xl sm:text-2xl font-black text-gray-900 uppercase tracking-tighter mb-2">
+        <h2 className="text-lg sm:text-2xl font-black text-gray-900 uppercase tracking-tighter mb-2">
           {t("settings.gdpr_title")}
         </h2>
         <p className="text-xs text-gray-400 font-medium max-w-3xl leading-relaxed">
@@ -478,7 +478,7 @@ const GdprTools = ({ profile, user }: any) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Box 1: Portabilité des données */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 flex flex-col justify-between hover:shadow-2xl hover:shadow-gray-200/50 hover:border-primary/20 transition-all duration-300">
+        <div className="bg-white p-5 sm:p-8 rounded-3xl sm:rounded-[2.5rem] border border-gray-100 flex flex-col justify-between hover:shadow-2xl hover:shadow-gray-200/50 hover:border-primary/20 transition-all duration-300">
           <div className="space-y-4 mb-8">
             <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
               <ShieldCheck size={24} weight="bold" />
@@ -502,7 +502,7 @@ const GdprTools = ({ profile, user }: any) => {
         </div>
 
         {/* Box 2: Droit à l'oubli */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-red-100/50 flex flex-col justify-between hover:shadow-2xl hover:shadow-red-500/5 hover:border-red-200 transition-all duration-300 relative overflow-hidden">
+        <div className="bg-white p-5 sm:p-8 rounded-3xl sm:rounded-[2.5rem] border border-red-100/50 flex flex-col justify-between hover:shadow-2xl hover:shadow-red-500/5 hover:border-red-200 transition-all duration-300 relative overflow-hidden">
           <div className="space-y-4 mb-8">
             <div className="w-12 h-12 bg-red-50/60 text-red-500 rounded-2xl flex items-center justify-center">
               <Trash size={24} weight="bold" />
@@ -535,8 +535,8 @@ export const Settings = () => {
   const { t } = useTranslation("account");
   return (
     <div className="space-y-12 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tighter">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-lg sm:text-3xl font-black text-gray-900 uppercase tracking-tighter whitespace-nowrap">
           {t("settings.title")}
         </h1>
       </div>
@@ -567,11 +567,11 @@ export const Orders = () => {
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tighter text-left">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-lg sm:text-3xl font-black text-gray-900 uppercase tracking-tighter text-left whitespace-nowrap">
           {t("orders_page.title")}
         </h1>
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+        <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-gray-100 shrink-0">
           {t("orders_page.orders_count", { count: orders.length })}
         </p>
       </div>
@@ -582,7 +582,7 @@ export const Orders = () => {
             {currentOrders.map((order: any) => (
               <div
                 key={order.id}
-                className="bg-white p-4 sm:p-5 rounded-3xl border border-[#2F333F] shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all group overflow-hidden relative text-left"
+                className="bg-white p-4 sm:p-5 rounded-3xl border border-[#2F333F]/20 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all group overflow-hidden relative text-left"
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 items-start gap-4 sm:gap-6 relative z-10">
                   {/* Column 1: Order Info & Product Thumbnails */}
@@ -659,7 +659,7 @@ export const Orders = () => {
                 </div>
 
                 {/* Decorative background ID */}
-                <span className="absolute -right-4 -bottom-6 text-7xl font-black text-gray-50/30 select-none group-hover:text-gray-900/5 transition-colors pointer-events-none">
+                <span className="hidden sm:block absolute -right-4 -bottom-6 text-7xl font-black text-gray-50/30 select-none group-hover:text-gray-900/5 transition-colors pointer-events-none">
                   #{order.id.slice(-2)}
                 </span>
               </div>
@@ -840,8 +840,8 @@ export const Addresses = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tighter">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-lg sm:text-3xl font-black text-gray-900 uppercase tracking-tighter whitespace-nowrap">
           {t("settings.addresses_title")}
         </h1>
         <button
@@ -904,7 +904,7 @@ export const Addresses = () => {
           return savedAddresses.map((addr: any) => (
             <div
               key={addr.id}
-              className={`bg-white p-8 rounded-[2.5rem] border-2 transition-all relative group hover:shadow-2xl hover:shadow-gray-200/50 ${addr.isDefault ? "border-primary/10" : "border-gray-50 hover:border-primary/10"}`}
+              className={`bg-white p-5 sm:p-8 rounded-3xl sm:rounded-[2.5rem] border-2 transition-all relative group hover:shadow-2xl hover:shadow-gray-200/50 ${addr.isDefault ? "border-primary/10" : "border-gray-50 hover:border-primary/10"}`}
             >
               {addr.isDefault && (
                 <span className="absolute top-8 right-8 bg-primary text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg shadow-sm">
@@ -1034,11 +1034,11 @@ export const Favorites = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tighter">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-lg sm:text-3xl font-black text-gray-900 uppercase tracking-tighter whitespace-nowrap">
           {t("favorites_page.title")}
         </h1>
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-gray-100 shrink-0">
           {t("favorites_page.articles_count", { count: wishlist.length })}
         </p>
       </div>
@@ -1136,7 +1136,7 @@ export const Favorites = () => {
           )}
         </>
       ) : (
-        <div className="bg-white p-20 rounded-[3rem] text-center border-2 border-dashed border-gray-100">
+        <div className="bg-white p-8 sm:p-20 rounded-3xl sm:rounded-[3rem] text-center border-2 border-dashed border-gray-100">
           <Heart
             size={64}
             weight="fill"
@@ -1182,15 +1182,15 @@ export const Support = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tighter">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-lg sm:text-3xl font-black text-gray-900 uppercase tracking-tighter whitespace-nowrap">
           {t("support_page.title")}
         </h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Form Column */}
-        <div className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-[#2F333F]/35 shadow-sm space-y-6">
+        <div className="bg-white p-5 sm:p-8 md:p-10 rounded-[2.5rem] border border-[#2F333F]/15 shadow-sm space-y-6">
           <div>
             <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-2">
               {t("support_page.send_request")}
@@ -1224,7 +1224,7 @@ export const Support = () => {
                     type="text"
                     value={fullName}
                     disabled
-                    className="w-full bg-gray-50 border border-[#2F333F]/35 rounded-xl p-4 outline-none font-medium text-xs text-gray-500"
+                    className="w-full bg-gray-50 border border-[#2F333F]/15 rounded-xl p-4 outline-none font-medium text-xs text-gray-500"
                   />
                 </div>
                 <div className="space-y-2">
@@ -1235,7 +1235,7 @@ export const Support = () => {
                     type="email"
                     value={user?.email || ""}
                     disabled
-                    className="w-full bg-gray-50 border border-[#2F333F]/35 rounded-xl p-4 outline-none font-medium text-xs text-gray-500"
+                    className="w-full bg-gray-50 border border-[#2F333F]/15 rounded-xl p-4 outline-none font-medium text-xs text-gray-500"
                   />
                 </div>
               </div>
@@ -1247,7 +1247,7 @@ export const Support = () => {
                 <select
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full bg-gray-50 border border-[#2F333F]/35 rounded-xl p-4 outline-none focus:border-primary transition-all font-medium text-xs text-gray-900 cursor-pointer"
+                  className="w-full bg-gray-50 border border-[#2F333F]/15 rounded-xl p-4 outline-none focus:border-primary transition-all font-medium text-xs text-gray-900 cursor-pointer"
                 >
                   <option value="Question sur ma commande">
                     {t("support_page.subject_order")}
@@ -1274,7 +1274,7 @@ export const Support = () => {
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder={t("support_page.message_placeholder")}
                   required
-                  className="w-full bg-gray-50 border border-[#2F333F]/35 rounded-xl p-4 outline-none focus:border-primary transition-all font-medium text-xs text-gray-900 resize-none"
+                  className="w-full bg-gray-50 border border-[#2F333F]/15 rounded-xl p-4 outline-none focus:border-primary transition-all font-medium text-xs text-gray-900 resize-none"
                 />
               </div>
 
@@ -1297,7 +1297,7 @@ export const Support = () => {
         {/* Info Column */}
         <div className="space-y-6 flex flex-col justify-between">
           <div className="space-y-4">
-            <div className="bg-white p-6 rounded-[2rem] border border-[#2F333F]/35 flex items-start gap-4 shadow-sm">
+            <div className="bg-white p-4 sm:p-6 rounded-[2rem] border border-[#2F333F]/15 flex items-start gap-4 shadow-sm">
               <div className="bg-primary/10 p-3 rounded-xl text-primary shrink-0">
                 <Phone size={24} weight="bold" />
               </div>
@@ -1314,7 +1314,7 @@ export const Support = () => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-[2rem] border border-[#2F333F]/35 flex items-start gap-4 shadow-sm">
+            <div className="bg-white p-4 sm:p-6 rounded-[2rem] border border-[#2F333F]/15 flex items-start gap-4 shadow-sm">
               <div className="bg-primary/10 p-3 rounded-xl text-primary shrink-0">
                 <EnvelopeSimple size={24} weight="bold" />
               </div>
