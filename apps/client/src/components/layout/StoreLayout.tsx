@@ -16,7 +16,7 @@ export function StoreLayout() {
 
   return (
     <div className="min-h-screen bg-bg flex flex-col font-sans overflow-x-hidden relative">
-      <div className="fixed top-0 left-0 w-full z-50 shadow-md">
+      <div id="main-header-wrapper" className="fixed top-0 left-0 w-full z-50 shadow-md transition-all">
         <PromoBar />
         <TopBar />
         <Header onMenuClick={() => setIsMobileDrawerOpen(true)} />

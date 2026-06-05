@@ -60,7 +60,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const desktopRef = React.useRef<HTMLFormElement>(null);
   const mobileRef = React.useRef<HTMLFormElement>(null);
   const mobileInputRef = React.useRef<HTMLInputElement>(null);
-  const [dropdownPos, setDropdownPos] = React.useState<{ top: number; left: number; width: number } | null>(null);
+  const [dropdownPos, setDropdownPos] = React.useState<{ top?: number; bottom?: number; left: number; width: number; maxHeight?: number } | null>(null);
 
   React.useEffect(() => {
     const unsubscribe = subscribeToCollection("categories", (data) => {
@@ -91,10 +91,13 @@ export function Header({ onMenuClick }: HeaderProps) {
   const updateDropdownPos = React.useCallback(() => {
     if (mobileInputRef.current) {
       const rect = mobileInputRef.current.getBoundingClientRect();
+      const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const maxH = Math.max(120, rect.top - 12);
       setDropdownPos({
-        top: rect.bottom + 4,
+        bottom: viewportHeight - rect.top + 4,
         left: rect.left,
         width: rect.width,
+        maxHeight: maxH,
       });
     }
   }, []);
@@ -619,12 +622,13 @@ export function Header({ onMenuClick }: HeaderProps) {
             <div
               style={{
                 position: "fixed",
-                top: dropdownPos.top,
+                bottom: dropdownPos.bottom,
                 left: dropdownPos.left,
                 width: dropdownPos.width,
+                maxHeight: dropdownPos.maxHeight,
                 zIndex: 9999,
               }}
-              className="bg-[#1F222A] border border-[#2D3039] rounded-xl shadow-2xl max-h-[45vh] overflow-y-auto overflow-x-hidden text-sm search-suggestions-scrollbar"
+              className="bg-[#1F222A] border border-[#2D3039] rounded-xl shadow-2xl overflow-y-auto overflow-x-hidden text-sm search-suggestions-scrollbar"
             >
               {renderDropdownContent()}
             </div>

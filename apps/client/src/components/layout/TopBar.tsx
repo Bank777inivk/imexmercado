@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { CaretDown } from "@imexmercado/ui";
 import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import { subscribeToDocument } from "@imexmercado/firebase";
@@ -17,6 +17,7 @@ export function TopBar() {
   const location = useLocation();
   const [langOpen, setLangOpen] = useState(false);
   const [frenchEnabled, setFrenchEnabled] = useState(true);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsubscribe = subscribeToDocument(
@@ -27,6 +28,32 @@ export function TopBar() {
       },
     );
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const wrapper = document.getElementById("main-header-wrapper");
+    if (!wrapper) return;
+    if (langOpen) {
+      wrapper.classList.remove("z-50");
+      wrapper.classList.add("z-[120]");
+    } else {
+      wrapper.classList.remove("z-[120]");
+      wrapper.classList.add("z-50");
+    }
+  }, [langOpen]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setLangOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   const activeLanguages = LANGUAGES.filter(
@@ -77,7 +104,7 @@ export function TopBar() {
 
           {/* Language Selector */}
           {activeLanguages.length > 1 && (
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <button
                 id="lang-switcher"
                 onClick={() => setLangOpen(!langOpen)}
