@@ -149,7 +149,16 @@ export function CheckoutPage() {
   const txt = (fr: string, pt: string) => (isFR ? fr : pt);
 
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState<number>(() => {
+    const saved = localStorage.getItem("imex_checkout_step");
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      if (parsed >= 1 && parsed <= 4) {
+        return parsed;
+      }
+    }
+    return 1;
+  });
   const [selectedGateway, setSelectedGateway] = useState<string | null>(null);
   const selectGatewayAndCenter = (gateway: string, e: React.MouseEvent<HTMLButtonElement>) => {
     const isCurrentlySelected = selectedGateway === gateway;
@@ -224,6 +233,11 @@ export function CheckoutPage() {
     if (activeStepNode) {
       activeStepNode.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  }, [currentStep]);
+
+  // Sync step changes to localStorage
+  useEffect(() => {
+    localStorage.setItem("imex_checkout_step", currentStep.toString());
   }, [currentStep]);
 
   // Security: Redirect to store if cart becomes empty during checkout (except on success)
@@ -643,6 +657,7 @@ export function CheckoutPage() {
 
       // Nettoyer le panier après commande réussie
       clearCart();
+      localStorage.removeItem("imex_checkout_step");
 
       setConfirmedOrderId(orderId);
       return orderId;
