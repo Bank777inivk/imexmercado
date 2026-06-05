@@ -79,16 +79,20 @@ export function ProductCard({
       className={`bg-white border border-gray-200 hover:border-primary hover:shadow-md transition-all duration-200 flex flex-col group relative ${onViewDetails ? "cursor-pointer" : ""}`}
       onClick={handleCardClick}
     >
-      {/* Discount badge — rounded rectangle, top-left */}
-      {badgeText && (
-        <span className="absolute top-3 left-3 z-10 bg-primary text-white text-[10px] font-black px-2 py-1 rounded shadow-sm">
-          {badgeText}
-        </span>
-      )}
-      {product.isNew && (
-        <span className="absolute top-3 right-3 z-10 bg-success text-white text-[10px] font-bold px-2 py-0.5 rounded">
-          {currentLang.startsWith("pt") ? "NOVO" : "NOUVEAU"}
-        </span>
+      {/* Badges — stacked vertically in top-left to avoid overlaps */}
+      {(badgeText || product.isNew) && (
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 items-start">
+          {badgeText && (
+            <span className="bg-primary text-white text-[10px] font-black px-2 py-1 rounded shadow-sm">
+              {badgeText}
+            </span>
+          )}
+          {product.isNew && (
+            <span className="bg-[#2e7d32] text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm">
+              {currentLang.startsWith("pt") ? "NOVO" : "NOUVEAU"}
+            </span>
+          )}
+        </div>
       )}
 
       {/* Image */}
@@ -106,13 +110,13 @@ export function ProductCard({
         />
       </div>
 
-      {/* Wishlist on hover */}
+      {/* Wishlist button — always visible */}
       <button
         onClick={(e) => {
           e.stopPropagation();
           toggleWishlist(product);
         }}
-        className={`absolute ${product.isNew ? "top-10" : "top-3"} right-3 z-10 ${isFavorite ? "opacity-100 bg-primary text-white border-primary" : "opacity-0 group-hover:opacity-100 bg-white border-gray-200"} transition-all duration-300 rounded-full p-2 shadow-sm hover:scale-110`}
+        className={`absolute top-3 right-3 z-10 ${isFavorite ? "bg-primary text-white border-primary" : "bg-white text-gray-500 border border-gray-200"} transition-all duration-300 rounded-full p-2 shadow-sm hover:scale-110`}
       >
         <Heart size={18} weight={isFavorite ? "fill" : "bold"} />
       </button>
