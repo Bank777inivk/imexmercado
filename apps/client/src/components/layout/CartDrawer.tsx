@@ -205,7 +205,18 @@ export function CartDrawer() {
                                 {itemDisplayName}
                               </Link>
                               <button
-                                onClick={() => removeItem(item.id)}
+                                onClick={() => {
+                                  if (item.quantity > 1) {
+                                    const confirmMsg = isFR
+                                      ? `Voulez-vous retirer ces ${item.quantity} articles du panier ?`
+                                      : `Deseja remover estes ${item.quantity} artigos do carrinho?`;
+                                    if (window.confirm(confirmMsg)) {
+                                      removeItem(item.id);
+                                    }
+                                  } else {
+                                    removeItem(item.id);
+                                  }
+                                }}
                                 className="text-gray-300 hover:text-red-500 transition-colors"
                               >
                                 <Trash size={14} weight="bold" />
