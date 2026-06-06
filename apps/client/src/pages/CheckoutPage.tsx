@@ -77,6 +77,8 @@ function StripePaymentInner({
 }: any) {
   const stripe = useStripe();
   const elements = useElements();
+  const { i18n } = useTranslation();
+  const isFR = i18n.language === "fr";
 
   useEffect(() => {
     const handleSumbit = async () => {
@@ -1528,7 +1530,7 @@ export function CheckoutPage() {
                             <div className="relative z-10">
                               <div className="flex items-center gap-2.5 mb-3">
                                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-zinc-800 rounded-xl shadow-sm border border-zinc-700 flex items-center justify-center text-amber-500">
-                                  <User size={16} sm:size={20} weight="bold" />
+                                  <User className="w-4 h-4 sm:w-5 sm:h-5" weight="bold" />
                                 </div>
                                 <div>
                                   <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-none mb-1">
