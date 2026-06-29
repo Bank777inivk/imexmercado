@@ -13,7 +13,9 @@ import {
   ChatText,
   List,
   Envelope,
+  ShieldCheck,
 } from "@phosphor-icons/react";
+import { useAuth } from "@imexmercado/firebase";
 
 const adminMenu = [
   { label: "Tableau de bord", path: "/", icon: Layout },
@@ -34,6 +36,8 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const location = useLocation();
+  const { profile } = useAuth();
+  const isSuperAdmin = profile?.role === "superadmin";
 
   return (
     <>
@@ -98,6 +102,37 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
               )}
             </Link>
           ))}
+
+          {isSuperAdmin && (
+            <Link
+              to="/admins"
+              onClick={() => onClose()}
+              className={`flex items-center justify-between py-2.5 px-3.5 rounded-xl transition-all group ${
+                location.pathname === "/admins"
+                  ? "bg-primary shadow-xl shadow-primary/20"
+                  : "hover:bg-black/5"
+              }`}
+              style={{
+                color:
+                  location.pathname === "/admins"
+                    ? "var(--admin-sidebar-active-text, #FFFFFF)"
+                    : "var(--admin-sidebar-text, #6B7280)",
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <ShieldCheck
+                  size={20}
+                  weight={location.pathname === "/admins" ? "fill" : "bold"}
+                />
+                <span className="text-sm font-bold tracking-tight">
+                  Gestion des Admins
+                </span>
+              </div>
+              {location.pathname === "/admins" && (
+                <CaretRight size={14} weight="bold" />
+              )}
+            </Link>
+          )}
         </nav>
 
         <div

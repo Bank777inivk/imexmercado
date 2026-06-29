@@ -56,7 +56,12 @@ export const useAuth = () => {
     };
   }, []);
 
-  return { user, profile, isAdmin: profile?.role === "admin", loading };
+  return {
+    user,
+    profile,
+    isAdmin: profile?.role === "admin" || profile?.role === "superadmin",
+    loading,
+  };
 };
 
 export const logout = () => signOut(auth);
