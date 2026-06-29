@@ -128,7 +128,15 @@ export function AdminsView() {
       setIsModalOpen(false);
     } catch (error: any) {
       console.error("Erreur lors de la création de l'admin :", error);
-      setCreateError(error.message || "Erreur de création de compte.");
+      if (error.code === "auth/email-already-in-use" || error.message?.includes("email-already-in-use")) {
+        setCreateError("Cette adresse e-mail est déjà utilisée par un autre compte.");
+      } else if (error.code === "auth/weak-password" || error.message?.includes("weak-password")) {
+        setCreateError("Le mot de passe doit comporter au moins 6 caractères.");
+      } else if (error.code === "auth/invalid-email" || error.message?.includes("invalid-email")) {
+        setCreateError("L'adresse e-mail saisie n'est pas valide.");
+      } else {
+        setCreateError(error.message || "Erreur lors de la création de l'administrateur.");
+      }
     } finally {
       if (secondaryApp) {
         try {
