@@ -2,25 +2,33 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper pour vérifier si l'utilisateur est admin
+    // Helper pour vérifier si l'utilisateur est admin (admin ou superadmin)
     function isAdmin() {
       return request.auth != null && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin');
+    }
+
+    // Helper pour vérifier si l'utilisateur est superadmin
+    function isSuperAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
     }
 
     // Profils utilisateurs : Propriétaire ou Admin
     match /users/{userId} {
       allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
       
-      // Seul un Admin peut changer un rôle. Un utilisateur peut créer son profil mais sans rôle admin.
+      // Un utilisateur peut créer son profil mais sans rôle admin/superadmin.
       allow create: if request.auth != null && request.auth.uid == userId 
-        && (!request.resource.data.keys().hasAny(['role']) || request.resource.data.role != 'admin');
+        && (!request.resource.data.keys().hasAny(['role']) || (request.resource.data.role != 'admin' && request.resource.data.role != 'superadmin'));
         
-      // Un utilisateur peut modifier son profil mais pas son propre rôle.
+      // Un utilisateur ou admin peut modifier un profil sans toucher au rôle. Seul un Super Admin peut modifier un rôle.
       allow update: if request.auth != null && (
-        isAdmin() || 
-        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
+        isSuperAdmin() || 
+        ((request.auth.uid == userId || isAdmin()) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
       );
       
       allow delete: if isAdmin();
