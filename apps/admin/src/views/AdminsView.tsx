@@ -20,6 +20,8 @@ import {
   UserGear,
   Plus,
   X,
+  Eye,
+  EyeSlash,
 } from "@phosphor-icons/react";
 
 export function AdminsView() {
@@ -36,6 +38,7 @@ export function AdminsView() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [newRole, setNewRole] = useState("admin");
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -120,6 +123,7 @@ export function AdminsView() {
       setLastName("");
       setEmail("");
       setPassword("");
+      setShowPassword(false);
       setNewRole("admin");
       setIsModalOpen(false);
     } catch (error: any) {
@@ -389,15 +393,28 @@ export function AdminsView() {
                 <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">
                   Mot de passe
                 </label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Au moins 6 caractères"
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl text-sm font-medium outline-none transition-all"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Au moins 6 caractères"
+                    className="w-full pl-4 pr-12 py-2.5 bg-white border border-gray-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl text-sm font-medium outline-none transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900 transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeSlash size={16} weight="bold" />
+                    ) : (
+                      <Eye size={16} weight="bold" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-1">

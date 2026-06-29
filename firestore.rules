@@ -21,9 +21,11 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
       
-      // Un utilisateur peut créer son profil mais sans rôle admin/superadmin.
-      allow create: if request.auth != null && request.auth.uid == userId 
-        && (!request.resource.data.keys().hasAny(['role']) || (request.resource.data.role != 'admin' && request.resource.data.role != 'superadmin'));
+      // Un utilisateur peut créer son profil sans rôle admin/superadmin, ou un administrateur peut le faire.
+      allow create: if request.auth != null && (
+        (request.auth.uid == userId && (!request.resource.data.keys().hasAny(['role']) || (request.resource.data.role != 'admin' && request.resource.data.role != 'superadmin')))
+        || isAdmin()
+      );
         
       // Un utilisateur ou admin peut modifier un profil sans toucher au rôle. Seul un Super Admin peut modifier un rôle.
       allow update: if request.auth != null && (
