@@ -1,17 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth, subscribeToCollection, updateDocument } from "@imexmercado/firebase";
+import { initializeApp, deleteApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  useAuth,
+  subscribeToCollection,
+  updateDocument,
+  app,
+  setDocument,
+} from "@imexmercado/firebase";
 import {
   Users,
   MagnifyingGlass,
   Funnel,
   UserCircle,
   CalendarBlank,
-  IdentificationBadge,
   ArrowClockwise,
   ShieldCheck,
   UserGear,
-  CheckCircle,
+  Plus,
+  X,
 } from "@phosphor-icons/react";
 
 export function AdminsView() {
@@ -21,6 +29,16 @@ export function AdminsView() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "superadmin" | "admin" | "customer">("all");
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+
+  // Modal creation states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [newRole, setNewRole] = useState("admin");
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -68,8 +86,59 @@ export function AdminsView() {
     }
   };
 
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreating(true);
+    setCreateError(null);
+
+    // Using unique secondary app instance name to avoid clash
+    const secondaryAppName = `AdminCreator_${Date.now()}`;
+    let secondaryApp;
+
+    try {
+      secondaryApp = initializeApp(app.options, secondaryAppName);
+      const secondaryAuth = getAuth(secondaryApp);
+
+      const userCredential = await createUserWithEmailAndPassword(
+        secondaryAuth,
+        email,
+        password
+      );
+
+      // Create the document profile in firestore
+      await setDocument("users", userCredential.user.uid, {
+        id: userCredential.user.uid,
+        firstName,
+        lastName,
+        email,
+        role: newRole,
+        createdAt: new Date().toISOString(),
+      });
+
+      // Clear states and close modal
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setPassword("");
+      setNewRole("admin");
+      setIsModalOpen(false);
+    } catch (error: any) {
+      console.error("Erreur lors de la création de l'admin :", error);
+      setCreateError(error.message || "Erreur de création de compte.");
+    } finally {
+      if (secondaryApp) {
+        try {
+          await deleteApp(secondaryApp);
+        } catch (e) {
+          console.error("Erreur lors de la suppression de l'instance secondaire :", e);
+        }
+      }
+      setIsCreating(false);
+    }
+  };
+
   return (
-    <div className="space-y-6 md:space-y-10">
+    <div className="space-y-6 md:space-y-10 relative">
       {/* Header Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="text-left">
@@ -91,6 +160,17 @@ export function AdminsView() {
               size={20}
               className={loading ? "animate-spin" : ""}
             />
+          </button>
+
+          <button
+            onClick={() => {
+              setCreateError(null);
+              setIsModalOpen(true);
+            }}
+            className="bg-primary hover:bg-primary-dark text-white px-5 py-4 rounded-2xl border border-transparent flex items-center gap-2 shadow-lg shadow-primary/10 font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all"
+          >
+            <Plus size={16} weight="bold" />
+            Créer un admin
           </button>
 
           <div className="bg-primary/5 text-primary px-6 py-4 rounded-2xl border border-primary/10 flex items-center gap-2 shadow-sm">
@@ -225,8 +305,9 @@ export function AdminsView() {
                         <div className="flex items-center justify-end gap-1.5">
                           <select
                             value={user.role || "customer"}
+                            disabled={user.id === currentProfile.id} // Prevents superadmin from demoting themselves accidentally
                             onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                            className="bg-white border border-gray-200 focus:border-primary/50 focus:ring-2 focus:ring-primary/5 px-2 py-1.5 rounded-xl text-xs font-bold outline-none cursor-pointer"
+                            className="bg-white border border-gray-200 focus:border-primary/50 focus:ring-2 focus:ring-primary/5 px-2 py-1.5 rounded-xl text-xs font-bold outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <option value="customer">Client (customer)</option>
                             <option value="admin">Administrateur (admin)</option>
@@ -242,6 +323,114 @@ export function AdminsView() {
           </div>
         )}
       </div>
+
+      {/* Creation Modal Overlay */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-2xl max-w-md w-full p-6 space-y-4 relative z-[110] text-left">
+            <div className="flex items-center justify-between border-b border-gray-50 pb-3">
+              <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+                <UserGear size={22} className="text-primary" />
+                Créer un administrateur
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors"
+              >
+                <X size={16} weight="bold" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateAdmin} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">
+                    Prénom
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Prénom"
+                    className="w-full px-4 py-2.5 bg-white border border-gray-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl text-sm font-medium outline-none transition-all"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">
+                    Nom
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Nom"
+                    className="w-full px-4 py-2.5 bg-white border border-gray-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl text-sm font-medium outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">
+                  Adresse e-mail
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nom@exemple.com"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl text-sm font-medium outline-none transition-all"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">
+                  Mot de passe
+                </label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Au moins 6 caractères"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl text-sm font-medium outline-none transition-all"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 ml-1">
+                  Rôle de l'utilisateur
+                </label>
+                <select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl text-sm font-medium outline-none cursor-pointer transition-all"
+                >
+                  <option value="admin">Administrateur (admin)</option>
+                  <option value="superadmin">Super Admin (superadmin)</option>
+                </select>
+              </div>
+
+              {createError && (
+                <p className="text-[11px] font-bold text-red-500 bg-red-50 border border-red-100 px-3 py-2 rounded-xl">
+                  {createError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={isCreating}
+                className="w-full bg-primary hover:bg-primary-dark text-white font-black uppercase tracking-widest py-3.5 rounded-xl shadow-lg shadow-primary/10 active:scale-95 transition-all text-[11px] flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isCreating ? "Création en cours..." : "Créer le compte"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
