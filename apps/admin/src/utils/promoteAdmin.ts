@@ -29,6 +29,26 @@ export async function promoteCurrentUser() {
   }
 }
 
+export async function promoteSuperAdmin() {
+  const user = auth.currentUser;
+  if (!user) {
+    console.error("Aucun utilisateur n'est actuellement connecté.");
+    return;
+  }
+
+  try {
+    const profile = await getDocument("users", user.uid);
+    await setDocument("users", user.uid, {
+      ...profile,
+      role: "superadmin",
+    });
+    console.log("Promotion réussie ! Vous êtes maintenant Super Administrateur.");
+    window.location.reload();
+  } catch (error) {
+    console.error("Erreur lors de la promotion :", error);
+  }
+}
+
 /**
  * Utility to seed sample orders.
  */
@@ -47,5 +67,6 @@ export async function seedDatabase() {
 // Attach to window for easy console access
 if (typeof window !== "undefined") {
   (window as any).promoteMe = promoteCurrentUser;
+  (window as any).promoteSuper = promoteSuperAdmin;
   (window as any).seedDatabase = seedDatabase;
 }
