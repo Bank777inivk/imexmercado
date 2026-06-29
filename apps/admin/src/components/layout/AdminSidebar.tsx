@@ -50,7 +50,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         style={{ backgroundColor: "var(--admin-sidebar-bg, #FFFFFF)" }}
         className={`fixed inset-y-0 left-0 w-[280px] border-r border-gray-100 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"} lg:relative lg:translate-x-0`}
       >
-        <div className="p-8 border-b border-gray-50 flex items-center justify-between">
+        <div className="py-4 px-6 border-b border-gray-50 flex items-center justify-between">
           <Link
             to="/"
             className="font-black text-2xl tracking-tight"
@@ -66,13 +66,13 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           </button>
         </div>
 
-        <nav className="flex-grow p-4 mt-4 space-y-2 overflow-y-auto">
+        <nav className="flex-grow px-3 py-2 mt-2 space-y-1 overflow-y-auto">
           {adminMenu.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               onClick={() => onClose()}
-              className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${
+              className={`flex items-center justify-between py-2.5 px-3.5 rounded-xl transition-all group ${
                 location.pathname === item.path
                   ? "bg-primary shadow-xl shadow-primary/20"
                   : "hover:bg-black/5"
@@ -86,7 +86,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             >
               <div className="flex items-center gap-3">
                 <item.icon
-                  size={22}
+                  size={20}
                   weight={location.pathname === item.path ? "fill" : "bold"}
                 />
                 <span className="text-sm font-bold tracking-tight">
@@ -101,16 +101,16 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         </nav>
 
         <div
-          className="p-6 border-t"
+          className="p-4 border-t"
           style={{ borderColor: "rgba(128,128,128,0.1)" }}
         >
           <div
-            className="p-4 rounded-2xl flex items-center gap-3"
+            className="py-2.5 px-3 rounded-xl flex items-center gap-2.5"
             style={{
               backgroundColor: "var(--admin-card-bg, rgba(128,128,128,0.08))",
             }}
           >
-            <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-white font-bold text-xs">
+            <div className="w-9 h-9 bg-gray-900 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0">
               AD
             </div>
             <div className="overflow-hidden">
